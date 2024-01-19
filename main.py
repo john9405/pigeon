@@ -5,6 +5,7 @@ import os
 import threading
 import xml.dom.minidom
 from io import BytesIO
+import tkinter as tk
 from tkinter import *
 from tkinter import filedialog, messagebox, ttk
 
@@ -22,19 +23,50 @@ class CollectionWindow(object):
         self.callback = callback
 
         frame = Frame(window)
-        new_collection = Button(frame, text="New Collection")
+        new_collection = Button(frame, text="New Collection", command=self.new_col)
         new_collection.pack(side=LEFT, padx=10, pady=10)
         new_request = Button(frame, command=self.on_new, text="New request")
         new_request.pack(side=LEFT, padx=10, pady=10)
         frame.pack()
+        self.tree = ttk.Treeview(window)
+   
+        # 添加根节点  
+        root_node = self.tree.insert("", "end", text="Root", open=True, tags="collection")  
+    
+        # 添加子节点  
+        child1 = self.tree.insert(root_node, "end", text="Child 1", open=True, tags="collection")  
+        child2 = self.tree.insert(root_node, "end", text="Child 2", open=True, tags="collection")  
+    
+        # 添加孙子节点  
+        grandchild1 = self.tree.insert(child1, "end", text="Grandchild 1", tags="request")  
+        grandchild2 = self.tree.insert(child2, "end", text="Grandchild 2", tags="request")  
+        
+        self.tree.pack(fill=BOTH)
+        
 
     def on_select(self):
         
         return None
 
+    def new_col(self):
+        try:
+            if self.tree.item(self.tree.selection()[0])['tags'][0] == "collection":
+                selected_node = self.tree.selection()[0]
+            else:
+                selected_node = self.tree.parent(self.tree.selection()[0])
+        except IndexError:
+            selected_node = self.tree.get_children("")[0]
+        self.tree.insert(selected_node, "end", text="new col", tags="collection")
+
     def on_new(self):
-        
-        self.callback("new")
+        try:
+            if self.tree.item(self.tree.selection()[0])['tags'][0] == "collection":
+                selected_node = self.tree.selection()[0]
+            else:
+                selected_node = self.tree.parent(self.tree.selection()[0])
+        except IndexError:
+            selected_node = self.tree.get_children("")[0]
+        self.tree.insert(selected_node, "end", text="new request", tags="request")
 
     def on_delete(self):
         
@@ -533,7 +565,9 @@ class MainWindow(object):
 
         self.notebook = ttk.Notebook(pw2)
         pw2.add(self.notebook)
-
+        # self.col_top = ttk.Frame(pw2)
+        # pw2.add(self.col_top)
+        # self.col_win = CollectionWindow(self.col_top)
         console_top = ttk.Frame(pw1)
         pw1.add(console_top)
         self.console_window = ConsoleWindow(console_top)
