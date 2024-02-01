@@ -20,44 +20,69 @@ class CollectionWindow(object):
         self.callback = callback
 
         frame = ttk.Frame(window)
+        ob = ttk.Button(frame, text="open", command=self.open_proj)
+        ob.pack(side="left", padx=10, pady=10)
         new_collection = ttk.Button(frame, text="New Collection", command=self.new_col)
         new_collection.pack(side="left", padx=10, pady=10)
         new_request = ttk.Button(frame, command=self.on_new, text="New request")
         new_request.pack(side="left", padx=10, pady=10)
         frame.pack()
         self.tree = ttk.Treeview(window)
-   
-        # 添加根节点  
-        root_node = self.tree.insert("", "end", text="Root", open=True, tags="collection")
+        self.tree.pack()
+        self.tree.bind("<Double-1>", self.on_select)
     
-        # 添加子节点  
-        child1 = self.tree.insert(root_node, "end", text="Child 1", open=True, tags="collection")
-        child2 = self.tree.insert(root_node, "end", text="Child 2", open=True, tags="collection")
-    
-        # 添加孙子节点  
-        grandchild1 = self.tree.insert(child1, "end", text="Grandchild 1", tags="request")
-        grandchild2 = self.tree.insert(child2, "end", text="Grandchild 2", tags="request")
-        
-        self.tree.pack(fill='both')
-        
+    def open_proj(self):
+        filepath = filedialog.askopenfilename(filetypes=(("Json files", "*.json"),))
+        if filepath:
+            with open(filepath, "r", encoding="utf-8") as f:
+                try:
+                    data = json.loads(f.read())
+                    self.show_proj(data)
+                except json.JSONDecodeError:
+                    messagebox.showerror("错误", "文本内容必须是一个json")
 
-    def on_select(self):
-        
-        return None
+    def show_proj(self, data):
+        temp = {}
+        for key in data.keys():
+            if key != "item": 
+                temp.update({key: data[key]})
+        node = self.tree.insert("", "end", text=data['info']['name'], values=[json.dumps(temp)], open=True, tags="project")
+        self.show_item(node, data['item'])
 
+    def show_item(self, node, items):
+        for item in items:
+            if "item" in item:
+                temp = {}
+                for key in item.keys():
+                    if key != "item":
+                        temp.update({key: item[key]})
+                cnode = self.tree.insert(node, "end", text=item['name'], values=[json.dumps(temp)], open=False, tags="folder")
+                if len(item['item']) > 0:
+                    self.show_item(cnode, item['item'])
+            else:
+                self.tree.insert(node, "end", text=item['name'], values=[json.dumps(item)], tags="request")
+
+    def on_select(self, event):
+        item = self.tree.item(self.tree.selection()[0])
+        ctag = item['tags'][0]
+        values = json.loads(item['values'][0])
+        self.callback(values, ctag, "newitem")
+        
     def new_col(self):
         try:
-            if self.tree.item(self.tree.selection()[0])['tags'][0] == "collection":
+            ctag = self.tree.item(self.tree.selection()[0])['tags'][0]
+            if ctag in ("folder", "project"):
                 selected_node = self.tree.selection()[0]
             else:
                 selected_node = self.tree.parent(self.tree.selection()[0])
         except IndexError:
             selected_node = self.tree.get_children("")[0]
-        self.tree.insert(selected_node, "end", text="new col", tags="collection")
+        self.tree.insert(selected_node, "end", text="new collection", tags="folder")
 
     def on_new(self):
         try:
-            if self.tree.item(self.tree.selection()[0])['tags'][0] == "collection":
+            ctag = self.tree.item(self.tree.selection()[0])['tags'][0]
+            if ctag in ("folder", 'project'):
                 selected_node = self.tree.selection()[0]
             else:
                 selected_node = self.tree.parent(self.tree.selection()[0])
@@ -214,8 +239,7 @@ class RequestWindow(object):
         res_cookie_scrollbar_y.pack(side="right", fill=tk.Y, pady=(0, res_cookie_scrollbar_x.winfo_reqheight()))
         res_cookie_scrollbar_x.pack(side="bottom", fill=tk.X)
         self.res_cookie_table.pack(side="left", fill=tk.BOTH, expand=tk.YES)
-        self.res_cookie_table.config(xscrollcommand=res_cookie_scrollbar_x.set,
-                                     yscrollcommand=res_cookie_scrollbar_y.set)
+        self.res_cookie_table.config(xscrollcommand=res_cookie_scrollbar_x.set, yscrollcommand=res_cookie_scrollbar_y.set)
         res_note.add(res_cookie_frame, text="Cookies")
 
         res_header_frame = ttk.Frame(res_note)
@@ -228,8 +252,7 @@ class RequestWindow(object):
         res_header_scrollbar_y.pack(side="right", fill=tk.Y, pady=(0, res_header_scrollbar_x.winfo_reqheight()))
         res_header_scrollbar_x.pack(side="bottom", fill=tk.X)
         self.res_header_table.pack(side="left", fill=tk.BOTH, expand=tk.YES)
-        self.res_header_table.config(xscrollcommand=res_header_scrollbar_x.set,
-                                     yscrollcommand=res_header_scrollbar_y.set)
+        self.res_header_table.config(xscrollcommand=res_header_scrollbar_x.set, yscrollcommand=res_header_scrollbar_y.set)
         res_note.add(res_header_frame, text="Headers")
 
         res_tests_frame = ttk.Frame(res_note)
@@ -562,9 +585,11 @@ class MainWindow(object):
 
         self.notebook = ttk.Notebook(pw2)
         pw2.add(self.notebook)
-        # self.col_top = ttk.Frame(pw2)
-        # pw2.add(self.col_top)
-        # self.col_win = CollectionWindow(self.col_top)
+
+        self.col_top = ttk.Frame(pw2)
+        pw2.add(self.col_top)
+        self.col_win = CollectionWindow(self.col_top)
+
         console_top = ttk.Frame(pw1)
         pw1.add(console_top)
         self.console_window = ConsoleWindow(console_top)
