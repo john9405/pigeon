@@ -1,19 +1,16 @@
-
-#!/usr/bin/python3
 import json
 import os
 import threading
 import xml.dom.minidom
 from io import BytesIO
 import tkinter as tk
-from tkinter import *
 from tkinter import filedialog, messagebox, ttk
 
 import requests
 from bs4 import BeautifulSoup
 from PIL import Image, ImageTk
 
-BASE_DIR = os.path.join(os.path.expanduser("~"), "httpClient")
+BASE_DIR = os.path.join(os.path.expanduser("~"), "apitest")
 
 
 class CollectionWindow(object):
@@ -22,26 +19,26 @@ class CollectionWindow(object):
         self.window = window
         self.callback = callback
 
-        frame = Frame(window)
-        new_collection = Button(frame, text="New Collection", command=self.new_col)
-        new_collection.pack(side=LEFT, padx=10, pady=10)
-        new_request = Button(frame, command=self.on_new, text="New request")
-        new_request.pack(side=LEFT, padx=10, pady=10)
+        frame = ttk.Frame(window)
+        new_collection = ttk.Button(frame, text="New Collection", command=self.new_col)
+        new_collection.pack(side="left", padx=10, pady=10)
+        new_request = ttk.Button(frame, command=self.on_new, text="New request")
+        new_request.pack(side="left", padx=10, pady=10)
         frame.pack()
         self.tree = ttk.Treeview(window)
    
         # 添加根节点  
-        root_node = self.tree.insert("", "end", text="Root", open=True, tags="collection")  
+        root_node = self.tree.insert("", "end", text="Root", open=True, tags="collection")
     
         # 添加子节点  
-        child1 = self.tree.insert(root_node, "end", text="Child 1", open=True, tags="collection")  
-        child2 = self.tree.insert(root_node, "end", text="Child 2", open=True, tags="collection")  
+        child1 = self.tree.insert(root_node, "end", text="Child 1", open=True, tags="collection")
+        child2 = self.tree.insert(root_node, "end", text="Child 2", open=True, tags="collection")
     
         # 添加孙子节点  
-        grandchild1 = self.tree.insert(child1, "end", text="Grandchild 1", tags="request")  
-        grandchild2 = self.tree.insert(child2, "end", text="Grandchild 2", tags="request")  
+        grandchild1 = self.tree.insert(child1, "end", text="Grandchild 1", tags="request")
+        grandchild2 = self.tree.insert(child2, "end", text="Grandchild 2", tags="request")
         
-        self.tree.pack(fill=BOTH)
+        self.tree.pack(fill='both')
         
 
     def on_select(self):
@@ -138,8 +135,8 @@ class RequestWindow(object):
         north.pack()
 
         # 创建一个PanedWindow
-        paned_window = ttk.PanedWindow(window, orient=VERTICAL)
-        paned_window.pack(fill=BOTH, expand=True)
+        paned_window = ttk.PanedWindow(window, orient=tk.VERTICAL)
+        paned_window.pack(fill=tk.BOTH, expand=True)
 
         # 创建选项卡
         notebook = ttk.Notebook(paned_window)
@@ -147,51 +144,51 @@ class RequestWindow(object):
         
         # 创建查询参数页面
         params_frame = ttk.Frame(notebook)
-        self.params_box = Text(params_frame, height=12)
-        self.params_box.insert(END, "{}")
-        self.params_box.pack(side=LEFT, fill=BOTH, expand=YES)
+        self.params_box = tk.Text(params_frame, height=12)
+        self.params_box.insert(tk.END, "{}")
+        self.params_box.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.YES)
         params_scrollbar = ttk.Scrollbar(params_frame, command=self.params_box.yview)
-        params_scrollbar.pack(side=LEFT, fill=Y)
+        params_scrollbar.pack(side=tk.LEFT, fill=tk.Y)
         self.params_box.config(yscrollcommand=params_scrollbar.set)
         notebook.add(params_frame, text="Params")
 
         # 创建请求头页面
         headers_frame = ttk.Frame(notebook)
-        self.headers_box = Text(headers_frame, height=12)
-        self.headers_box.insert(END, "{}")
-        self.headers_box.pack(side=LEFT, fill=BOTH, expand=YES)
+        self.headers_box = tk.Text(headers_frame, height=12)
+        self.headers_box.insert(tk.END, "{}")
+        self.headers_box.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.YES)
         headers_scrollbar = ttk.Scrollbar(headers_frame, command=self.headers_box.yview)
-        headers_scrollbar.pack(side=LEFT, fill=Y)
+        headers_scrollbar.pack(side=tk.LEFT, fill=tk.Y)
         self.headers_box.config(yscrollcommand=headers_scrollbar.set)
         notebook.add(headers_frame, text="Headers")
 
         # 创建请求体页面
         body_frame = ttk.Frame(notebook)
-        self.body_box = Text(body_frame, height=12)
-        self.body_box.insert(END, "{}")
-        self.body_box.pack(side=LEFT, fill=BOTH, expand=YES)
+        self.body_box = tk.Text(body_frame, height=12)
+        self.body_box.insert(tk.END, "{}")
+        self.body_box.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.YES)
         body_scrollbar = ttk.Scrollbar(body_frame, command=self.body_box.yview)
-        body_scrollbar.pack(side=LEFT, fill=Y)
+        body_scrollbar.pack(side=tk.LEFT, fill=tk.Y)
         self.body_box.config(yscrollcommand=body_scrollbar.set)
         notebook.add(body_frame, text='Body')
 
         # pre-request script
         script_frame = ttk.Frame(notebook)
-        self.script_box = Text(script_frame, height=12)
-        self.script_box.insert(END, "")
-        self.script_box.pack(side=LEFT, fill=BOTH, expand=YES)
+        self.script_box = tk.Text(script_frame, height=12)
+        self.script_box.insert(tk.END, "")
+        self.script_box.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.YES)
         script_scrollbar = ttk.Scrollbar(script_frame, command=self.script_box.yview)
-        script_scrollbar.pack(side=LEFT, fill=Y)
+        script_scrollbar.pack(side=tk.LEFT, fill=tk.Y)
         self.script_box.config(yscrollcommand=script_scrollbar.set)
         notebook.add(script_frame, text="Pre-request Script")
 
         # tests
         tests_frame = ttk.Frame(notebook)
-        self.tests_box = Text(tests_frame, height=12)
-        self.tests_box.insert(END, "")
-        self.tests_box.pack(side=LEFT, fill=BOTH, expand=YES)
+        self.tests_box = tk.Text(tests_frame, height=12)
+        self.tests_box.insert(tk.END, "")
+        self.tests_box.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.YES)
         tests_scrollbar = ttk.Scrollbar(tests_frame, command=self.tests_box.yview)
-        tests_scrollbar.pack(side=LEFT, fill=Y)
+        tests_scrollbar.pack(side=tk.LEFT, fill=tk.Y)
         self.tests_box.config(yscrollcommand=tests_scrollbar.set)
         notebook.add(tests_frame, text="Tests")
 
@@ -200,23 +197,23 @@ class RequestWindow(object):
         paned_window.add(res_note)
 
         res_body_frame = ttk.Frame(res_note)
-        self.res_body_box = Text(res_body_frame, height=12)
-        self.res_body_box.pack(side=LEFT, fill=BOTH, expand=YES)
+        self.res_body_box = tk.Text(res_body_frame, height=12)
+        self.res_body_box.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.YES)
         res_body_scrollbar = ttk.Scrollbar(res_body_frame, command=self.res_body_box.yview)
-        res_body_scrollbar.pack(side=LEFT, fill=Y)
+        res_body_scrollbar.pack(side=tk.LEFT, fill=tk.Y)
         self.res_body_box.config(yscrollcommand=res_body_scrollbar.set)
         res_note.add(res_body_frame, text="Body")
 
         res_cookie_frame = ttk.Frame(res_note)
         self.res_cookie_table = ttk.Treeview(res_cookie_frame, columns=("key", "value"), show="headings", height=6)
-        res_cookie_scrollbar_x = ttk.Scrollbar(res_cookie_frame, orient=HORIZONTAL, command=self.res_cookie_table.xview)
+        res_cookie_scrollbar_x = ttk.Scrollbar(res_cookie_frame, orient=tk.HORIZONTAL, command=self.res_cookie_table.xview)
         res_cookie_scrollbar_y = ttk.Scrollbar(res_cookie_frame, command=self.res_cookie_table.yview)
         self.res_cookie_table.column("key", width=1)
         self.res_cookie_table.heading("key", text="key")
         self.res_cookie_table.heading("value", text="value")
-        res_cookie_scrollbar_y.pack(side="right", fill=Y, pady=(0, res_cookie_scrollbar_x.winfo_reqheight()))
-        res_cookie_scrollbar_x.pack(side="bottom", fill=X)
-        self.res_cookie_table.pack(side="left", fill=BOTH, expand=YES)
+        res_cookie_scrollbar_y.pack(side="right", fill=tk.Y, pady=(0, res_cookie_scrollbar_x.winfo_reqheight()))
+        res_cookie_scrollbar_x.pack(side="bottom", fill=tk.X)
+        self.res_cookie_table.pack(side="left", fill=tk.BOTH, expand=tk.YES)
         self.res_cookie_table.config(xscrollcommand=res_cookie_scrollbar_x.set,
                                      yscrollcommand=res_cookie_scrollbar_y.set)
         res_note.add(res_cookie_frame, text="Cookies")
@@ -226,20 +223,20 @@ class RequestWindow(object):
         self.res_header_table.column("key", width=1)
         self.res_header_table.heading("key", text="key")
         self.res_header_table.heading("value", text="value")
-        res_header_scrollbar_x = ttk.Scrollbar(res_header_frame, orient=HORIZONTAL, command=self.res_header_table.xview)
+        res_header_scrollbar_x = ttk.Scrollbar(res_header_frame, orient=tk.HORIZONTAL, command=self.res_header_table.xview)
         res_header_scrollbar_y = ttk.Scrollbar(res_header_frame, command=self.res_header_table.yview)
-        res_header_scrollbar_y.pack(side="right", fill=Y, pady=(0, res_header_scrollbar_x.winfo_reqheight()))
-        res_header_scrollbar_x.pack(side="bottom", fill=X)
-        self.res_header_table.pack(side="left", fill=BOTH, expand=YES)
+        res_header_scrollbar_y.pack(side="right", fill=tk.Y, pady=(0, res_header_scrollbar_x.winfo_reqheight()))
+        res_header_scrollbar_x.pack(side="bottom", fill=tk.X)
+        self.res_header_table.pack(side="left", fill=tk.BOTH, expand=tk.YES)
         self.res_header_table.config(xscrollcommand=res_header_scrollbar_x.set,
                                      yscrollcommand=res_header_scrollbar_y.set)
         res_note.add(res_header_frame, text="Headers")
 
         res_tests_frame = ttk.Frame(res_note)
-        self.res_tests_box = Text(res_tests_frame, height=12)
-        self.res_tests_box.pack(side=LEFT, fill=BOTH, expand=YES)
+        self.res_tests_box = tk.Text(res_tests_frame, height=12)
+        self.res_tests_box.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.YES)
         res_tests_scrollbar = ttk.Scrollbar(res_tests_frame, command=self.res_tests_box.yview)
-        res_tests_scrollbar.pack(side=LEFT, fill=Y)
+        res_tests_scrollbar.pack(side=tk.LEFT, fill=tk.Y)
         self.res_tests_box.config(yscrollcommand=res_tests_scrollbar.set)
         res_note.add(res_tests_frame, text="Test Results")
 
@@ -253,11 +250,11 @@ class RequestWindow(object):
         """
         method = self.method_box.get()
         url = self.url_box.get()
-        params = self.params_box.get("1.0", END)
-        headers = self.headers_box.get("1.0", END)
-        body = self.body_box.get("1.0", END)
-        pre_request_script = self.script_box.get("1.0", END)
-        tests = self.tests_box.get("1.0", END)
+        params = self.params_box.get("1.0", tk.END)
+        headers = self.headers_box.get("1.0", tk.END)
+        body = self.body_box.get("1.0", tk.END)
+        pre_request_script = self.script_box.get("1.0", tk.END)
+        tests = self.tests_box.get("1.0", tk.END)
 
         try:
             params = json.loads(params)
@@ -292,18 +289,18 @@ class RequestWindow(object):
     def fill_blank(self, data):
         method = data.get("method", "GET")
         self.method_box.current(self.method_list.index(method))
-        self.url_box.delete(0, END)
-        self.url_box.insert(END, data.get("url", ""))
-        self.params_box.delete("1.0", END)
-        self.params_box.insert(END, json.dumps(data.get("params", {}), ensure_ascii=False, indent=4))
-        self.headers_box.delete("1.0", END)
-        self.headers_box.insert(END, json.dumps(data.get("headers", {}), ensure_ascii=False, indent=4))
-        self.body_box.delete("1.0", END)
-        self.body_box.insert(END, json.dumps(data.get("body", {}), ensure_ascii=False, indent=4))
-        self.script_box.delete("1.0", END)
-        self.script_box.insert(END, data.get("pre_request_script", ""))
-        self.tests_box.delete("1.0", END)
-        self.tests_box.insert(END, data.get("tests", ""))
+        self.url_box.delete(0, tk.END)
+        self.url_box.insert(tk.END, data.get("url", ""))
+        self.params_box.delete("1.0", tk.END)
+        self.params_box.insert(tk.END, json.dumps(data.get("params", {}), ensure_ascii=False, indent=4))
+        self.headers_box.delete("1.0", tk.END)
+        self.headers_box.insert(tk.END, json.dumps(data.get("headers", {}), ensure_ascii=False, indent=4))
+        self.body_box.delete("1.0", tk.END)
+        self.body_box.insert(tk.END, json.dumps(data.get("body", {}), ensure_ascii=False, indent=4))
+        self.script_box.delete("1.0", tk.END)
+        self.script_box.insert(tk.END, data.get("pre_request_script", ""))
+        self.tests_box.delete("1.0", tk.END)
+        self.tests_box.insert(tk.END, data.get("tests", ""))
 
     def send_request(self):
         """ 定义发送请求的函数 """
@@ -316,9 +313,9 @@ class RequestWindow(object):
             messagebox.showerror("错误", "请输出请求地址")
             return
         # 获取查询参数、请求头和请求体
-        params = self.params_box.get("1.0", END)
-        headers = self.headers_box.get("1.0", END)
-        body = self.body_box.get("1.0", END)
+        params = self.params_box.get("1.0", tk.END)
+        headers = self.headers_box.get("1.0", tk.END)
+        body = self.body_box.get("1.0", tk.END)
 
         try:
             params = json.loads(params)
@@ -333,8 +330,8 @@ class RequestWindow(object):
         except json.JSONDecodeError:
             body = {}
 
-        pre_request_script = self.script_box.get("1.0", END)
-        tests = self.tests_box.get("1.0", END)
+        pre_request_script = self.script_box.get("1.0", tk.END)
+        tests = self.tests_box.get("1.0", tk.END)
 
         try:
             exec(pre_request_script)
@@ -376,26 +373,26 @@ class RequestWindow(object):
                 content_type = response.headers.get(item)
             self.res_header_table.insert("", "end", values=(item, response.headers.get(item)))
 
-        self.res_body_box.delete("1.0", END)
+        self.res_body_box.delete("1.0", tk.END)
         if "application/json" in content_type:
-            self.res_body_box.insert(END, json.dumps(response.json(), indent=4, ensure_ascii=False))
+            self.res_body_box.insert(tk.END, json.dumps(response.json(), indent=4, ensure_ascii=False))
         elif "text/html" in content_type:
             response.encoding = 'utf-8'
             soup = BeautifulSoup(response.text, "html.parser")
-            self.res_body_box.insert(END, soup.prettify())
+            self.res_body_box.insert(tk.END, soup.prettify())
         elif "text/xml" in content_type or "application/xml" in content_type:
             response.encoding = 'utf-8'
             dom = xml.dom.minidom.parseString(response.text)
-            self.res_body_box.insert(END, dom.toprettyxml(indent="    "))
+            self.res_body_box.insert(tk.END, dom.toprettyxml(indent="    "))
         elif "image" in content_type:
             data_stream = BytesIO(response.content)
             pil_image = Image.open(data_stream)
             tk_image = ImageTk.PhotoImage(pil_image)
-            self.res_body_box.image_create(END, image=tk_image)
+            self.res_body_box.image_create(tk.END, image=tk_image)
         else:
-            self.res_body_box.insert(END, response.text)
+            self.res_body_box.insert(tk.END, response.text)
 
-        self.res_tests_box.delete("1.0", END)
+        self.res_tests_box.delete("1.0", tk.END)
         try:
             exec(tests)
         except Exception as error:
@@ -423,10 +420,10 @@ class ConsoleWindow(object):
     def __init__(self, window):
         self.window = window
         ttk.Label(window, text="Console").pack(anchor="nw", side="top")
-        self.text_box = Text(window, height=12)
+        self.text_box = tk.Text(window, height=12)
         scrollbar = ttk.Scrollbar(window, command=self.text_box.yview)
-        scrollbar.pack(side=RIGHT, fill=Y)
-        self.text_box.pack(side=LEFT, fill=BOTH, expand=YES)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self.text_box.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.YES)
         self.text_box.config(yscrollcommand=scrollbar.set)
 
     def show_window(self):
@@ -436,31 +433,31 @@ class ConsoleWindow(object):
         self.window.withdraw()  # 隐藏子窗口
 
     def log(self, data):
-        self.text_box.insert(END, data)
-        self.text_box.insert(END, "\n")
+        self.text_box.insert(tk.END, data)
+        self.text_box.insert(tk.END, "\n")
 
     def info(self, data):
-        self.text_box.insert(END, data)
-        self.text_box.insert(END, "\n")
+        self.text_box.insert(tk.END, data)
+        self.text_box.insert(tk.END, "\n")
 
     def warning(self, data):
-        self.text_box.insert(END, data)
+        self.text_box.insert(tk.END, data)
         line_start = self.text_box.index("insert linestart")
         line_end = self.text_box.index("insert lineend")
         self.text_box.tag_config('warning', foreground="orange")
         self.text_box.tag_add("warning", line_start, line_end)
-        self.text_box.insert(END, "\n")
+        self.text_box.insert(tk.END, "\n")
 
     def error(self, data):
-        self.text_box.insert(END, data)
+        self.text_box.insert(tk.END, data)
         line_start = self.text_box.index("insert linestart")
         line_end = self.text_box.index("insert lineend")
         self.text_box.tag_config("error", foreground="red")
         self.text_box.tag_add("error", line_start, line_end)
-        self.text_box.insert(END, "\n")
+        self.text_box.insert(tk.END, "\n")
 
     def clear(self):
-        self.text_box.delete("1.0", END)
+        self.text_box.delete("1.0", tk.END)
 
 
 class HistoryWindow(object):
@@ -471,14 +468,14 @@ class HistoryWindow(object):
         self.callback = callback
 
         ttk.Label(window, text="History").pack(anchor="nw")
-        self.history_box = Listbox(window)
+        self.history_box = tk.Listbox(window)
         scrollbar = ttk.Scrollbar(window, command=self.history_box.yview)
-        sbx = ttk.Scrollbar(window, command=self.history_box.xview, orient=HORIZONTAL)
-        scrollbar.pack(fill=Y, side=RIGHT, pady=(0, sbx.winfo_reqheight()))
-        sbx.pack(side=BOTTOM, fill=X)
-        self.history_box.pack(side=LEFT, fill=BOTH, expand=YES)
+        sbx = ttk.Scrollbar(window, command=self.history_box.xview, orient=tk.HORIZONTAL)
+        scrollbar.pack(fill=tk.Y, side=tk.RIGHT, pady=(0, sbx.winfo_reqheight()))
+        sbx.pack(side=tk.BOTTOM, fill=tk.X)
+        self.history_box.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.YES)
 
-        self.menu = Menu(window, tearoff=0)
+        self.menu = tk.Menu(window, tearoff=0)
         self.menu.add_command(label="Delete", command=self.on_delete)
         self.history_box.bind("<Double-Button-1>", self.on_select)
         self.history_box.bind("<Button-3>", self.popup_menu)
@@ -497,7 +494,7 @@ class HistoryWindow(object):
         self.history_box.insert(0, data)
 
     def clear(self):
-        self.history_box.delete(0, END)
+        self.history_box.delete(0, tk.END)
 
     def on_delete(self):
         selection = self.history_box.curselection()
@@ -517,23 +514,23 @@ class HistoryWindow(object):
             self.callback("select", **{"index": index})
 
 
-class AboutWindow(Toplevel):
+class AboutWindow(tk.Toplevel):
     """ 关于窗口 """
 
     def __init__(self):
         super().__init__()
 
-        label = Label(self, text="Http Client\n0.0.1")
+        label = ttk.Label(self, text="Http Client\n0.0.1")
         label.pack()
 
 
-class HelpWindow(Toplevel):
+class HelpWindow(tk.Toplevel):
     """ 帮助窗口 """
 
     def __init__(self):
         super().__init__()
 
-        label = Label(self, text="""
+        label = ttk.Label(self, text="""
 打印日志可以使用
 console.log()
 console.error()
@@ -547,16 +544,16 @@ class MainWindow(object):
     
     history_list = []  # 历史记录列表
 
-    def __init__(self, root):
-        self.root = root
+    def __init__(self, master):
+        self.root = master
         # 创建主窗口
-        root.title("HTTP Client")
-        root.after(0, self.on_start)
-        root.protocol("WM_DELETE_WINDOW", self.on_closing)
+        master.title("HTTP Client")
+        master.after(0, self.on_start)
+        master.protocol("WM_DELETE_WINDOW", self.on_closing)
 
-        pw1 = ttk.PanedWindow(root)
+        pw1 = ttk.PanedWindow(master)
         pw1.pack()
-        pw2 = ttk.PanedWindow(pw1, orient=HORIZONTAL)
+        pw2 = ttk.PanedWindow(pw1, orient=tk.HORIZONTAL)
         pw1.add(pw2)
 
         self.history_top = ttk.Frame(pw2)
@@ -573,20 +570,20 @@ class MainWindow(object):
         self.console_window = ConsoleWindow(console_top)
         self.new_request()
 
-        menu_bar = Menu(root)
-        file_menu = Menu(menu_bar, tearoff=0)
+        menu_bar = tk.Menu(master)
+        file_menu = tk.Menu(menu_bar, tearoff=0)
         menu_bar.add_cascade(label="File", menu=file_menu)
         file_menu.add_command(command=self.new_request, label="New Request")
         file_menu.add_command(command=self.open_handler, label="Import")
-        view_menu = Menu(menu_bar, tearoff=0)
+        view_menu = tk.Menu(menu_bar, tearoff=0)
         menu_bar.add_cascade(label="View", menu=view_menu)
         view_menu.add_command(command=self.history_window.on_clear, label="Clear History")
         view_menu.add_command(command=self.console_window.clear, label="Clear Console")
-        help_menu = Menu(menu_bar, tearoff=0)
+        help_menu = tk.Menu(menu_bar, tearoff=0)
         menu_bar.add_cascade(label="Help", menu=help_menu)
         help_menu.add_command(command=HelpWindow, label="Help")
         help_menu.add_command(command=AboutWindow, label="About")
-        root.config(menu=menu_bar)
+        master.config(menu=menu_bar)
 
     def open_handler(self):
         """ 打开文件 """
@@ -605,7 +602,7 @@ class MainWindow(object):
 
     def new_request(self, data=None):
         
-        tl = Frame(self.notebook)
+        tl = ttk.Frame(self.notebook)
         req_win = RequestWindow(tl, self.request)
         if data is not None:
             req_win.fill_blank(data)
@@ -697,7 +694,7 @@ if __name__ == '__main__':
     if not os.path.exists(BASE_DIR):
         os.mkdir(BASE_DIR)
 
-    tk = Tk()
-    MainWindow(tk)
+    mw = tk.Tk()
+    MainWindow(mw)
     # 进入消息循环
-    tk.mainloop()
+    mw.mainloop()
