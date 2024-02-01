@@ -19,20 +19,18 @@ class CollectionWindow(object):
         self.window = window
         self.callback = callback
 
-        frame = ttk.Frame(window)
-        ob = ttk.Button(frame, text="open", command=self.open_proj)
-        ob.pack(side="left", padx=10, pady=10)
-        new_collection = ttk.Button(frame, text="New Collection", command=self.new_col)
-        new_collection.pack(side="left", padx=10, pady=10)
-        new_request = ttk.Button(frame, command=self.on_new, text="New request")
-        new_request.pack(side="left", padx=10, pady=10)
-        frame.pack()
+        ob = ttk.Button(window, text="open", command=self.open_proj)
+        ob.pack()
+        new_collection = ttk.Button(window, text="New Collection", command=self.new_col)
+        new_collection.pack()
+        new_request = ttk.Button(window, command=self.on_new, text="New request")
+        new_request.pack()
         self.tree = ttk.Treeview(window)
         self.tree.pack()
         self.tree.bind("<Double-1>", self.on_select)
     
     def open_proj(self):
-        filepath = filedialog.askopenfilename(filetypes=(("Json files", "*.json"),))
+        filepath = filedialog.askopenfilename(filetypes=(("Json files", "*.json"),), initialdir=os.path.expanduser("~"))
         if filepath:
             with open(filepath, "r", encoding="utf-8") as f:
                 try:
@@ -63,10 +61,13 @@ class CollectionWindow(object):
                 self.tree.insert(node, "end", text=item['name'], values=[json.dumps(item)], tags="request")
 
     def on_select(self, event):
-        item = self.tree.item(self.tree.selection()[0])
-        ctag = item['tags'][0]
-        values = json.loads(item['values'][0])
-        self.callback(values, ctag, "newitem")
+        try:
+            item = self.tree.item(self.tree.selection()[0])
+            ctag = item['tags'][0]
+            values = json.loads(item['values'][0])
+            self.callback(values, ctag, "newitem")
+        except IndexError:
+            pass
         
     def new_col(self):
         try:
