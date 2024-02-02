@@ -1,4 +1,3 @@
-"""随即密码生成器"""
 import tkinter as tk
 from tkinter import ttk
 import random
@@ -6,57 +5,50 @@ import string
 
 
 class GenPwdWindow:
-    pass
+    """ 随即密码生成器 """
+    def __init__(self, *args, **kwargs) -> None:
+        window = kwargs['master']
+        # 密码长度标签和输入框
+        length_label = tk.Label(window, text="Password Length:")
+        length_label.grid(row=0, column=0)
+        self.length_entry = tk.Entry(window)
+        self.length_entry.insert(0, "6")
+        self.length_entry.grid(row=0, column=1)
 
-def generate_password():
-    password_length = int(length_entry.get())
-    complexity = complexity_dropdown.get()
+        # 密码复杂程度选择
+        complexity_label = tk.Label(window, text="Password Complexity:")
+        complexity_label.grid(row=1, column=0)
+        self.complexity_dropdown = ttk.Combobox(window, values=("Low", "Medium", "High"))
+        self.complexity_dropdown.current(0)
+        self.complexity_dropdown.grid(row=1, column=1)
 
-    if complexity == "Low":
-        characters = string.ascii_lowercase + string.digits
-    elif complexity == "Medium":
-        characters = string.ascii_lowercase + string.digits + string.ascii_uppercase
-    else:
-        characters = (
-            string.ascii_lowercase
-            + string.digits
-            + string.punctuation
-            + string.ascii_uppercase
-        )
+        # 生成密码按钮
+        generate_button = tk.Button(window, text="Generate Password", command=self.generate_password)
+        generate_button.grid(row=2, column=0, columnspan=2)
 
-    password = "".join(random.choice(characters) for _ in range(password_length))
-    pwd_entry.delete(0, tk.END)
-    pwd_entry.insert(0, password)
+        # 生成密码的标签
+        password_label = tk.Label(window, text="Generated Password:")
+        password_label.grid(row=3, column=0)
 
+        self.pwd_entry = tk.Entry(window)
+        self.pwd_entry.grid(row=3, column=1)
 
-# 创建主窗口
-window = tk.Tk()
-window.title("Random Password Generator")
+    def generate_password(self):
+        password_length = int(self.length_entry.get())
+        complexity = self.complexity_dropdown.get()
 
-# 密码长度标签和输入框
-length_label = tk.Label(window, text="Password Length:")
-length_label.grid(row=0, column=0)
-length_entry = tk.Entry(window)
-length_entry.insert(0, "6")
-length_entry.grid(row=0, column=1)
+        if complexity == "Low":
+            characters = string.ascii_lowercase + string.digits
+        elif complexity == "Medium":
+            characters = string.ascii_lowercase + string.digits + string.ascii_uppercase
+        else:
+            characters = (
+                string.ascii_lowercase
+                + string.digits
+                + string.punctuation
+                + string.ascii_uppercase
+            )
 
-# 密码复杂程度选择
-complexity_label = tk.Label(window, text="Password Complexity:")
-complexity_label.grid(row=1, column=0)
-complexity_dropdown = ttk.Combobox(window, values=("Low", "Medium", "High"))
-complexity_dropdown.current(0)
-complexity_dropdown.grid(row=1, column=1)
-
-# 生成密码按钮
-generate_button = tk.Button(window, text="Generate Password", command=generate_password)
-generate_button.grid(row=2, column=0, columnspan=2)
-
-# 生成密码的标签
-password_label = tk.Label(window, text="Generated Password:")
-password_label.grid(row=3, column=0)
-
-pwd_entry = tk.Entry(window)
-pwd_entry.grid(row=3, column=1)
-
-# 运行主循环
-window.mainloop()
+        password = "".join(random.choice(characters) for _ in range(password_length))
+        self.pwd_entry.delete(0, tk.END)
+        self.pwd_entry.insert(0, password)

@@ -1,4 +1,3 @@
-""" aes 加解密工具 """
 from tkinter import *
 from tkinter import ttk, messagebox
 import base64
@@ -8,6 +7,7 @@ from Crypto.Util.Padding import pad, unpad
 
 
 class AES_GUI:
+    """ aes 加解密工具 """
     def __init__(self, master):
         self.master = master
 

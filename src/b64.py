@@ -1,10 +1,10 @@
-""" base64 加解密工具 """
 import base64
 import tkinter as tk
 from tkinter import messagebox, ttk
 
 
 class Base64GUI:
+    """ base64 加解密工具 """
     def __init__(self, master) -> None:
         self.master = master
 

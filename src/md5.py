@@ -1,11 +1,11 @@
-"""MD5加密工具"""
 from tkinter import *
 from tkinter import ttk
 import hashlib
 import time
 
 
-class MY_GUI():
+class MD5GUI:
+    """ MD5加密工具 """
     LOG_LINE_NUM = 0
 
     def __init__(self, init_window_name):
