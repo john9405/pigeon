@@ -2,6 +2,7 @@ import json
 import os
 import threading
 import xml.dom.minidom
+import uuid
 from io import BytesIO
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
@@ -19,15 +20,15 @@ class CollectionWindow(object):
         self.window = window
         self.callback = callback
 
-        ob = ttk.Button(window, text="open", command=self.open_proj)
-        ob.pack()
-        new_collection = ttk.Button(window, text="New Collection", command=self.new_col)
-        new_collection.pack()
-        new_request = ttk.Button(window, command=self.on_new, text="New request")
-        new_request.pack()
         self.tree = ttk.Treeview(window)
-        self.tree.pack()
+        self.tree.pack(fill="both", expand=True)
         self.tree.bind("<Double-1>", self.on_select)
+        self.tree.bind("<Button-3>", self.on_right_click)
+
+        self.context_menu = tk.Menu(window, tearoff=0)
+        self.context_menu.add_command(label="new folder", command=self.new_col)
+        self.context_menu.add_command(label="new request", command=self.on_new)
+        self.context_menu.add_command(label="Delete", command=self.on_delete)
     
     def open_proj(self):
         filepath = filedialog.askopenfilename(filetypes=(("Json files", "*.json"),), initialdir=os.path.expanduser("~"))
@@ -44,7 +45,7 @@ class CollectionWindow(object):
         for key in data.keys():
             if key != "item": 
                 temp.update({key: data[key]})
-        node = self.tree.insert("", "end", text=data['info']['name'], values=[json.dumps(temp)], open=True, tags="project")
+        node = self.tree.insert("", "end", text=data['info']['name'], values=[json.dumps(temp)], open=True, tags=["project", str(uuid.uuid1())])
         self.show_item(node, data['item'])
 
     def show_item(self, node, items):
@@ -54,21 +55,27 @@ class CollectionWindow(object):
                 for key in item.keys():
                     if key != "item":
                         temp.update({key: item[key]})
-                cnode = self.tree.insert(node, "end", text=item['name'], values=[json.dumps(temp)], open=False, tags="folder")
+                cnode = self.tree.insert(node, "end", text=item['name'], values=[json.dumps(temp)], open=False, tags=["folder", str(uuid.uuid1())])
                 if len(item['item']) > 0:
                     self.show_item(cnode, item['item'])
             else:
-                self.tree.insert(node, "end", text=item['name'], values=[json.dumps(item)], tags="request")
+                self.tree.insert(node, "end", text=item['name'], values=[json.dumps(item)], tags=["request", str(uuid.uuid1())])
 
     def on_select(self, event):
         try:
             item = self.tree.item(self.tree.selection()[0])
             ctag = item['tags'][0]
             values = json.loads(item['values'][0])
-            self.callback(values, ctag, "newitem")
+            self.callback(data=values, tag=ctag, request_id=item['tags'][1], active="newitem")
         except IndexError:
             pass
-        
+
+    def on_right_click(self, event):
+        item = self.tree.identify_row(event.y)
+        if item:
+            self.tree.selection_set(item)
+            self.context_menu.post(event.x_root, event.y_root)
+
     def new_col(self):
         try:
             ctag = self.tree.item(self.tree.selection()[0])['tags'][0]
@@ -76,10 +83,16 @@ class CollectionWindow(object):
                 selected_node = self.tree.selection()[0]
             else:
                 selected_node = self.tree.parent(self.tree.selection()[0])
+            self.tree.insert(selected_node, "end", text="New Folder", tags=["folder", str(uuid.uuid1())], values=[json.dumps({
+                "name": "New Folder"
+            })])
         except IndexError:
-            selected_node = self.tree.get_children("")[0]
-        self.tree.insert(selected_node, "end", text="new collection", tags="folder")
-
+            self.tree.insert("", "end", text="New Collection", tags=["project", str(uuid.uuid1())], values=[json.dumps({
+                "info": {
+                    "name": "New Collection",
+                }
+            })])
+        
     def on_new(self):
         try:
             ctag = self.tree.item(self.tree.selection()[0])['tags'][0]
@@ -87,13 +100,21 @@ class CollectionWindow(object):
                 selected_node = self.tree.selection()[0]
             else:
                 selected_node = self.tree.parent(self.tree.selection()[0])
+            self.tree.insert(selected_node, "end", text="New Request", tags=["request", str(uuid.uuid1())], values=[json.dumps({
+                "name": "New Request",
+                "request": {
+                    "method": "GET", 
+                    "header": []
+                },
+                "response": []
+            })])
         except IndexError:
-            selected_node = self.tree.get_children("")[0]
-        self.tree.insert(selected_node, "end", text="new request", tags="request")
-
-    def on_delete(self):
+            pass
         
-        return None
+    def on_delete(self):
+        selected_node = self.tree.selection()
+        if selected_node:
+            self.tree.delete(selected_node)
 
 
 class EnvironmentWindow(object):
@@ -589,7 +610,7 @@ class MainWindow(object):
 
         self.col_top = ttk.Frame(pw2)
         pw2.add(self.col_top)
-        self.col_win = CollectionWindow(self.col_top)
+        self.col_win = CollectionWindow(self.col_top, **{"callback":self.colcb})
 
         console_top = ttk.Frame(pw1)
         pw1.add(console_top)
@@ -599,8 +620,11 @@ class MainWindow(object):
         menu_bar = tk.Menu(master)
         file_menu = tk.Menu(menu_bar, tearoff=0)
         menu_bar.add_cascade(label="File", menu=file_menu)
+        file_menu.add_command(label="New Folder", command=self.col_win.new_col)
         file_menu.add_command(command=self.new_request, label="New Request")
-        file_menu.add_command(command=self.open_handler, label="Import")
+        file_menu.add_command(command=self.col_win.open_proj, label="Import")
+        file_menu.add_command(label="Export")
+        file_menu.add_command(label="Exit", command=self.on_closing)
         view_menu = tk.Menu(menu_bar, tearoff=0)
         menu_bar.add_cascade(label="View", menu=view_menu)
         view_menu.add_command(command=self.history_window.on_clear, label="Clear History")
@@ -710,11 +734,10 @@ class MainWindow(object):
             self.history_list = []
 
     def close_request(self):
-        
         self.notebook.forget(self.notebook.select())
-        if self.notebook.select() == "":
-            self.new_request()
 
+    def colcb(self, *args, **kwargs):
+        print(kwargs)
 
 if __name__ == '__main__':
     if not os.path.exists(BASE_DIR):
