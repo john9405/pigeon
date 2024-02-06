@@ -15,7 +15,8 @@ BASE_DIR = os.path.join(os.path.expanduser("~"), "apitest")
 
 
 class CollectionWindow(object):
-    
+    cmenu = None
+
     def __init__(self, window, callback=None):
         self.window = window
         self.callback = callback
@@ -23,15 +24,27 @@ class CollectionWindow(object):
         self.tree = ttk.Treeview(window)
         self.tree.pack(fill="both", expand=True)
         self.tree.bind("<Double-1>", self.on_select)
+        self.tree.bind("<Button-1>", self.hide_context_menu)
         self.tree.bind("<Button-3>", self.on_right_click)
-
+        # project
         self.context_menu = tk.Menu(window, tearoff=0)
         self.context_menu.add_command(label="new folder", command=self.new_col)
         self.context_menu.add_command(label="new request", command=self.on_new)
+        self.context_menu.add_command(label="Export", command=self.export_proj)
         self.context_menu.add_command(label="Delete", command=self.on_delete)
-    
+        # folder
+        self.folder_menu = tk.Menu(window, tearoff=0)
+        self.folder_menu.add_command(label="new folder", command=self.new_col)
+        self.folder_menu.add_command(label="new request", command=self.on_new)
+        self.folder_menu.add_command(label="Delete", command=self.on_delete)
+        # request
+        self.req_menu = tk.Menu(window, tearoff=0)
+        self.req_menu.add_command(label="Delete", command=self.on_delete)
+
     def open_proj(self):
-        filepath = filedialog.askopenfilename(filetypes=(("Json files", "*.json"),), initialdir=os.path.expanduser("~"))
+        filepath = filedialog.askopenfilename(
+            filetypes=(("Json files", "*.json"),), initialdir=os.path.expanduser("~")
+        )
         if filepath:
             with open(filepath, "r", encoding="utf-8") as f:
                 try:
@@ -43,10 +56,17 @@ class CollectionWindow(object):
     def show_proj(self, data):
         temp = {}
         for key in data.keys():
-            if key != "item": 
+            if key != "item":
                 temp.update({key: data[key]})
-        node = self.tree.insert("", "end", text=data['info']['name'], values=[json.dumps(temp)], open=True, tags=["project", str(uuid.uuid1())])
-        self.show_item(node, data['item'])
+        node = self.tree.insert(
+            "",
+            "end",
+            text=data["info"]["name"],
+            values=[json.dumps(temp)],
+            open=True,
+            tags=["project", str(uuid.uuid1())],
+        )
+        self.show_item(node, data["item"])
 
     def show_item(self, node, items):
         for item in items:
@@ -55,18 +75,33 @@ class CollectionWindow(object):
                 for key in item.keys():
                     if key != "item":
                         temp.update({key: item[key]})
-                cnode = self.tree.insert(node, "end", text=item['name'], values=[json.dumps(temp)], open=False, tags=["folder", str(uuid.uuid1())])
-                if len(item['item']) > 0:
-                    self.show_item(cnode, item['item'])
+                cnode = self.tree.insert(
+                    node,
+                    "end",
+                    text=item["name"],
+                    values=[json.dumps(temp)],
+                    open=False,
+                    tags=["folder", str(uuid.uuid1())],
+                )
+                if len(item["item"]) > 0:
+                    self.show_item(cnode, item["item"])
             else:
-                self.tree.insert(node, "end", text=item['name'], values=[json.dumps(item)], tags=["request", str(uuid.uuid1())])
+                self.tree.insert(
+                    node,
+                    "end",
+                    text=item["name"],
+                    values=[json.dumps(item)],
+                    tags=["request", str(uuid.uuid1())],
+                )
 
     def on_select(self, event):
         try:
             item = self.tree.item(self.tree.selection()[0])
-            ctag = item['tags'][0]
-            values = json.loads(item['values'][0])
-            self.callback(data=values, tag=ctag, request_id=item['tags'][1], active="newitem")
+            ctag = item["tags"][0]
+            values = json.loads(item["values"][0])
+            self.callback(
+                data=values, tag=ctag, request_id=item["tags"][1], active="newitem"
+            )
         except IndexError:
             pass
 
@@ -74,62 +109,123 @@ class CollectionWindow(object):
         item = self.tree.identify_row(event.y)
         if item:
             self.tree.selection_set(item)
-            self.context_menu.post(event.x_root, event.y_root)
+            tag = self.tree.item(item)["tags"][0]
+            if tag == "project":
+                self.context_menu.post(event.x_root, event.y_root)
+                self.cmenu = self.context_menu
+            elif tag == "folder":
+                self.folder_menu.post(event.x_root, event.y_root)
+                self.cmenu = self.folder_menu
+            elif tag == "request":
+                self.req_menu.post(event.x_root, event.y_root)
+                self.cmenu = self.req_menu
 
     def new_col(self):
         try:
-            ctag = self.tree.item(self.tree.selection()[0])['tags'][0]
+            ctag = self.tree.item(self.tree.selection()[0])["tags"][0]
             if ctag in ("folder", "project"):
                 selected_node = self.tree.selection()[0]
             else:
                 selected_node = self.tree.parent(self.tree.selection()[0])
-            self.tree.insert(selected_node, "end", text="New Folder", tags=["folder", str(uuid.uuid1())], values=[json.dumps({
-                "name": "New Folder"
-            })])
+            self.tree.insert(
+                selected_node,
+                "end",
+                text="New Folder",
+                tags=["folder", str(uuid.uuid1())],
+                values=[json.dumps({"name": "New Folder"})],
+            )
         except IndexError:
-            self.tree.insert("", "end", text="New Collection", tags=["project", str(uuid.uuid1())], values=[json.dumps({
-                "info": {
-                    "name": "New Collection",
-                }
-            })])
-        
+            self.tree.insert(
+                "",
+                "end",
+                text="New Collection",
+                tags=["project", str(uuid.uuid1())],
+                values=[
+                    json.dumps(
+                        {
+                            "info": {
+                                "name": "New Collection",
+                            }
+                        }
+                    )
+                ],
+            )
+
     def on_new(self):
         try:
-            ctag = self.tree.item(self.tree.selection()[0])['tags'][0]
-            if ctag in ("folder", 'project'):
+            ctag = self.tree.item(self.tree.selection()[0])["tags"][0]
+            if ctag in ("folder", "project"):
                 selected_node = self.tree.selection()[0]
             else:
                 selected_node = self.tree.parent(self.tree.selection()[0])
-            self.tree.insert(selected_node, "end", text="New Request", tags=["request", str(uuid.uuid1())], values=[json.dumps({
-                "name": "New Request",
-                "request": {
-                    "method": "GET", 
-                    "header": []
-                },
-                "response": []
-            })])
+            self.tree.insert(
+                selected_node,
+                "end",
+                text="New Request",
+                tags=["request", str(uuid.uuid1())],
+                values=[
+                    json.dumps(
+                        {
+                            "name": "New Request",
+                            "request": {"method": "GET", "header": []},
+                            "response": [],
+                        }
+                    )
+                ],
+            )
         except IndexError:
             pass
-        
+
     def on_delete(self):
         selected_node = self.tree.selection()
         if selected_node:
             self.tree.delete(selected_node)
 
+    def hide_context_menu(self, event):
+        if self.cmenu:
+            self.cmenu.unpost()
+            self.cmenu = None
+
+    def export_proj(self):
+        item = self.tree.item(self.tree.selection()[0])
+        print(item["values"][0])
+        children = self.traverse_children(self.tree.selection()[0])
+
+    def traverse_children(self, item):
+        long_bean = []
+        children = self.tree.get_children(item)
+        for child in children:
+            # Process the child item
+            print(f"Child item: {child}")
+            bean = self.tree.item(child)
+            if bean["tags"][0] == "folder":
+                # Recursive call for further traversal
+                self.traverse_children(child)
+        return long_bean
+
+    def new_proj(self):
+        self.tree.insert(
+            "",
+            "end",
+            text="New Collection",
+            tags=["project", str(uuid.uuid1())],
+            values=[json.dumps({"info": {"name": "New Collection"}})],
+        )
+
 
 class EnvironmentWindow(object):
-    
+
     def __init__(self):
         return None
 
 
 class Console(object):
-    
+
     def __init__(self, callback):
         self.callback = callback
 
     def to_string(self, *args) -> str:
-        
+
         temp = ""
         for item in args:
             if isinstance(item, (str, int, float)):
@@ -141,24 +237,24 @@ class Console(object):
         return temp
 
     def log(self, *args):
-        
+
         self.callback({"level": "log", "content": self.to_string(*args)})
 
     def info(self, *args):
-        
+
         self.callback({"level": "info", "content": self.to_string(*args)})
 
     def error(self, *args):
-        
+
         self.callback({"level": "error", "content": self.to_string(*args)})
 
     def warning(self, *args):
-        
+
         self.callback({"level": "warning", "content": self.to_string(*args)})
 
 
 class RequestWindow(object):
-    
+
     method_list = ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]
 
     def __init__(self, window, callback=None):
@@ -188,9 +284,17 @@ class RequestWindow(object):
         # 创建选项卡
         notebook = ttk.Notebook(paned_window)
         paned_window.add(notebook)
-        
+
         # 创建查询参数页面
         params_frame = ttk.Frame(notebook)
+        paramstoolbar = ttk.Frame(params_frame)
+        paramstoolbar.pack(fill=tk.X)
+        paramsaddbtn = ttk.Button(paramstoolbar, text="Add")
+        paramsaddbtn.pack(side=tk.LEFT, padx=(0, 5))
+        paramseditbtn = ttk.Button(paramstoolbar, text="Edit")
+        paramseditbtn.pack(side=tk.LEFT, padx=(0, 5))
+        paramsdeletebtn = ttk.Button(paramstoolbar, text="Delete")
+        paramsdeletebtn.pack(side=tk.LEFT, padx=(0, 5))
         self.params_box = tk.Text(params_frame, height=12)
         self.params_box.insert(tk.END, "{}")
         self.params_box.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.YES)
@@ -201,6 +305,14 @@ class RequestWindow(object):
 
         # 创建请求头页面
         headers_frame = ttk.Frame(notebook)
+        headertoolbar = ttk.Frame(headers_frame)
+        headertoolbar.pack(fill=tk.X)
+        headeraddbtn = ttk.Button(headertoolbar, text="Add")
+        headeraddbtn.pack(side=tk.LEFT, padx=(0, 5))
+        headereditbtn = ttk.Button(headertoolbar, text="Edit")
+        headereditbtn.pack(side=tk.LEFT, padx=(0, 5))
+        headerdeletebtn = ttk.Button(headertoolbar, text="Delete")
+        headerdeletebtn.pack(side=tk.LEFT, padx=(0, 5))
         self.headers_box = tk.Text(headers_frame, height=12)
         self.headers_box.insert(tk.END, "{}")
         self.headers_box.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.YES)
@@ -217,7 +329,7 @@ class RequestWindow(object):
         body_scrollbar = ttk.Scrollbar(body_frame, command=self.body_box.yview)
         body_scrollbar.pack(side=tk.LEFT, fill=tk.Y)
         self.body_box.config(yscrollcommand=body_scrollbar.set)
-        notebook.add(body_frame, text='Body')
+        notebook.add(body_frame, text="Body")
 
         # pre-request script
         script_frame = ttk.Frame(notebook)
@@ -246,47 +358,73 @@ class RequestWindow(object):
         res_body_frame = ttk.Frame(res_note)
         self.res_body_box = tk.Text(res_body_frame, height=12)
         self.res_body_box.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.YES)
-        res_body_scrollbar = ttk.Scrollbar(res_body_frame, command=self.res_body_box.yview)
+        res_body_scrollbar = ttk.Scrollbar(
+            res_body_frame, command=self.res_body_box.yview
+        )
         res_body_scrollbar.pack(side=tk.LEFT, fill=tk.Y)
         self.res_body_box.config(yscrollcommand=res_body_scrollbar.set)
         res_note.add(res_body_frame, text="Body")
 
         res_cookie_frame = ttk.Frame(res_note)
-        self.res_cookie_table = ttk.Treeview(res_cookie_frame, columns=("key", "value"), show="headings", height=6)
-        res_cookie_scrollbar_x = ttk.Scrollbar(res_cookie_frame, orient=tk.HORIZONTAL, command=self.res_cookie_table.xview)
-        res_cookie_scrollbar_y = ttk.Scrollbar(res_cookie_frame, command=self.res_cookie_table.yview)
+        self.res_cookie_table = ttk.Treeview(
+            res_cookie_frame, columns=("key", "value"), show="headings", height=6
+        )
+        res_cookie_scrollbar_x = ttk.Scrollbar(
+            res_cookie_frame, orient=tk.HORIZONTAL, command=self.res_cookie_table.xview
+        )
+        res_cookie_scrollbar_y = ttk.Scrollbar(
+            res_cookie_frame, command=self.res_cookie_table.yview
+        )
         self.res_cookie_table.column("key", width=1)
         self.res_cookie_table.heading("key", text="key")
         self.res_cookie_table.heading("value", text="value")
-        res_cookie_scrollbar_y.pack(side="right", fill=tk.Y, pady=(0, res_cookie_scrollbar_x.winfo_reqheight()))
+        res_cookie_scrollbar_y.pack(
+            side="right", fill=tk.Y, pady=(0, res_cookie_scrollbar_x.winfo_reqheight())
+        )
         res_cookie_scrollbar_x.pack(side="bottom", fill=tk.X)
         self.res_cookie_table.pack(side="left", fill=tk.BOTH, expand=tk.YES)
-        self.res_cookie_table.config(xscrollcommand=res_cookie_scrollbar_x.set, yscrollcommand=res_cookie_scrollbar_y.set)
+        self.res_cookie_table.config(
+            xscrollcommand=res_cookie_scrollbar_x.set,
+            yscrollcommand=res_cookie_scrollbar_y.set,
+        )
         res_note.add(res_cookie_frame, text="Cookies")
 
         res_header_frame = ttk.Frame(res_note)
-        self.res_header_table = ttk.Treeview(res_header_frame, columns=("key", "value"), show="headings", height=6)
+        self.res_header_table = ttk.Treeview(
+            res_header_frame, columns=("key", "value"), show="headings", height=6
+        )
         self.res_header_table.column("key", width=1)
         self.res_header_table.heading("key", text="key")
         self.res_header_table.heading("value", text="value")
-        res_header_scrollbar_x = ttk.Scrollbar(res_header_frame, orient=tk.HORIZONTAL, command=self.res_header_table.xview)
-        res_header_scrollbar_y = ttk.Scrollbar(res_header_frame, command=self.res_header_table.yview)
-        res_header_scrollbar_y.pack(side="right", fill=tk.Y, pady=(0, res_header_scrollbar_x.winfo_reqheight()))
+        res_header_scrollbar_x = ttk.Scrollbar(
+            res_header_frame, orient=tk.HORIZONTAL, command=self.res_header_table.xview
+        )
+        res_header_scrollbar_y = ttk.Scrollbar(
+            res_header_frame, command=self.res_header_table.yview
+        )
+        res_header_scrollbar_y.pack(
+            side="right", fill=tk.Y, pady=(0, res_header_scrollbar_x.winfo_reqheight())
+        )
         res_header_scrollbar_x.pack(side="bottom", fill=tk.X)
         self.res_header_table.pack(side="left", fill=tk.BOTH, expand=tk.YES)
-        self.res_header_table.config(xscrollcommand=res_header_scrollbar_x.set, yscrollcommand=res_header_scrollbar_y.set)
+        self.res_header_table.config(
+            xscrollcommand=res_header_scrollbar_x.set,
+            yscrollcommand=res_header_scrollbar_y.set,
+        )
         res_note.add(res_header_frame, text="Headers")
 
         res_tests_frame = ttk.Frame(res_note)
         self.res_tests_box = tk.Text(res_tests_frame, height=12)
         self.res_tests_box.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.YES)
-        res_tests_scrollbar = ttk.Scrollbar(res_tests_frame, command=self.res_tests_box.yview)
+        res_tests_scrollbar = ttk.Scrollbar(
+            res_tests_frame, command=self.res_tests_box.yview
+        )
         res_tests_scrollbar.pack(side=tk.LEFT, fill=tk.Y)
         self.res_tests_box.config(yscrollcommand=res_tests_scrollbar.set)
         res_note.add(res_tests_frame, text="Test Results")
 
     def on_close(self):
-        
+
         self.callback("close")
 
     def save_handler(self):
@@ -318,18 +456,24 @@ class RequestWindow(object):
         if tests == "\n":
             tests = ""
 
-        filepath = filedialog.asksaveasfilename(defaultextension=".json", filetypes=[("json files", "*.json")])
+        filepath = filedialog.asksaveasfilename(
+            defaultextension=".json", filetypes=[("json files", "*.json")]
+        )
         if filepath:
             with open(filepath, "w", encoding="utf-8") as file:
-                file.write(json.dumps({
-                    "method": method,
-                    "url": url,
-                    "params": params,
-                    "headers": headers,
-                    "body": body,
-                    "pre_request_script": pre_request_script,
-                    "tests": tests
-                }))
+                file.write(
+                    json.dumps(
+                        {
+                            "method": method,
+                            "url": url,
+                            "params": params,
+                            "headers": headers,
+                            "body": body,
+                            "pre_request_script": pre_request_script,
+                            "tests": tests,
+                        }
+                    )
+                )
 
     def fill_blank(self, data):
         method = data.get("method", "GET")
@@ -337,18 +481,24 @@ class RequestWindow(object):
         self.url_box.delete(0, tk.END)
         self.url_box.insert(tk.END, data.get("url", ""))
         self.params_box.delete("1.0", tk.END)
-        self.params_box.insert(tk.END, json.dumps(data.get("params", {}), ensure_ascii=False, indent=4))
+        self.params_box.insert(
+            tk.END, json.dumps(data.get("params", {}), ensure_ascii=False, indent=4)
+        )
         self.headers_box.delete("1.0", tk.END)
-        self.headers_box.insert(tk.END, json.dumps(data.get("headers", {}), ensure_ascii=False, indent=4))
+        self.headers_box.insert(
+            tk.END, json.dumps(data.get("headers", {}), ensure_ascii=False, indent=4)
+        )
         self.body_box.delete("1.0", tk.END)
-        self.body_box.insert(tk.END, json.dumps(data.get("body", {}), ensure_ascii=False, indent=4))
+        self.body_box.insert(
+            tk.END, json.dumps(data.get("body", {}), ensure_ascii=False, indent=4)
+        )
         self.script_box.delete("1.0", tk.END)
         self.script_box.insert(tk.END, data.get("pre_request_script", ""))
         self.tests_box.delete("1.0", tk.END)
         self.tests_box.insert(tk.END, data.get("tests", ""))
 
     def send_request(self):
-        """ 定义发送请求的函数 """
+        """定义发送请求的函数"""
         console = Console(self.console)
 
         # 获取请求方式和URL
@@ -392,7 +542,9 @@ class RequestWindow(object):
             elif method == "PUT":
                 response = requests.put(url, params=params, data=body, headers=headers)
             elif method == "PATCH":
-                response = requests.patch(url, params=params, data=body, headers=headers)
+                response = requests.patch(
+                    url, params=params, data=body, headers=headers
+                )
             elif method == "DELETE":
                 response = requests.delete(url, params=params, headers=headers)
             elif method == "HEAD":
@@ -409,24 +561,30 @@ class RequestWindow(object):
         # 将响应显示在响应区域
         self.res_cookie_table.delete(*self.res_cookie_table.get_children())
         for item in response.cookies.keys():
-            self.res_cookie_table.insert("", "end", values=(item, response.cookies.get(item)))
+            self.res_cookie_table.insert(
+                "", "end", values=(item, response.cookies.get(item))
+            )
 
         self.res_header_table.delete(*self.res_header_table.get_children())
         content_type = ""
         for item in response.headers.keys():
             if item == "Content-Type":
                 content_type = response.headers.get(item)
-            self.res_header_table.insert("", "end", values=(item, response.headers.get(item)))
+            self.res_header_table.insert(
+                "", "end", values=(item, response.headers.get(item))
+            )
 
         self.res_body_box.delete("1.0", tk.END)
         if "application/json" in content_type:
-            self.res_body_box.insert(tk.END, json.dumps(response.json(), indent=4, ensure_ascii=False))
+            self.res_body_box.insert(
+                tk.END, json.dumps(response.json(), indent=4, ensure_ascii=False)
+            )
         elif "text/html" in content_type:
-            response.encoding = 'utf-8'
+            response.encoding = "utf-8"
             soup = BeautifulSoup(response.text, "html.parser")
             self.res_body_box.insert(tk.END, soup.prettify())
         elif "text/xml" in content_type or "application/xml" in content_type:
-            response.encoding = 'utf-8'
+            response.encoding = "utf-8"
             dom = xml.dom.minidom.parseString(response.text)
             self.res_body_box.insert(tk.END, dom.toprettyxml(indent="    "))
         elif "image" in content_type:
@@ -444,23 +602,28 @@ class RequestWindow(object):
             console.error(str(error))
 
         self.callback("history", **{"data": f"{method} {url}"})
-        self.callback("cache", **{"data": {
-            "method": method,
-            "url": url,
-            "params": params,
-            "headers": headers,
-            "body": body,
-            "pre_request_script": pre_request_script,
-            "tests": tests
-        }})
+        self.callback(
+            "cache",
+            **{
+                "data": {
+                    "method": method,
+                    "url": url,
+                    "params": params,
+                    "headers": headers,
+                    "body": body,
+                    "pre_request_script": pre_request_script,
+                    "tests": tests,
+                }
+            },
+        )
 
     def console(self, data):
-        
+
         self.callback("console", **data)
 
 
 class ConsoleWindow(object):
-    """ 控制台 """
+    """控制台"""
 
     def __init__(self, window):
         self.window = window
@@ -489,7 +652,7 @@ class ConsoleWindow(object):
         self.text_box.insert(tk.END, data)
         line_start = self.text_box.index("insert linestart")
         line_end = self.text_box.index("insert lineend")
-        self.text_box.tag_config('warning', foreground="orange")
+        self.text_box.tag_config("warning", foreground="orange")
         self.text_box.tag_add("warning", line_start, line_end)
         self.text_box.insert(tk.END, "\n")
 
@@ -506,7 +669,7 @@ class ConsoleWindow(object):
 
 
 class HistoryWindow(object):
-    """ 历史记录窗口 """
+    """历史记录窗口"""
 
     def __init__(self, window, callback=None):
         self.window = window
@@ -515,7 +678,9 @@ class HistoryWindow(object):
         ttk.Label(window, text="History").pack(anchor="nw")
         self.history_box = tk.Listbox(window)
         scrollbar = ttk.Scrollbar(window, command=self.history_box.yview)
-        sbx = ttk.Scrollbar(window, command=self.history_box.xview, orient=tk.HORIZONTAL)
+        sbx = ttk.Scrollbar(
+            window, command=self.history_box.xview, orient=tk.HORIZONTAL
+        )
         scrollbar.pack(fill=tk.Y, side=tk.RIGHT, pady=(0, sbx.winfo_reqheight()))
         sbx.pack(side=tk.BOTTOM, fill=tk.X)
         self.history_box.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.YES)
@@ -560,33 +725,27 @@ class HistoryWindow(object):
 
 
 class AboutWindow(tk.Toplevel):
-    """ 关于窗口 """
+    """关于窗口"""
 
     def __init__(self):
         super().__init__()
-
-        label = ttk.Label(self, text="Http Client\n0.0.1")
-        label.pack()
+        with open("about.md", "r", encoding="utf-8") as f:
+            label = ttk.Label(self, text=f.read())
+            label.pack()
 
 
 class HelpWindow(tk.Toplevel):
-    """ 帮助窗口 """
+    """帮助窗口"""
 
     def __init__(self):
         super().__init__()
-
-        label = ttk.Label(self, text="""
-打印日志可以使用
-console.log()
-console.error()
-console.info()
-console.warning()
-        """)
-        label.pack()
+        with open("help.md", "r", encoding="utf-8") as f:
+            label = ttk.Label(self, text=f.read())
+            label.pack()
 
 
 class MainWindow(object):
-    
+
     history_list = []  # 历史记录列表
 
     def __init__(self, master):
@@ -610,7 +769,7 @@ class MainWindow(object):
 
         self.col_top = ttk.Frame(pw2)
         pw2.add(self.col_top)
-        self.col_win = CollectionWindow(self.col_top, **{"callback":self.colcb})
+        self.col_win = CollectionWindow(self.col_top, **{"callback": self.colcb})
 
         console_top = ttk.Frame(pw1)
         pw1.add(console_top)
@@ -620,14 +779,15 @@ class MainWindow(object):
         menu_bar = tk.Menu(master)
         file_menu = tk.Menu(menu_bar, tearoff=0)
         menu_bar.add_cascade(label="File", menu=file_menu)
-        file_menu.add_command(label="New Folder", command=self.col_win.new_col)
-        file_menu.add_command(command=self.new_request, label="New Request")
-        file_menu.add_command(command=self.col_win.open_proj, label="Import")
-        file_menu.add_command(label="Export")
+        file_menu.add_command(label="New Project", command=self.col_win.new_proj)
+        file_menu.add_command(label="New Request", command=self.new_request)
+        file_menu.add_command(label="Open", command=self.col_win.open_proj)
         file_menu.add_command(label="Exit", command=self.on_closing)
         view_menu = tk.Menu(menu_bar, tearoff=0)
         menu_bar.add_cascade(label="View", menu=view_menu)
-        view_menu.add_command(command=self.history_window.on_clear, label="Clear History")
+        view_menu.add_command(
+            command=self.history_window.on_clear, label="Clear History"
+        )
         view_menu.add_command(command=self.console_window.clear, label="Clear Console")
         help_menu = tk.Menu(menu_bar, tearoff=0)
         menu_bar.add_cascade(label="Help", menu=help_menu)
@@ -636,7 +796,7 @@ class MainWindow(object):
         master.config(menu=menu_bar)
 
     def open_handler(self):
-        """ 打开文件 """
+        """打开文件"""
         filepath = filedialog.askopenfilename()
         if filepath:
             with open(filepath, "r", encoding="utf-8") as file:
@@ -651,7 +811,7 @@ class MainWindow(object):
                 self.new_request(data)
 
     def new_request(self, data=None):
-        
+
         tl = ttk.Frame(self.notebook)
         req_win = RequestWindow(tl, self.request)
         if data is not None:
@@ -660,17 +820,19 @@ class MainWindow(object):
         self.notebook.select(self.notebook.index("end") - 1)
 
     def show_history(self, data):
-        
+
         self.history_window.clear()
         for item in data:
             self.history_list.append(item)
             try:
-                self.history_window.log(f"{item.get('method' '')} {item.get('url', '')}")
+                self.history_window.log(
+                    f"{item.get('method' '')} {item.get('url', '')}"
+                )
             except AttributeError:
                 pass
 
     def on_start(self):
-        
+
         filepath = os.path.join(BASE_DIR, "history.json")
         if os.path.exists(filepath):
             with open(filepath, "r", encoding="utf-8") as file:
@@ -683,19 +845,21 @@ class MainWindow(object):
                     pass
 
     def on_closing(self):
-        
-        with open(os.path.join(BASE_DIR, "history.json"), "w", encoding="utf-8") as file:
+
+        with open(
+            os.path.join(BASE_DIR, "history.json"), "w", encoding="utf-8"
+        ) as file:
             file.write(json.dumps(self.history_list))
         self.root.destroy()
 
     def collection(self, action):
-        
+
         if action == "new":
             self.new_request()
 
     def request(self, action, **kwargs):
-        """ 请求窗口回调 """
-        if action == 'cache':
+        """请求窗口回调"""
+        if action == "cache":
             # 缓存历史记录
             self.history_list.append(kwargs.get("data"))
         elif action == "history":
@@ -716,7 +880,7 @@ class MainWindow(object):
             self.close_request()
 
     def history(self, action, **kwargs):
-        """ 历史记录回调 """
+        """历史记录回调"""
         if action == "select":
             index = kwargs.get("index")
             if index is not None:
@@ -730,7 +894,7 @@ class MainWindow(object):
                 i = len(self.history_list) - index - 1
                 self.history_list.pop(i)
 
-        elif action == 'clear':
+        elif action == "clear":
             self.history_list = []
 
     def close_request(self):
@@ -739,7 +903,8 @@ class MainWindow(object):
     def colcb(self, *args, **kwargs):
         print(kwargs)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     if not os.path.exists(BASE_DIR):
         os.mkdir(BASE_DIR)
 
