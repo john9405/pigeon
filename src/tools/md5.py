@@ -8,19 +8,20 @@ class MD5GUI:
     """ MD5加密工具 """
     LOG_LINE_NUM = 0
 
-    def __init__(self, init_window_name):
-        self.init_window_name = init_window_name
+    def __init__(self, master):
+        self.root = Toplevel(master)
+        self.set_init_window()
 
     # 设置窗口
     def set_init_window(self):
         # 标签
-        self.init_data_label = ttk.LabelFrame(self.init_window_name, text="待处理数据")
+        self.init_data_label = ttk.LabelFrame(self.root, text="待处理数据")
         self.init_data_label.grid(row=0, column=0, rowspan=10, columnspan=10)
-        self.result_data_label = ttk.LabelFrame(self.init_window_name, text="输出结果")
+        self.result_data_label = ttk.LabelFrame(self.root, text="输出结果")
         self.result_data_label.grid(row=0, column=12, rowspan=10, columnspan=10)
-        self.log_label = ttk.LabelFrame(self.init_window_name, text="日志")
+        self.log_label = ttk.LabelFrame(self.root, text="日志")
         self.log_label.grid(row=12, column=0, columnspan=20)
-        btn = Button(self.init_window_name, text="清除", command=self.on_clear)
+        btn = Button(self.root, text="清除", command=self.on_clear)
         btn.grid(row=12, column=21, pady=5)
         # 文本框
         self.init_data_Text = Text(self.init_data_label, width=67, height=35)  # 原始数据录入框
@@ -30,7 +31,7 @@ class MD5GUI:
         self.log_data_Text = Text(self.log_label, width=120, height=9)  # 日志框
         self.log_data_Text.pack()
         # 按钮
-        self.str_trans_to_md5_button = Button(self.init_window_name, text="字符串转MD5", bg="lightblue", width=10, command=self.str_trans_to_md5)  # 调用内部方法  加()为直接调用
+        self.str_trans_to_md5_button = Button(self.root, text="字符串转MD5", bg="lightblue", width=10, command=self.str_trans_to_md5)  # 调用内部方法  加()为直接调用
         self.str_trans_to_md5_button.grid(row=1, column=11, padx=5)
 
     # 功能函数

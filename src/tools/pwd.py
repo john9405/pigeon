@@ -6,8 +6,8 @@ import string
 
 class GenPwdWindow:
     """ 随即密码生成器 """
-    def __init__(self, *args, **kwargs) -> None:
-        window = kwargs['master']
+    def __init__(self, master=None) -> None:
+        window = tk.Toplevel(master)
         # 密码长度标签和输入框
         length_label = tk.Label(window, text="Password Length:")
         length_label.grid(row=0, column=0)

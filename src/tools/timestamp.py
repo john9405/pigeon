@@ -4,29 +4,30 @@ import datetime
 
 class TimestampWindow:
     """ 时间戳转换工具 """
-    def __init__(self, master, *args, **kwargs):
+    def __init__(self, master):
+        self.root = tk.Toplevel(master)
         # 时间戳转日期时间
-        timestamp_label = tk.Label(master, text="Timestamp:")
+        timestamp_label = tk.Label(self.root, text="Timestamp:")
         timestamp_label.pack()
-        self.timestamp_entry = tk.Entry(master)
+        self.timestamp_entry = tk.Entry(self.root)
         self.timestamp_entry.pack()
-        timestamp_button = tk.Button(master, text="Convert to Datetime", command=self.timestamp_to_datetime)
+        timestamp_button = tk.Button(self.root, text="Convert to Datetime", command=self.timestamp_to_datetime)
         timestamp_button.pack()
-        self.datetime_label = tk.Label(master, text="Datetime:")
+        self.datetime_label = tk.Label(self.root, text="Datetime:")
         self.datetime_label.pack()
 
         # 日期时间转时间戳
-        date_label = tk.Label(master, text="Date (YYYY-MM-DD):")
+        date_label = tk.Label(self.root, text="Date (YYYY-MM-DD):")
         date_label.pack()
-        self.date_entry = tk.Entry(master)
+        self.date_entry = tk.Entry(self.root)
         self.date_entry.pack()
-        time_label = tk.Label(master, text="Time (HH:MM:SS):")
+        time_label = tk.Label(self.root, text="Time (HH:MM:SS):")
         time_label.pack()
-        self.time_entry = tk.Entry(master)
+        self.time_entry = tk.Entry(self.root)
         self.time_entry.pack()
-        datetime_button = tk.Button(master, text="Convert to Timestamp", command=self.datetime_to_timestamp)
+        datetime_button = tk.Button(self.root, text="Convert to Timestamp", command=self.datetime_to_timestamp)
         datetime_button.pack()
-        self.timestamp_label = tk.Label(master, text="Timestamp:")
+        self.timestamp_label = tk.Label(self.root, text="Timestamp:")
         self.timestamp_label.pack()
 
     def timestamp_to_datetime(self):
