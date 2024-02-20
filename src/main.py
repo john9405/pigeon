@@ -47,9 +47,9 @@ class MainWindow:
         menu_bar = tk.Menu(self.root)
         file_menu = tk.Menu(menu_bar, tearoff=0)
         menu_bar.add_cascade(label="File", menu=file_menu)
-        file_menu.add_command(label="New Project", command=self.col_win.new_proj)
+        # file_menu.add_command(label="New Project", command=self.col_win.new_proj)
         file_menu.add_command(label="New Request", command=self.new_request)
-        file_menu.add_command(label="Open", command=self.col_win.open_proj)
+        # file_menu.add_command(label="Open", command=self.col_win.open_proj)
         file_menu.add_command(label="Exit", command=self.on_closing)
         self.root.config(menu=menu_bar)
 
