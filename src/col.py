@@ -14,18 +14,20 @@ class CollectionWindow:
         self.window = window
         self.callback = callback
 
-        self.tree = ttk.Treeview(window, columns=("a", ), show="headings")
-        self.tree.heading("a", text="Workspace")
+        self.tree = ttk.Treeview(window)
         self.tree.pack(fill="both", expand=True)
         self.tree.bind("<Double-1>", self.on_select)
         self.tree.bind("<Button-1>", self.hide_context_menu)
         self.tree.bind("<Button-3>", self.on_right_click)
+
+        self.context_nenu = tk.Menu(window, tearoff=0)
+        self.context_nenu.add_command(label="new Project", command=self.new_proj)
         # project
-        self.context_menu = tk.Menu(window, tearoff=0)
-        self.context_menu.add_command(label="new folder", command=self.new_col)
-        self.context_menu.add_command(label="new request", command=self.new_req)
-        self.context_menu.add_command(label="Export", command=self.export_proj)
-        self.context_menu.add_command(label="Delete", command=self.delete_item)
+        self.proj_menu = tk.Menu(window, tearoff=0)
+        self.proj_menu.add_command(label="new folder", command=self.new_col)
+        self.proj_menu.add_command(label="new request", command=self.new_req)
+        self.proj_menu.add_command(label="Export", command=self.export_proj)
+        self.proj_menu.add_command(label="Delete", command=self.delete_item)
         # folder
         self.folder_menu = tk.Menu(window, tearoff=0)
         self.folder_menu.add_command(label="new folder", command=self.new_col)
@@ -143,15 +145,18 @@ class CollectionWindow:
             self.tree.selection_set(item)
             tag = self.tree.item(item)["tags"][0]
             if tag == "project":
-                self.context_menu.post(event.x_root, event.y_root)
-                self.cmenu = self.context_menu
+                self.proj_menu.post(event.x_root, event.y_root)
+                self.cmenu = self.proj_menu
             elif tag == "folder":
                 self.folder_menu.post(event.x_root, event.y_root)
                 self.cmenu = self.folder_menu
             elif tag == "request":
                 self.req_menu.post(event.x_root, event.y_root)
                 self.cmenu = self.req_menu
-    
+        else:
+            self.context_nenu.post(event.x_root, event.y_root)
+            self.cmenu = self.context_nenu
+
     def hide_context_menu(self, event):
         if self.cmenu:
             self.cmenu.unpost()

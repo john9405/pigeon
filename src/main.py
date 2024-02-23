@@ -23,35 +23,33 @@ class MainWindow:
         self.root.after(0, self.on_start)
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
 
+        ff = ttk.Frame(self.root)
+        ff.pack(fill="x")
+
         pw1 = ttk.PanedWindow(self.root)
         pw1.pack()
         pw2 = ttk.PanedWindow(pw1, orient=tk.HORIZONTAL)
         pw1.add(pw2)
 
-        self.history_top = ttk.Frame(pw2)
-        pw2.add(self.history_top)
-        self.history_window = HistoryWindow(self.history_top, self.history)
+        # self.col_top = ttk.Frame(pw2)
+        # pw2.add(self.col_top)
+        # self.col_win = CollectionWindow(self.col_top, **{"callback": self.colcb})
 
         self.notebook = ttk.Notebook(pw2)
         pw2.add(self.notebook)
 
-        # self.col_top = ttk.Frame(pw2)
-        # pw2.add(self.col_top)
-        # self.col_win = CollectionWindow(self.col_top, **{"callback": self.colcb})
+        self.history_top = ttk.Frame(pw2)
+        pw2.add(self.history_top)
+        self.history_window = HistoryWindow(self.history_top, self.history)
 
         console_top = ttk.Frame(pw1)
         pw1.add(console_top)
         self.console_window = ConsoleWindow(console_top)
         self.new_request()
 
-        menu_bar = tk.Menu(self.root)
-        file_menu = tk.Menu(menu_bar, tearoff=0)
-        menu_bar.add_cascade(label="File", menu=file_menu)
-        # file_menu.add_command(label="New Project", command=self.col_win.new_proj)
-        file_menu.add_command(label="New Request", command=self.new_request)
-        # file_menu.add_command(label="Open", command=self.col_win.open_proj)
-        file_menu.add_command(label="Exit", command=self.on_closing)
-        self.root.config(menu=menu_bar)
+        ttk.Button(ff, text='New Request', command=self.new_request).pack(side="left", padx=5, pady=5)
+        # ttk.Button(ff, text="New Project", command=self.col_win.new_proj).pack(side="left", padx=(0, 5))
+        # ttk.Button(ff, text="Open", command=self.col_win.open_proj).pack(side="left", padx=(0, 5))
 
     def setup(self):
         if not os.path.exists(BASE_DIR):
