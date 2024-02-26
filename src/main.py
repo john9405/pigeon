@@ -31,9 +31,10 @@ class MainWindow:
         pw2 = ttk.PanedWindow(pw1, orient=tk.HORIZONTAL)
         pw1.add(pw2)
 
-        # self.col_top = ttk.Frame(pw2)
-        # pw2.add(self.col_top)
-        # self.col_win = CollectionWindow(self.col_top, **{"callback": self.colcb})
+        self.col_top = ttk.Frame(pw2)
+        pw2.add(self.col_top)
+        self.col_win = CollectionWindow(self.col_top, **{"callback": self.collection})
+        self.col_win.on_start()
 
         self.notebook = ttk.Notebook(pw2)
         pw2.add(self.notebook)
@@ -48,8 +49,8 @@ class MainWindow:
         self.new_request()
 
         ttk.Button(ff, text='New Request', command=self.new_request).pack(side="left", padx=5, pady=5)
-        # ttk.Button(ff, text="New Project", command=self.col_win.new_proj).pack(side="left", padx=(0, 5))
-        # ttk.Button(ff, text="Open", command=self.col_win.open_proj).pack(side="left", padx=(0, 5))
+        ttk.Button(ff, text="New Project", command=self.col_win.new_proj).pack(side="left", padx=(0, 5))
+        ttk.Button(ff, text="Open", command=self.col_win.open_proj).pack(side="left", padx=(0, 5))
 
     def setup(self):
         if not os.path.exists(BASE_DIR):
@@ -74,12 +75,14 @@ class MainWindow:
 
                 self.new_request(data)
 
-    def new_request(self, data=None):
+    def new_request(self, data=None, *args, **kwargs):
 
         tl = ttk.Frame(self.notebook)
-        req_win = RequestWindow(tl, self.request)
+        req_win = RequestWindow(tl, callback=self.request)
         if data is not None:
             req_win.fill_blank(data)
+        if 'item_id' in kwargs:
+            req_win.item_id = kwargs['item_id']
         self.notebook.add(tl, text="New request")
         self.notebook.select(self.notebook.index("end") - 1)
 
@@ -109,19 +112,17 @@ class MainWindow:
                     pass
 
     def on_closing(self):
-
+        self.col_win.on_close()
         with open(
             os.path.join(BASE_DIR, "history.json"), "w", encoding="utf-8"
         ) as file:
             file.write(json.dumps(self.history_list))
         self.root.destroy()
 
-    def collection(self, action):
+    def collection(self, *args, **kwargs):
+        self.new_request(kwargs['data'], item_id=kwargs['item_id'])
 
-        if action == "new":
-            self.new_request()
-
-    def request(self, action, **kwargs):
+    def request(self, action, *args, **kwargs):
         """请求窗口回调"""
         if action == "cache":
             # 缓存历史记录
@@ -142,6 +143,9 @@ class MainWindow:
                 self.console_window.warning(kwargs.get("content"))
         elif action == "close":
             self.close_request()
+        elif action == 'save':
+            if kwargs['item_id'] is not None:
+                self.col_win.save_item(kwargs['item_id'], kwargs['data'])
 
     def history(self, action, **kwargs):
         """历史记录回调"""
@@ -163,6 +167,3 @@ class MainWindow:
 
     def close_request(self):
         self.notebook.forget(self.notebook.select())
-
-    def colcb(self, *args, **kwargs):
-        print(kwargs)

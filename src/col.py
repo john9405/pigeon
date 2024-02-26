@@ -91,9 +91,6 @@ class CollectionWindow:
                     tags=["request", str(uuid.uuid1())],
                 )
 
-    def autosave_proj(self):
-        pass
-
     def export_proj(self):
         """ 保存项目 """
         item = self.tree.item(self.tree.selection()[0])
@@ -209,18 +206,48 @@ class CollectionWindow:
                 tags=["request", str(uuid.uuid1())],
                 values=[json.dumps({
                     "name": "New Request",
-                    "request": {"method": "GET", "header": []},
-                    "response": [],
+                    "method": "GET",
+                    "url": "",
+                    "params": {},
+                    "headers": {},
+                    "body": {},
+                    "pre_request_script": "",
+                    "tests": "",
                 })],
             )
         except IndexError:
             pass
     
     def save_item(self, item_id, data):
-        self.tree.set(item_id, "text", data['name'])
-        self.tree.set(item_id, "values", [json.dumps(data)])
+        self.tree.item(item_id, text=data['name'], values=[json.dumps(data)])
     
     def delete_item(self):
         selected_node = self.tree.selection()
         if selected_node:
             self.tree.delete(selected_node)
+
+    def on_start(self):
+        """ 读取工作空间的数据 """
+        filepath = os.path.join(BASE_DIR, "workspace.json")
+        if os.path.exists(filepath):
+            with open(filepath, "r", encoding="utf-8") as f:
+                try:
+                    data = f.read()
+                    data = json.loads(data)
+                    for proj in data:
+                        self.show_proj(proj)
+                except json.JSONDecodeError:
+                    pass
+
+    def on_close(self):
+        """ 自动保存 """
+        proj_list = []
+        children = self.tree.get_children()
+        for child in children:
+            bean = self.tree.item(child)
+            value = json.loads(bean['values'][0])
+            value.update({"item": self.traverse_children(child)})
+            proj_list.append(value)
+        filepath = os.path.join(BASE_DIR, "workspace.json")
+        with open(filepath, "w", encoding='utf-8') as f:
+            f.write(json.dumps(proj_list))

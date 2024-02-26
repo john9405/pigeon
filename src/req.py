@@ -28,6 +28,7 @@ class RequestWindow:
         # 创建请求方式下拉框和URL输入框
         self.method_box = ttk.Combobox(north, width=8, values=self.method_list)
         self.method_box.current(0)
+        self.method_box['state'] = "readonly"
         self.method_box.pack(side="left")
         sub_btn = ttk.Button(north, text="Send")  # 发送请求按钮
         sub_btn.config(command=self.send_request) # 绑定发送请求按钮的事件处理函数
@@ -100,73 +101,46 @@ class RequestWindow:
         res_body_frame = ttk.Frame(res_note)
         self.res_body_box = tk.Text(res_body_frame, height=12)
         self.res_body_box.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.YES)
-        res_body_scrollbar = ttk.Scrollbar(
-            res_body_frame, command=self.res_body_box.yview
-        )
+        res_body_scrollbar = ttk.Scrollbar(res_body_frame, command=self.res_body_box.yview)
         res_body_scrollbar.pack(side=tk.LEFT, fill=tk.Y)
         self.res_body_box.config(yscrollcommand=res_body_scrollbar.set)
         res_note.add(res_body_frame, text="Body")
 
         res_cookie_frame = ttk.Frame(res_note)
-        self.res_cookie_table = ttk.Treeview(
-            res_cookie_frame, columns=("key", "value"), show="headings", height=6
-        )
-        res_cookie_scrollbar_x = ttk.Scrollbar(
-            res_cookie_frame, orient=tk.HORIZONTAL, command=self.res_cookie_table.xview
-        )
-        res_cookie_scrollbar_y = ttk.Scrollbar(
-            res_cookie_frame, command=self.res_cookie_table.yview
-        )
+        self.res_cookie_table = ttk.Treeview(res_cookie_frame, columns=("key", "value"), show="headings", height=6)
+        res_cookie_scrollbar_x = ttk.Scrollbar(res_cookie_frame, orient=tk.HORIZONTAL, command=self.res_cookie_table.xview )       
+        res_cookie_scrollbar_y = ttk.Scrollbar(res_cookie_frame, command=self.res_cookie_table.yview)
         self.res_cookie_table.column("key", width=1)
         self.res_cookie_table.heading("key", text="key")
         self.res_cookie_table.heading("value", text="value")
-        res_cookie_scrollbar_y.pack(
-            side="right", fill=tk.Y, pady=(0, res_cookie_scrollbar_x.winfo_reqheight())
-        )
+        res_cookie_scrollbar_y.pack(side="right", fill=tk.Y, pady=(0, res_cookie_scrollbar_x.winfo_reqheight()))
         res_cookie_scrollbar_x.pack(side="bottom", fill=tk.X)
         self.res_cookie_table.pack(side="left", fill=tk.BOTH, expand=tk.YES)
-        self.res_cookie_table.config(
-            xscrollcommand=res_cookie_scrollbar_x.set,
-            yscrollcommand=res_cookie_scrollbar_y.set,
-        )
+        self.res_cookie_table.config(xscrollcommand=res_cookie_scrollbar_x.set,yscrollcommand=res_cookie_scrollbar_y.set)
         res_note.add(res_cookie_frame, text="Cookies")
 
         res_header_frame = ttk.Frame(res_note)
-        self.res_header_table = ttk.Treeview(
-            res_header_frame, columns=("key", "value"), show="headings", height=6
-        )
+        self.res_header_table = ttk.Treeview(res_header_frame, columns=("key", "value"), show="headings", height=6)
         self.res_header_table.column("key", width=1)
         self.res_header_table.heading("key", text="key")
         self.res_header_table.heading("value", text="value")
-        res_header_scrollbar_x = ttk.Scrollbar(
-            res_header_frame, orient=tk.HORIZONTAL, command=self.res_header_table.xview
-        )
-        res_header_scrollbar_y = ttk.Scrollbar(
-            res_header_frame, command=self.res_header_table.yview
-        )
-        res_header_scrollbar_y.pack(
-            side="right", fill=tk.Y, pady=(0, res_header_scrollbar_x.winfo_reqheight())
-        )
+        res_header_scrollbar_x = ttk.Scrollbar(res_header_frame, orient=tk.HORIZONTAL, command=self.res_header_table.xview)
+        res_header_scrollbar_y = ttk.Scrollbar(res_header_frame, command=self.res_header_table.yview)
+        res_header_scrollbar_y.pack(side="right", fill=tk.Y, pady=(0, res_header_scrollbar_x.winfo_reqheight()))
         res_header_scrollbar_x.pack(side="bottom", fill=tk.X)
         self.res_header_table.pack(side="left", fill=tk.BOTH, expand=tk.YES)
-        self.res_header_table.config(
-            xscrollcommand=res_header_scrollbar_x.set,
-            yscrollcommand=res_header_scrollbar_y.set,
-        )
+        self.res_header_table.config(xscrollcommand=res_header_scrollbar_x.set,yscrollcommand=res_header_scrollbar_y.set)
         res_note.add(res_header_frame, text="Headers")
 
         res_tests_frame = ttk.Frame(res_note)
         self.res_tests_box = tk.Text(res_tests_frame, height=12)
         self.res_tests_box.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.YES)
-        res_tests_scrollbar = ttk.Scrollbar(
-            res_tests_frame, command=self.res_tests_box.yview
-        )
+        res_tests_scrollbar = ttk.Scrollbar(res_tests_frame, command=self.res_tests_box.yview)
         res_tests_scrollbar.pack(side=tk.LEFT, fill=tk.Y)
         self.res_tests_box.config(yscrollcommand=res_tests_scrollbar.set)
         res_note.add(res_tests_frame, text="Test Results")
 
     def on_close(self):
-
         self.callback("close")
 
     def save_handler(self):
@@ -198,20 +172,20 @@ class RequestWindow:
         if tests == "\n":
             tests = ""
 
-        filepath = filedialog.asksaveasfilename(
-            defaultextension=".json", filetypes=[("json files", "*.json")]
-        )
-        if filepath:
-            with open(filepath, "w", encoding="utf-8") as file:
-                file.write(json.dumps({
-                    "method": method,
-                    "url": url,
-                    "params": params,
-                    "headers": headers,
-                    "body": body,
-                    "pre_request_script": pre_request_script,
-                    "tests": tests,
-                }))
+        if self.item_id is None:
+            messagebox.showerror("错误", "暂时无法保存")
+            return
+        
+        self.callback("save", item_id=self.item_id, data={
+            "method": method,
+            "url": url,
+            "params": params,
+            "headers": headers,
+            "body": body,
+            "pre_request_script": pre_request_script,
+            "tests": tests,
+            'name': "new req"
+        })
 
     def fill_blank(self, data):
         method = data.get("method", "GET")
@@ -349,5 +323,4 @@ class RequestWindow:
         }})
 
     def console(self, data):
-
         self.callback("console", **data)
