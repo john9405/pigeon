@@ -7,7 +7,7 @@ import requests
 from bs4 import BeautifulSoup
 from PIL import Image, ImageTk
 
-from .con import Console
+from .console import Console
 
 
 class RequestWindow:

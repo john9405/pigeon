@@ -165,7 +165,7 @@ class CollectionWindow:
             "end",
             text="New Collection",
             tags=["project", str(uuid.uuid1())],
-            values=[json.dumps({"info": {"name": "New Collection"}})]
+            values=[json.dumps({"name": "New Collection"})]
         )
     
     def new_col(self):
@@ -188,7 +188,7 @@ class CollectionWindow:
                 "end",
                 text="New Collection",
                 tags=["project", str(uuid.uuid1())],
-                values=[json.dumps({"info": {"name": "New Collection"}})],
+                values=[json.dumps({"name": "New Collection"})],
             )
 
     def new_req(self):

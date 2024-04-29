@@ -7,7 +7,7 @@ from tkinter import filedialog, messagebox, ttk
 from . import BASE_DIR
 from .his import HistoryWindow
 from .req import RequestWindow
-from .con import ConsoleWindow
+from .console import ConsoleWindow
 from .col import CollectionWindow
 
 
