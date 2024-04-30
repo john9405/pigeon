@@ -2,13 +2,12 @@ import json
 import tkinter as tk
 from tkinter import ttk
 
-class Console:
 
+class Console:
     def __init__(self, callback):
         self.callback = callback
 
     def to_string(self, *args) -> str:
-
         temp = ""
         for item in args:
             if isinstance(item, (str, int, float)):
@@ -20,19 +19,15 @@ class Console:
         return temp
 
     def log(self, *args):
-
         self.callback({"level": "log", "content": self.to_string(*args)})
 
     def info(self, *args):
-
         self.callback({"level": "info", "content": self.to_string(*args)})
 
     def error(self, *args):
-
         self.callback({"level": "error", "content": self.to_string(*args)})
 
     def warning(self, *args):
-
         self.callback({"level": "warning", "content": self.to_string(*args)})
 
 
@@ -42,9 +37,9 @@ class ConsoleWindow:
     def __init__(self, window):
         self.window = window
         ff = ttk.Frame(window)
-        ff.pack(fill="x")
-        ttk.Label(ff, text="Console").pack(side="left")
-        ttk.Button(ff, text='Clear', command=self.clear).pack(side="right")
+        ff.pack(fill=tk.X)
+        ttk.Label(ff, text="Console").pack(side=tk.LEFT)
+        ttk.Button(ff, text="Clear", command=self.clear).pack(side="right")
 
         self.text_box = tk.Text(window, height=12)
         scrollbar = ttk.Scrollbar(window, command=self.text_box.yview)

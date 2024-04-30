@@ -16,6 +16,7 @@ from .tools.b64 import Base64GUI
 from .tools.md5 import MD5GUI
 from .tools.pwd import GenPwdWindow
 from .tools.timestamp import TimestampWindow
+from .folder import FolderWindow
 
 
 class MainWindow:
@@ -30,17 +31,16 @@ class MainWindow:
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
 
         ff = ttk.Frame(self.root)
-        ff.pack(fill="x")
+        ff.pack(fill=tk.X)
 
         pw1 = ttk.PanedWindow(self.root)
-        pw1.pack()
+        pw1.pack(fill="both", expand=True)
         pw2 = ttk.PanedWindow(pw1, orient=tk.HORIZONTAL)
         pw1.add(pw2)
 
         self.col_top = ttk.Frame(pw2)
         pw2.add(self.col_top)
-        self.col_win = CollectionWindow(
-            self.col_top, **{"callback": self.collection})
+        self.col_win = CollectionWindow(self.col_top, **{"callback": self.collection})
         self.col_win.on_start()
 
         self.notebook = ttk.Notebook(pw2)
@@ -55,75 +55,86 @@ class MainWindow:
         self.console_window = ConsoleWindow(console_top)
         self.new_request()
 
-        ttk.Button(ff, text='New Request', command=self.new_request).pack(
-            side="left", padx=5, pady=5)
+        ttk.Button(ff, text="New Request", command=self.new_request).pack(
+            side=tk.LEFT, padx=5, pady=5
+        )
         ttk.Button(ff, text="New Project", command=self.col_win.new_proj).pack(
-            side="left", padx=(0, 5))
+            side=tk.LEFT, padx=(0, 5)
+        )
         ttk.Button(ff, text="Open", command=self.col_win.open_proj).pack(
-            side="left", padx=(0, 5))
+            side=tk.LEFT, padx=(0, 5)
+        )
         ttk.Button(ff, text="CLose", command=self.close_request).pack(
-            side="left", padx=(0, 5))
+            side=tk.LEFT, padx=(0, 5)
+        )
         ttk.Button(ff, text="AES", command=self.aes_label).pack(
-            side="left", padx=(0, 5))
+            side=tk.LEFT, padx=(0, 5)
+        )
         ttk.Button(ff, text="Base64", command=self.b64_label).pack(
-            side="left", padx=(0, 5))
+            side=tk.LEFT, padx=(0, 5)
+        )
         ttk.Button(ff, text="MD5", command=self.md5_label).pack(
-            side="left", padx=(0, 5))
+            side=tk.LEFT, padx=(0, 5)
+        )
         ttk.Button(ff, text="PWD", command=self.pwd_label).pack(
-            side="left", padx=(0, 5))
+            side=tk.LEFT, padx=(0, 5)
+        )
         ttk.Button(ff, text="Timestamp", command=self.ts_label).pack(
-            side="left", padx=(0, 5))
+            side=tk.LEFT, padx=(0, 5)
+        )
         ttk.Button(ff, text="Help", command=self.help_label).pack(
-            side="left", padx=(0, 5))
+            side=tk.LEFT, padx=(0, 5)
+        )
         ttk.Button(ff, text="About", command=self.about_label).pack(
-            side="left", padx=(0, 5))
+            side=tk.LEFT, padx=(0, 5)
+        )
 
     def aes_label(self):
-        self.new_label('aes')
+        self.new_label("aes")
 
     def b64_label(self):
-        self.new_label('b64')
+        self.new_label("b64")
 
     def md5_label(self):
-        self.new_label('md5')
+        self.new_label("md5")
 
     def pwd_label(self):
-        self.new_label('pwd')
+        self.new_label("pwd")
 
     def ts_label(self):
-        self.new_label('ts')
+        self.new_label("ts")
 
     def help_label(self):
-        self.new_label('help')
+        self.new_label("help")
 
     def about_label(self):
-        self.new_label('about')
+        self.new_label("about")
 
     def new_label(self, command):
-        if command == 'aes':
+        if command == "aes":
             gui = AES_GUI(self.notebook)
             text = "AES"
-        elif command == 'b64':
+        elif command == "b64":
             gui = Base64GUI(self.notebook)
-            text = 'Base64'
-        elif command == 'md5':
+            text = "Base64"
+        elif command == "md5":
             gui = MD5GUI(self.notebook)
             text = "MD5"
-        elif command == 'pwd':
+        elif command == "pwd":
             gui = GenPwdWindow(self.notebook)
-            text = 'Password'
-        elif command == 'ts':
+            text = "Password"
+        elif command == "ts":
             gui = TimestampWindow(self.notebook)
-            text = 'Timestamp'
-        elif command == 'about':
+            text = "Timestamp"
+        elif command == "about":
             gui = AboutWindow(self.notebook)
-            text = 'About'
-        elif command == 'help':
+            text = "About"
+        elif command == "help":
             gui = HelpWindow(self.notebook)
-            text = 'Help'
+            text = "Help"
 
         self.notebook.add(gui.root, text=text)
-        self.notebook.select(self.notebook.index("end") - 1)
+        self.notebook.select(self.notebook.index(tk.END) - 1)
 
     def setup(self):
         if not os.path.exists(BASE_DIR):
@@ -139,7 +150,6 @@ class MainWindow:
         if filepath:
             with open(filepath, "r", encoding="utf-8") as file:
                 data = file.read()
-
                 try:
                     data = json.loads(data)
                 except json.JSONDecodeError:
@@ -150,13 +160,15 @@ class MainWindow:
 
     def new_request(self, data=None, **kwargs):
         tl = ttk.Frame(self.notebook)
-        req_win = RequestWindow(tl, callback=self.request)
+        req_win = RequestWindow(
+            window=tl, callback=self.request, get_script=self.col_win.get_script
+        )
         if data is not None:
             req_win.fill_blank(data)
-        if 'item_id' in kwargs:
-            req_win.item_id = kwargs['item_id']
-        self.notebook.add(tl, text="New request")
-        self.notebook.select(self.notebook.index("end") - 1)
+        if "item_id" in kwargs:
+            req_win.item_id = kwargs["item_id"]
+        self.notebook.add(tl, text="Request")
+        self.notebook.select(self.notebook.index(tk.END) - 1)
 
     def show_history(self, data):
         self.history_window.clear()
@@ -176,8 +188,7 @@ class MainWindow:
                 try:
                     data = file.read()
                     data = json.loads(data)
-                    thread = threading.Thread(
-                        target=self.show_history, args=(data,))
+                    thread = threading.Thread(target=self.show_history, args=(data,))
                     thread.start()
                 except json.JSONDecodeError:
                     pass
@@ -191,7 +202,17 @@ class MainWindow:
         self.root.destroy()
 
     def collection(self, **kwargs):
-        self.new_request(kwargs['data'], item_id=kwargs['item_id'])
+        if kwargs["tag"] in ["project", "folder"]:
+            folder_window = FolderWindow(
+                master=self.notebook,
+                item_id=kwargs["item_id"],
+                callback=self.col_win.save_item,
+                data=kwargs["data"],
+            )
+            self.notebook.add(folder_window.root, text=kwargs["tag"])
+            self.notebook.select(self.notebook.index(tk.END) - 1)
+        else:
+            self.new_request(kwargs["data"], item_id=kwargs["item_id"])
 
     def request(self, action, **kwargs):
         """请求窗口回调"""
@@ -212,11 +233,8 @@ class MainWindow:
                 self.console_window.error(kwargs.get("content"))
             elif level == "warning":
                 self.console_window.warning(kwargs.get("content"))
-        elif action == "close":
-            self.close_request()
-        elif action == 'save':
-            if kwargs['item_id'] is not None:
-                self.col_win.save_item(kwargs['item_id'], kwargs['data'])
+        elif action == "save":
+            self.col_win.save_item(kwargs["item_id"], kwargs["data"])
 
     def history(self, action, **kwargs):
         """历史记录回调"""

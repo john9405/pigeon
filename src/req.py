@@ -1,6 +1,6 @@
 import json
 import tkinter as tk
-from tkinter import filedialog, messagebox, ttk
+from tkinter import messagebox, ttk
 import xml.dom.minidom
 from io import BytesIO
 import requests
@@ -14,31 +14,36 @@ class RequestWindow:
     item_id = None
     method_list = ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]
 
-    def __init__(self, window, callback=None):
-        self.callback = callback
+    def __init__(self, **kwargs):
+        self.callback = kwargs.get('callback')
+        window = kwargs.get('window')
+        self.get_script = kwargs.get("get_script")
+
         ff = ttk.Frame(window)
-        ff.pack(fill="x")
-        close_btn = ttk.Button(ff, text="Close", command=self.on_close)
-        close_btn.pack(side="right")
+        ff.pack(fill=tk.X)
+        ttk.Label(ff, text="Name:").pack(side=tk.LEFT)
+        self.name_entry = ttk.Entry(ff)
+        self.name_entry.insert(0, "New Request")
+        self.name_entry.pack(side=tk.LEFT)
         save_btn = ttk.Button(ff, text="Save", command=self.save_handler)
-        save_btn.pack(side="right")
-        
+        save_btn.pack(side=tk.RIGHT)
+
         north = ttk.Frame(window)
-        north.pack(fill="x")
+        north.pack(fill=tk.X)
         # 创建请求方式下拉框和URL输入框
         self.method_box = ttk.Combobox(north, width=8, values=self.method_list)
         self.method_box.current(0)
-        self.method_box['state'] = "readonly"
-        self.method_box.pack(side="left")
+        self.method_box["state"] = "readonly"
+        self.method_box.pack(side=tk.LEFT)
         sub_btn = ttk.Button(north, text="Send")  # 发送请求按钮
-        sub_btn.config(command=self.send_request) # 绑定发送请求按钮的事件处理函数
-        sub_btn.pack(side="right")
+        sub_btn.config(command=self.send_request)  # 绑定发送请求按钮的事件处理函数
+        sub_btn.pack(side=tk.RIGHT)
         self.url_box = ttk.Entry(north)
-        self.url_box.pack(fill="both", pady=3)
+        self.url_box.pack(fill=tk.BOTH, pady=3)
 
         # 创建一个PanedWindow
         paned_window = ttk.PanedWindow(window, orient=tk.VERTICAL)
-        paned_window.pack(fill=tk.BOTH, expand=True)
+        paned_window.pack(fill=tk.BOTH, expand=tk.YES)
 
         # 创建选项卡
         notebook = ttk.Notebook(paned_window)
@@ -101,52 +106,76 @@ class RequestWindow:
         res_body_frame = ttk.Frame(res_note)
         self.res_body_box = tk.Text(res_body_frame, height=12)
         self.res_body_box.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.YES)
-        res_body_scrollbar = ttk.Scrollbar(res_body_frame, command=self.res_body_box.yview)
+        res_body_scrollbar = ttk.Scrollbar(
+            res_body_frame, command=self.res_body_box.yview
+        )
         res_body_scrollbar.pack(side=tk.LEFT, fill=tk.Y)
         self.res_body_box.config(yscrollcommand=res_body_scrollbar.set)
         res_note.add(res_body_frame, text="Body")
 
         res_cookie_frame = ttk.Frame(res_note)
-        self.res_cookie_table = ttk.Treeview(res_cookie_frame, columns=("key", "value"), show="headings", height=6)
-        res_cookie_scrollbar_x = ttk.Scrollbar(res_cookie_frame, orient=tk.HORIZONTAL, command=self.res_cookie_table.xview )       
-        res_cookie_scrollbar_y = ttk.Scrollbar(res_cookie_frame, command=self.res_cookie_table.yview)
+        self.res_cookie_table = ttk.Treeview(
+            res_cookie_frame, columns=("key", "value"), show="headings", height=6
+        )
+        res_cookie_scrollbar_x = ttk.Scrollbar(
+            res_cookie_frame, orient=tk.HORIZONTAL, command=self.res_cookie_table.xview
+        )
+        res_cookie_scrollbar_y = ttk.Scrollbar(
+            res_cookie_frame, command=self.res_cookie_table.yview
+        )
         self.res_cookie_table.column("key", width=1)
         self.res_cookie_table.heading("key", text="key")
         self.res_cookie_table.heading("value", text="value")
-        res_cookie_scrollbar_y.pack(side="right", fill=tk.Y, pady=(0, res_cookie_scrollbar_x.winfo_reqheight()))
-        res_cookie_scrollbar_x.pack(side="bottom", fill=tk.X)
-        self.res_cookie_table.pack(side="left", fill=tk.BOTH, expand=tk.YES)
-        self.res_cookie_table.config(xscrollcommand=res_cookie_scrollbar_x.set,yscrollcommand=res_cookie_scrollbar_y.set)
+        res_cookie_scrollbar_y.pack(
+            side=tk.RIGHT, fill=tk.Y, pady=(0, res_cookie_scrollbar_x.winfo_reqheight())
+        )
+        res_cookie_scrollbar_x.pack(side=tk.BOTTOM, fill=tk.X)
+        self.res_cookie_table.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.YES)
+        self.res_cookie_table.config(
+            xscrollcommand=res_cookie_scrollbar_x.set,
+            yscrollcommand=res_cookie_scrollbar_y.set,
+        )
         res_note.add(res_cookie_frame, text="Cookies")
 
         res_header_frame = ttk.Frame(res_note)
-        self.res_header_table = ttk.Treeview(res_header_frame, columns=("key", "value"), show="headings", height=6)
+        self.res_header_table = ttk.Treeview(
+            res_header_frame, columns=("key", "value"), show="headings", height=6
+        )
         self.res_header_table.column("key", width=1)
         self.res_header_table.heading("key", text="key")
         self.res_header_table.heading("value", text="value")
-        res_header_scrollbar_x = ttk.Scrollbar(res_header_frame, orient=tk.HORIZONTAL, command=self.res_header_table.xview)
-        res_header_scrollbar_y = ttk.Scrollbar(res_header_frame, command=self.res_header_table.yview)
-        res_header_scrollbar_y.pack(side="right", fill=tk.Y, pady=(0, res_header_scrollbar_x.winfo_reqheight()))
-        res_header_scrollbar_x.pack(side="bottom", fill=tk.X)
-        self.res_header_table.pack(side="left", fill=tk.BOTH, expand=tk.YES)
-        self.res_header_table.config(xscrollcommand=res_header_scrollbar_x.set,yscrollcommand=res_header_scrollbar_y.set)
+        res_header_scrollbar_x = ttk.Scrollbar(
+            res_header_frame, orient=tk.HORIZONTAL, command=self.res_header_table.xview
+        )
+        res_header_scrollbar_y = ttk.Scrollbar(
+            res_header_frame, command=self.res_header_table.yview
+        )
+        res_header_scrollbar_y.pack(
+            side="right", fill=tk.Y, pady=(0, res_header_scrollbar_x.winfo_reqheight())
+        )
+        res_header_scrollbar_x.pack(side=tk.BOTTOM, fill=tk.X)
+        self.res_header_table.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.YES)
+        self.res_header_table.config(
+            xscrollcommand=res_header_scrollbar_x.set,
+            yscrollcommand=res_header_scrollbar_y.set,
+        )
         res_note.add(res_header_frame, text="Headers")
 
         res_tests_frame = ttk.Frame(res_note)
         self.res_tests_box = tk.Text(res_tests_frame, height=12)
         self.res_tests_box.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.YES)
-        res_tests_scrollbar = ttk.Scrollbar(res_tests_frame, command=self.res_tests_box.yview)
+        res_tests_scrollbar = ttk.Scrollbar(
+            res_tests_frame, command=self.res_tests_box.yview
+        )
         res_tests_scrollbar.pack(side=tk.LEFT, fill=tk.Y)
         self.res_tests_box.config(yscrollcommand=res_tests_scrollbar.set)
         res_note.add(res_tests_frame, text="Test Results")
-
-    def on_close(self):
-        self.callback("close")
 
     def save_handler(self):
         """
         保存测试脚本
         """
+        name = self.name_entry.get()
         method = self.method_box.get()
         url = self.url_box.get()
         params = self.params_box.get("1.0", tk.END)
@@ -172,20 +201,25 @@ class RequestWindow:
         if tests == "\n":
             tests = ""
 
-        if self.item_id is None:
-            messagebox.showerror("错误", "暂时无法保存")
-            return
-        
-        self.callback("save", item_id=self.item_id, data={
-            "method": method,
-            "url": url,
-            "params": params,
-            "headers": headers,
-            "body": body,
-            "pre_request_script": pre_request_script,
-            "tests": tests,
-            'name': "new req"
-        })
+        if name == "" and url > "":
+            name = url
+        elif name == "":
+            name = "New Request"
+
+        self.callback(
+            "save",
+            item_id=self.item_id,
+            data={
+                "method": method,
+                "url": url,
+                "params": params,
+                "headers": headers,
+                "body": body,
+                "pre_request_script": pre_request_script,
+                "tests": tests,
+                "name": name,
+            },
+        )
 
     def fill_blank(self, data):
         method = data.get("method", "GET")
@@ -208,6 +242,8 @@ class RequestWindow:
         self.script_box.insert(tk.END, data.get("pre_request_script", ""))
         self.tests_box.delete("1.0", tk.END)
         self.tests_box.insert(tk.END, data.get("tests", ""))
+        self.name_entry.delete(0, tk.END)
+        self.name_entry.insert(tk.END, data.get("name", "New Request"))
 
     def send_request(self):
         """定义发送请求的函数"""
@@ -237,6 +273,9 @@ class RequestWindow:
         except json.JSONDecodeError:
             body = {}
 
+        if self.item_id is not None:
+            script_list = self.get_script(self.item_id)
+
         pre_request_script = self.script_box.get("1.0", tk.END)
         tests = self.tests_box.get("1.0", tk.END)
 
@@ -244,6 +283,12 @@ class RequestWindow:
             exec(pre_request_script)
         except Exception as error:
             console.error(str(error))
+
+        for script in script_list:
+            try:
+                exec(script['pre_request_script'])
+            except Exception as error:
+                console.error(str(error))
 
         # 发送网络请求
         try:
@@ -254,7 +299,9 @@ class RequestWindow:
             elif method == "PUT":
                 response = requests.put(url, params=params, data=body, headers=headers)
             elif method == "PATCH":
-                response = requests.patch(url, params=params, data=body, headers=headers)
+                response = requests.patch(
+                    url, params=params, data=body, headers=headers
+                )
             elif method == "DELETE":
                 response = requests.delete(url, params=params, headers=headers)
             elif method == "HEAD":
@@ -272,7 +319,7 @@ class RequestWindow:
         self.res_cookie_table.delete(*self.res_cookie_table.get_children())
         for item in response.cookies.keys():
             self.res_cookie_table.insert(
-                "", "end", values=(item, response.cookies.get(item))
+                "", tk.END, values=(item, response.cookies.get(item))
             )
 
         self.res_header_table.delete(*self.res_header_table.get_children())
@@ -281,7 +328,7 @@ class RequestWindow:
             if item == "Content-Type":
                 content_type = response.headers.get(item)
             self.res_header_table.insert(
-                "", "end", values=(item, response.headers.get(item))
+                "", tk.END, values=(item, response.headers.get(item))
             )
 
         self.res_body_box.delete("1.0", tk.END)
@@ -311,16 +358,28 @@ class RequestWindow:
         except Exception as error:
             console.error(str(error))
 
+        for script in script_list:
+            try:
+                exec(script['tests'])
+            except Exception as error:
+                console.error(str(error))
+
         self.callback("history", **{"data": f"{method} {url}"})
-        self.callback("cache",**{"data": {
-            "method": method,
-            "url": url,
-            "params": params,
-            "headers": headers,
-            "body": body,
-            "pre_request_script": pre_request_script,
-            "tests": tests,
-        }})
+        self.callback(
+            "cache",
+            **{
+                "data": {
+                    "method": method,
+                    "url": url,
+                    "params": params,
+                    "headers": headers,
+                    "body": body,
+                    "pre_request_script": pre_request_script,
+                    "tests": tests,
+                }
+            },
+        )
+        self.save_handler()
 
     def console(self, data):
         self.callback("console", **data)

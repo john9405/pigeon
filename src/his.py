@@ -8,8 +8,8 @@ class HistoryWindow:
         self.window = window
         self.callback = callback
         ff = ttk.Frame(window)
-        ff.pack(fill="x")
-        ttk.Label(ff, text="History").pack(side="left")
+        ff.pack(fill=tk.X)
+        ttk.Label(ff, text="History").pack(side=tk.LEFT)
         ttk.Button(ff, text="Clear", command=self.clear).pack(side="right")
         self.history_box = tk.Listbox(window)
         scrollbar = ttk.Scrollbar(window, command=self.history_box.yview)
