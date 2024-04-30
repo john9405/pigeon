@@ -58,7 +58,7 @@ class CollectionWindow:
         node = self.tree.insert(
             "",
             "end",
-            text=data["info"]["name"],
+            text=data["name"],
             values=[json.dumps(temp)],
             open=True,
             tags=["project", str(uuid.uuid1())],
@@ -100,7 +100,7 @@ class CollectionWindow:
             defaultextension=".json",
             filetypes=[("json files", "*.json")],
             initialdir=USER_DIR,
-            initialfile=bean['info']['name'] + ".json"
+            initialfile=bean['name'] + ".json"
         )
         if filepath:
             with open(filepath, "w", encoding="utf-8") as file:

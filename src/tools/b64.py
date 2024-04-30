@@ -5,22 +5,22 @@ from tkinter import messagebox, ttk
 
 class Base64GUI:
     """ base64 加解密工具 """
-    def __init__(self, master) -> None:
-        self.root = tk.Toplevel(master) 
+    def __init__(self, master=None) -> None:
+        self.root = ttk.Frame(master)
 
         input_frame = ttk.LabelFrame(self.root, text="Input")
-        input_frame.pack(side="left")
-        self.input_box = tk.Text(input_frame)
+        input_frame.pack()
+        self.input_box = tk.Text(input_frame, height=10)
         self.input_box.pack()
         bframe = tk.Frame(self.root)
-        bframe.pack(side="left")
+        bframe.pack()
         ebtn = ttk.Button(bframe, text="加密", command=self.encrypto)
-        ebtn.pack(padx=5, pady=5)
+        ebtn.pack(side="left")
         dbtn = ttk.Button(bframe, text="解密", command=self.decrypto)
-        dbtn.pack(padx=5, pady=5)
+        dbtn.pack(side="left")
         output_frame = ttk.LabelFrame(self.root, text="Output")
-        output_frame.pack(side="left")
-        self.output_box = tk.Text(output_frame)
+        output_frame.pack()
+        self.output_box = tk.Text(output_frame, height=10)
         self.output_box.pack()
 
     def encrypto(self):

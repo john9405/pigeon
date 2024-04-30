@@ -9,10 +9,16 @@ from .his import HistoryWindow
 from .req import RequestWindow
 from .console import ConsoleWindow
 from .col import CollectionWindow
+from .doc.help import HelpWindow
+from .doc.about import AboutWindow
+from .tools.aes import AES_GUI
+from .tools.b64 import Base64GUI
+from .tools.md5 import MD5GUI
+from .tools.pwd import GenPwdWindow
+from .tools.timestamp import TimestampWindow
 
 
 class MainWindow:
-
     history_list = []  # 历史记录列表
 
     def __init__(self):
@@ -33,7 +39,8 @@ class MainWindow:
 
         self.col_top = ttk.Frame(pw2)
         pw2.add(self.col_top)
-        self.col_win = CollectionWindow(self.col_top, **{"callback": self.collection})
+        self.col_win = CollectionWindow(
+            self.col_top, **{"callback": self.collection})
         self.col_win.on_start()
 
         self.notebook = ttk.Notebook(pw2)
@@ -48,9 +55,75 @@ class MainWindow:
         self.console_window = ConsoleWindow(console_top)
         self.new_request()
 
-        ttk.Button(ff, text='New Request', command=self.new_request).pack(side="left", padx=5, pady=5)
-        ttk.Button(ff, text="New Project", command=self.col_win.new_proj).pack(side="left", padx=(0, 5))
-        ttk.Button(ff, text="Open", command=self.col_win.open_proj).pack(side="left", padx=(0, 5))
+        ttk.Button(ff, text='New Request', command=self.new_request).pack(
+            side="left", padx=5, pady=5)
+        ttk.Button(ff, text="New Project", command=self.col_win.new_proj).pack(
+            side="left", padx=(0, 5))
+        ttk.Button(ff, text="Open", command=self.col_win.open_proj).pack(
+            side="left", padx=(0, 5))
+        ttk.Button(ff, text="CLose", command=self.close_request).pack(
+            side="left", padx=(0, 5))
+        ttk.Button(ff, text="AES", command=self.aes_label).pack(
+            side="left", padx=(0, 5))
+        ttk.Button(ff, text="Base64", command=self.b64_label).pack(
+            side="left", padx=(0, 5))
+        ttk.Button(ff, text="MD5", command=self.md5_label).pack(
+            side="left", padx=(0, 5))
+        ttk.Button(ff, text="PWD", command=self.pwd_label).pack(
+            side="left", padx=(0, 5))
+        ttk.Button(ff, text="Timestamp", command=self.ts_label).pack(
+            side="left", padx=(0, 5))
+        ttk.Button(ff, text="Help", command=self.help_label).pack(
+            side="left", padx=(0, 5))
+        ttk.Button(ff, text="About", command=self.about_label).pack(
+            side="left", padx=(0, 5))
+
+    def aes_label(self):
+        self.new_label('aes')
+
+    def b64_label(self):
+        self.new_label('b64')
+
+    def md5_label(self):
+        self.new_label('md5')
+
+    def pwd_label(self):
+        self.new_label('pwd')
+
+    def ts_label(self):
+        self.new_label('ts')
+
+    def help_label(self):
+        self.new_label('help')
+
+    def about_label(self):
+        self.new_label('about')
+
+    def new_label(self, command):
+        if command == 'aes':
+            gui = AES_GUI(self.notebook)
+            text = "AES"
+        elif command == 'b64':
+            gui = Base64GUI(self.notebook)
+            text = 'Base64'
+        elif command == 'md5':
+            gui = MD5GUI(self.notebook)
+            text = "MD5"
+        elif command == 'pwd':
+            gui = GenPwdWindow(self.notebook)
+            text = 'Password'
+        elif command == 'ts':
+            gui = TimestampWindow(self.notebook)
+            text = 'Timestamp'
+        elif command == 'about':
+            gui = AboutWindow(self.notebook)
+            text = 'About'
+        elif command == 'help':
+            gui = HelpWindow(self.notebook)
+            text = 'Help'
+
+        self.notebook.add(gui.root, text=text)
+        self.notebook.select(self.notebook.index("end") - 1)
 
     def setup(self):
         if not os.path.exists(BASE_DIR):
@@ -75,8 +148,7 @@ class MainWindow:
 
                 self.new_request(data)
 
-    def new_request(self, data=None, *args, **kwargs):
-
+    def new_request(self, data=None, **kwargs):
         tl = ttk.Frame(self.notebook)
         req_win = RequestWindow(tl, callback=self.request)
         if data is not None:
@@ -87,7 +159,6 @@ class MainWindow:
         self.notebook.select(self.notebook.index("end") - 1)
 
     def show_history(self, data):
-
         self.history_window.clear()
         for item in data:
             self.history_list.append(item)
@@ -99,14 +170,14 @@ class MainWindow:
                 pass
 
     def on_start(self):
-
         filepath = os.path.join(BASE_DIR, "history.json")
         if os.path.exists(filepath):
             with open(filepath, "r", encoding="utf-8") as file:
                 try:
                     data = file.read()
                     data = json.loads(data)
-                    thread = threading.Thread(target=self.show_history, args=(data,))
+                    thread = threading.Thread(
+                        target=self.show_history, args=(data,))
                     thread.start()
                 except json.JSONDecodeError:
                     pass
@@ -119,10 +190,10 @@ class MainWindow:
             file.write(json.dumps(self.history_list))
         self.root.destroy()
 
-    def collection(self, *args, **kwargs):
+    def collection(self, **kwargs):
         self.new_request(kwargs['data'], item_id=kwargs['item_id'])
 
-    def request(self, action, *args, **kwargs):
+    def request(self, action, **kwargs):
         """请求窗口回调"""
         if action == "cache":
             # 缓存历史记录
