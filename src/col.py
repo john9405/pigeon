@@ -4,7 +4,7 @@ import tkinter as tk
 import uuid
 from tkinter import ttk, filedialog, messagebox
 
-from . import BASE_DIR, USER_DIR
+from . import WORK_DIR, USER_DIR
 
 
 class CollectionWindow:
@@ -24,21 +24,24 @@ class CollectionWindow:
         self.context_nenu.add_command(label="new Project", command=self.new_proj)
         # project
         self.proj_menu = tk.Menu(window, tearoff=0)
+        self.proj_menu.add_command(label="Open in tab", command=self.on_open)
         self.proj_menu.add_command(label="new folder", command=self.new_col)
         self.proj_menu.add_command(label="new request", command=self.new_req)
         self.proj_menu.add_command(label="Export", command=self.export_proj)
         self.proj_menu.add_command(label="Delete", command=self.delete_item)
         # folder
         self.folder_menu = tk.Menu(window, tearoff=0)
+        self.folder_menu.add_command(label="Open in tab", command=self.on_open)
         self.folder_menu.add_command(label="new folder", command=self.new_col)
         self.folder_menu.add_command(label="new request", command=self.new_req)
         self.folder_menu.add_command(label="Delete", command=self.delete_item)
         # request
         self.req_menu = tk.Menu(window, tearoff=0)
+        self.req_menu.add_command(label="Open in tab", command=self.on_open)
         self.req_menu.add_command(label="Delete", command=self.delete_item)
 
     def open_proj(self):
-        """打开项目"""
+        """open a program"""
         filepath = filedialog.askopenfilename(
             filetypes=(("Json files", "*.json"),), initialdir=USER_DIR
         )
@@ -48,10 +51,10 @@ class CollectionWindow:
                     data = json.loads(f.read())
                     self.show_proj(data)
                 except json.JSONDecodeError:
-                    messagebox.showerror("错误", "文本内容必须是一个json")
+                    messagebox.showerror("Error", "The text content must be a json")
 
     def show_proj(self, data):
-        item  = None
+        item = None
         if "item" in data:
             item = data.pop("item")
 
@@ -70,7 +73,7 @@ class CollectionWindow:
     def show_item(self, node, items):
         for item in items:
             if "item" in item:
-                childitem = item.pop('item')
+                childitem = item.pop("item")
                 cnode = self.tree.insert(
                     node,
                     tk.END,
@@ -91,7 +94,7 @@ class CollectionWindow:
                 )
 
     def export_proj(self):
-        """保存项目"""
+        """save program"""
         item = self.tree.item(self.tree.selection()[0])
         bean = json.loads(item["values"][0])
 
@@ -134,6 +137,9 @@ class CollectionWindow:
             )
         except IndexError:
             pass
+
+    def on_open(self):
+        self.on_select(None)
 
     def on_right_click(self, event):
         item = self.tree.identify_row(event.y)
@@ -209,21 +215,33 @@ class CollectionWindow:
             else:
                 selected_node = self.tree.parent(self.tree.selection()[0])
 
-            self.tree.insert(
+            x = self.tree.insert(
                 selected_node,
                 tk.END,
                 text=data.get("method") + " " + data.get("name"),
                 tags=["request", str(uuid.uuid1())],
                 values=[json.dumps(data)],
             )
+            return x
         except IndexError:
-            pass
+            messagebox.showerror("Error", "Save error, please select folder.")
 
     def save_item(self, item_id, data):
         if item_id is None:
-            self.new_req(data)
-        else:
-            self.tree.item(item_id, text=data["name"], values=[json.dumps(data)])
+            return self.new_req(data)
+
+        item = self.tree.item(item_id)
+        ctag = item["tags"][0]
+        self.tree.item(
+            item_id,
+            text=(
+                data["method"] + " " + data["name"]
+                if ctag == "request"
+                else data["name"]
+            ),
+            values=[json.dumps(data)],
+        )
+        return item_id
 
     def delete_item(self):
         selected_node = self.tree.selection()
@@ -231,8 +249,8 @@ class CollectionWindow:
             self.tree.delete(selected_node)
 
     def on_start(self):
-        """读取工作空间的数据"""
-        filepath = os.path.join(BASE_DIR, "workspace.json")
+        """Read data from the workspace"""
+        filepath = os.path.join(WORK_DIR, "workspace.json")
         if os.path.exists(filepath):
             with open(filepath, "r", encoding="utf-8") as f:
                 try:
@@ -244,7 +262,7 @@ class CollectionWindow:
                     pass
 
     def on_close(self):
-        """自动保存"""
+        """auto save"""
         proj_list = []
         children = self.tree.get_children()
         for child in children:
@@ -252,7 +270,7 @@ class CollectionWindow:
             value = json.loads(bean["values"][0])
             value.update({"item": self.traverse_children(child)})
             proj_list.append(value)
-        filepath = os.path.join(BASE_DIR, "workspace.json")
+        filepath = os.path.join(WORK_DIR, "workspace.json")
         with open(filepath, "w", encoding="utf-8") as f:
             f.write(json.dumps(proj_list))
 
@@ -260,11 +278,13 @@ class CollectionWindow:
         if self.tree.parent(item_id):
             scripts_list = []
             item = self.tree.item(self.tree.parent(item_id))
-            value = json.loads(item['values'][0])
-            scripts_list.append({
-                "pre_request_script": value.get('pre_request_script', ''), 
-                "tests": value.get("tests", "")
-            })
+            value = json.loads(item["values"][0])
+            scripts_list.append(
+                {
+                    "pre_request_script": value.get("pre_request_script", ""),
+                    "tests": value.get("tests", ""),
+                }
+            )
             x = self.get_script(self.tree.parent(item_id))
             scripts_list += x
             return scripts_list

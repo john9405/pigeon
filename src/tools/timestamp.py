@@ -1,55 +1,68 @@
-from tkinter import ttk
+from tkinter import ttk, messagebox
+import tkinter as tk
 import datetime
+import re
 
 
 class TimestampWindow:
-    """ 时间戳转换工具 """
+    """时间戳转换工具"""
+
     def __init__(self, master=None):
         self.root = ttk.Frame(master)
         # 时间戳转日期时间
-        timestamp_label = ttk.Label(self.root, text="Timestamp:")
-        timestamp_label.pack()
-        self.timestamp_entry = ttk.Entry(self.root)
-        self.timestamp_entry.pack()
-        timestamp_button = ttk.Button(self.root, text="Convert to Datetime", command=self.timestamp_to_datetime)
-        timestamp_button.pack()
-        self.datetime_label = ttk.Label(self.root, text="Datetime:")
-        self.datetime_label.pack()
+        intframe = ttk.Frame(self.root)
+        intframe.pack(fill=tk.X)
+        ttk.Label(intframe, text="Timestamp:").pack(side=tk.LEFT)
+        self.timestamp_entry = ttk.Entry(intframe)
+        self.timestamp_entry.pack(side=tk.LEFT)
+        ttk.Button(intframe, text="transform", command=self.timestamp_to_datetime).pack(
+            side=tk.LEFT
+        )
+        ttk.Label(intframe, text="Datetime:").pack(side=tk.LEFT)
+        self.datetime_entry = ttk.Entry(intframe)
+        self.datetime_entry.pack(side=tk.LEFT)
 
         # 日期时间转时间戳
-        date_label = ttk.Label(self.root, text="Date (YYYY-MM-DD):")
-        date_label.pack()
-        self.date_entry = ttk.Entry(self.root)
-        self.date_entry.pack()
-        time_label = ttk.Label(self.root, text="Time (HH:MM:SS):")
-        time_label.pack()
-        self.time_entry = ttk.Entry(self.root)
-        self.time_entry.pack()
-        datetime_button = ttk.Button(self.root, text="Convert to Timestamp", command=self.datetime_to_timestamp)
-        datetime_button.pack()
-        self.timestamp_label = ttk.Label(self.root, text="Timestamp:")
-        self.timestamp_label.pack()
+        strframe = ttk.Frame(self.root)
+        strframe.pack(fill=tk.X)
+        ttk.Label(strframe, text="DateTime:").pack(side=tk.LEFT)
+        self.date_entry = ttk.Entry(strframe)
+        self.date_entry.pack(side=tk.LEFT)
+        ttk.Button(strframe, text="transform", command=self.datetime_to_timestamp).pack(
+            side=tk.LEFT
+        )
+        ttk.Label(strframe, text="Timestamp:").pack(side=tk.LEFT)
+        self.time_entry = ttk.Entry(strframe)
+        self.time_entry.pack(side=tk.LEFT)
+        ttk.Label(self.root, text="(YYYY-MM-DD HH:MM:SS)").pack()
 
     def timestamp_to_datetime(self):
-        timestamp = int(self.timestamp_entry.get())
+        timestamp = self.timestamp_entry.get()
+        if re.search(r"^\d+$", timestamp) is None:
+            messagebox.showinfo("Warning", "Invalid timestamp!")
+            return
+
+        timestamp = int(timestamp)
         try:
-            if len(str(timestamp)) == 10:
-                dt = datetime.datetime.fromtimestamp(timestamp)
-                self.datetime_label.config(text="Datetime: " + str(dt))
-            elif len(str(timestamp)) == 13:
-                dt = datetime.datetime.fromtimestamp(timestamp / 1000)
-                self.datetime_label.config(text="Datetime: " + str(dt))
-            else:
-                self.datetime_label.config(text="Invalid timestamp length!")
+            dt = datetime.datetime.fromtimestamp(timestamp)
+            self.datetime_entry.delete(0, tk.END)
+            self.datetime_entry.insert(0, str(dt))
         except ValueError:
-            self.datetime_label.config(text="Invalid timestamp!")
+            messagebox.showinfo("Warning", "Invalid timestamp!")
 
     def datetime_to_timestamp(self):
         date_str = self.date_entry.get()
-        time_str = self.time_entry.get()
+        if (
+            re.search(r"^\d{4}-\d{1,2}-\d{1,2}\s\d{1,2}:\d{1,2}:\d{1,2}$", date_str)
+            is None
+        ):
+            messagebox.showinfo("Warning", "Invalid datetime format!")
+            return
+
         try:
-            dt = datetime.datetime.strptime(date_str + " " + time_str, "%Y-%m-%d %H:%M:%S")
+            dt = datetime.datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S")
             timestamp = int(dt.timestamp())
-            self.timestamp_label.config(text="Timestamp: " + str(timestamp))
+            self.time_entry.delete(0, tk.END)
+            self.time_entry.insert(0, str(timestamp))
         except ValueError:
-            self.timestamp_label.config(text="Invalid datetime format!")
+            messagebox.showinfo("Warning", "Invalid datetime format!")

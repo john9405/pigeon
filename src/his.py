@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 
 class HistoryWindow:
-    """历史记录窗口"""
+    """History window"""
 
     def __init__(self, window, callback=None):
         self.window = window
@@ -28,12 +28,6 @@ class HistoryWindow:
 
     def popup_menu(self, event):
         self.menu.post(event.x_root, event.y_root)
-
-    def show_window(self):
-        self.window.deiconify()  # 显示子窗口
-
-    def hidden_window(self):
-        self.window.withdraw()  # 隐藏子窗口
 
     def log(self, data):
         self.history_box.insert(0, data)

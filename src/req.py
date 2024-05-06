@@ -30,26 +30,26 @@ class RequestWindow:
 
         north = ttk.Frame(window)
         north.pack(fill=tk.X)
-        # 创建请求方式下拉框和URL输入框
+        # Create request mode drop-down box and URL input box
         self.method_box = ttk.Combobox(north, width=8, values=self.method_list)
         self.method_box.current(0)
         self.method_box["state"] = "readonly"
         self.method_box.pack(side=tk.LEFT)
-        sub_btn = ttk.Button(north, text="Send")  # 发送请求按钮
-        sub_btn.config(command=self.send_request)  # 绑定发送请求按钮的事件处理函数
+        sub_btn = ttk.Button(north, text="Send")  # Send request button
+        sub_btn.config(command=self.send_request)  # Bind the event handler to send the request button
         sub_btn.pack(side=tk.RIGHT)
         self.url_box = ttk.Entry(north)
         self.url_box.pack(fill=tk.BOTH, pady=3)
 
-        # 创建一个PanedWindow
+        # Create a PanedWindow
         paned_window = ttk.PanedWindow(window, orient=tk.VERTICAL)
         paned_window.pack(fill=tk.BOTH, expand=tk.YES)
 
-        # 创建选项卡
+        # Create notebook
         notebook = ttk.Notebook(paned_window)
         paned_window.add(notebook)
 
-        # 创建查询参数页面
+        # Create a query parameter page
         params_frame = ttk.Frame(notebook)
         self.params_box = tk.Text(params_frame, height=12)
         self.params_box.insert(tk.END, "{}")
@@ -59,7 +59,7 @@ class RequestWindow:
         self.params_box.config(yscrollcommand=params_scrollbar.set)
         notebook.add(params_frame, text="Params")
 
-        # 创建请求头页面
+        # Create the request header page
         headers_frame = ttk.Frame(notebook)
         self.headers_box = tk.Text(headers_frame, height=12)
         self.headers_box.insert(tk.END, "{}")
@@ -69,7 +69,7 @@ class RequestWindow:
         self.headers_box.config(yscrollcommand=headers_scrollbar.set)
         notebook.add(headers_frame, text="Headers")
 
-        # 创建请求体页面
+        # Create the request body page
         body_frame = ttk.Frame(notebook)
         self.body_box = tk.Text(body_frame, height=12)
         self.body_box.insert(tk.END, "{}")
@@ -99,7 +99,7 @@ class RequestWindow:
         self.tests_box.config(yscrollcommand=tests_scrollbar.set)
         notebook.add(tests_frame, text="Tests")
 
-        # 创建响应区域
+        # Create response area
         res_note = ttk.Notebook(paned_window)
         paned_window.add(res_note)
 
@@ -172,9 +172,7 @@ class RequestWindow:
         res_note.add(res_tests_frame, text="Test Results")
 
     def save_handler(self):
-        """
-        保存测试脚本
-        """
+        """ Save test script """
         name = self.name_entry.get()
         method = self.method_box.get()
         url = self.url_box.get()
@@ -206,7 +204,7 @@ class RequestWindow:
         elif name == "":
             name = "New Request"
 
-        self.callback(
+        x = self.callback(
             "save",
             item_id=self.item_id,
             data={
@@ -220,6 +218,7 @@ class RequestWindow:
                 "name": name,
             },
         )
+        self.item_id = x
 
     def fill_blank(self, data):
         method = data.get("method", "GET")
@@ -246,16 +245,16 @@ class RequestWindow:
         self.name_entry.insert(tk.END, data.get("name", "New Request"))
 
     def send_request(self):
-        """定义发送请求的函数"""
+        """ Define the function that sends the request """
         console = Console(self.console)
 
-        # 获取请求方式和URL
+        # Gets the request method and URL
         method = self.method_box.get()
         url = self.url_box.get()
         if url is None or url == "":
-            messagebox.showerror("错误", "请输出请求地址")
+            messagebox.showerror("Error", "Please print the request address")
             return
-        # 获取查询参数、请求头和请求体
+        # Gets query parameters, request headers, and request bodies
         params = self.params_box.get("1.0", tk.END)
         headers = self.headers_box.get("1.0", tk.END)
         body = self.body_box.get("1.0", tk.END)
@@ -309,10 +308,10 @@ class RequestWindow:
             elif method == "OPTIONS":
                 response = requests.head(url, params=params, headers=headers)
             else:
-                messagebox.showerror("错误", "不支持的请求类型")
+                messagebox.showerror("Error", "Unsupported request type")
                 return
         except requests.exceptions.MissingSchema:
-            messagebox.showerror("错误", "请求错误")
+            messagebox.showerror("Error", "Request error")
             return
 
         # 将响应显示在响应区域

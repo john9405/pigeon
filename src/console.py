@@ -32,7 +32,7 @@ class Console:
 
 
 class ConsoleWindow:
-    """控制台"""
+    """Control console"""
 
     def __init__(self, window):
         self.window = window
@@ -46,12 +46,6 @@ class ConsoleWindow:
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         self.text_box.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.YES)
         self.text_box.config(yscrollcommand=scrollbar.set)
-
-    def show_window(self):
-        self.window.deiconify()  # 显示子窗口
-
-    def hidden_window(self):
-        self.window.withdraw()  # 隐藏子窗口
 
     def log(self, data):
         self.text_box.insert(tk.END, data)

@@ -3,7 +3,7 @@ from tkinter import ttk, messagebox
 
 
 class FolderWindow:
-    """文件夹属性"""
+    """Folder properties"""
 
     item_id = None
 

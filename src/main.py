@@ -4,7 +4,7 @@ import threading
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 
-from . import BASE_DIR
+from . import WORK_DIR, BASE_DIR
 from .his import HistoryWindow
 from .req import RequestWindow
 from .console import ConsoleWindow
@@ -20,35 +20,40 @@ from .folder import FolderWindow
 
 
 class MainWindow:
-    history_list = []  # 历史记录列表
+    history_list = []  # History list
+    tag_list = []  # List of enabled labels
+    sidebar = ""
 
     def __init__(self):
         self.setup()
         self.root = tk.Tk()
-        # 创建主窗口
+        # Create main window
         self.root.title("HTTP Client")
         self.root.after(0, self.on_start)
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
 
         ff = ttk.Frame(self.root)
         ff.pack(fill=tk.X)
+        fe = ttk.Frame(self.root)
+        fe.pack(side=tk.LEFT, fill=tk.Y)
 
         pw1 = ttk.PanedWindow(self.root)
         pw1.pack(fill="both", expand=True)
         pw2 = ttk.PanedWindow(pw1, orient=tk.HORIZONTAL)
         pw1.add(pw2)
 
-        self.col_top = ttk.Frame(pw2)
-        pw2.add(self.col_top)
-        self.col_win = CollectionWindow(self.col_top, **{"callback": self.collection})
-        self.col_win.on_start()
-
+        self.main_sidebar = ttk.Frame(pw2)
+        pw2.add(self.main_sidebar)
         self.notebook = ttk.Notebook(pw2)
         pw2.add(self.notebook)
 
-        self.history_top = ttk.Frame(pw2)
-        pw2.add(self.history_top)
+        self.col_top = ttk.Frame(self.main_sidebar)
+        self.col_win = CollectionWindow(self.col_top, **{"callback": self.collection})
+        self.col_win.on_start()
+        self.history_top = ttk.Frame(self.main_sidebar)
         self.history_window = HistoryWindow(self.history_top, self.history)
+        self.col_top.pack(expand=True, fill=tk.BOTH)
+        self.sidebar = "collection"
 
         console_top = ttk.Frame(pw1)
         pw1.add(console_top)
@@ -88,6 +93,51 @@ class MainWindow:
         ttk.Button(ff, text="About", command=self.about_label).pack(
             side=tk.LEFT, padx=(0, 5)
         )
+
+        self.images = [
+            tk.PhotoImage(
+                name="collection",
+                file=os.path.join(BASE_DIR, *("assets", "send.png")),
+                height=32,
+                width=32
+            ),
+            tk.PhotoImage(
+                name="environment",
+                file=os.path.join(BASE_DIR, *("assets", "book.png")),
+                height=32,
+                width=32
+            ),
+            tk.PhotoImage(
+                name="history",
+                file=os.path.join(BASE_DIR, *('assets', 'history.png')),
+                height=32,
+                width=32
+            )
+        ]
+        ttk.Button(fe, image="collection", text="Col", command=self.col_lab).pack()
+        ttk.Button(fe, image="environment", text="Env", command=self.env_lab).pack()
+        ttk.Button(fe, image="history", text="His", command=self.his_lab).pack()
+
+    def col_lab(self):
+        self.show_lab("collection")
+
+    def his_lab(self):
+        self.show_lab("history")
+
+    def env_lab(self):
+        self.show_lab("environment")
+
+    def show_lab(self, command):
+        if command == "history" and self.sidebar != "history":
+            self.col_top.forget()
+            self.history_top.pack(expand=True, fill=tk.BOTH)
+            self.sidebar = "history"
+        elif command == "environment":
+            pass
+        elif command == "collection" and self.sidebar != "collection" :
+            self.history_top.forget()
+            self.col_top.pack(expand=True, fill=tk.BOTH)
+            self.sidebar = "collection"
 
     def aes_label(self):
         self.new_label("aes")
@@ -133,19 +183,25 @@ class MainWindow:
             gui = HelpWindow(self.notebook)
             text = "Help"
 
+        if text in self.tag_list:
+            gui = None
+            self.notebook.select(self.tag_list.index(text))
+            return
+
         self.notebook.add(gui.root, text=text)
         self.notebook.select(self.notebook.index(tk.END) - 1)
+        self.tag_list.append(text)
 
     def setup(self):
-        if not os.path.exists(BASE_DIR):
-            os.mkdir(BASE_DIR)
+        if not os.path.exists(WORK_DIR):
+            os.mkdir(WORK_DIR)
 
     def run(self):
-        # 进入消息循环
+        # Enter message loop
         self.root.mainloop()
 
     def open_handler(self):
-        """打开文件"""
+        """Open file"""
         filepath = filedialog.askopenfilename()
         if filepath:
             with open(filepath, "r", encoding="utf-8") as file:
@@ -153,22 +209,27 @@ class MainWindow:
                 try:
                     data = json.loads(data)
                 except json.JSONDecodeError:
-                    messagebox.showerror("错误", "文本内容必须是一个json")
+                    messagebox.showerror("Error", "The text content must be a json")
                     return
 
                 self.new_request(data)
 
     def new_request(self, data=None, **kwargs):
+        if kwargs.get("item_id") in self.tag_list:
+            self.notebook.select(self.tag_list.index(kwargs["item_id"]))
+            return
+
         tl = ttk.Frame(self.notebook)
         req_win = RequestWindow(
             window=tl, callback=self.request, get_script=self.col_win.get_script
         )
+        req_win.item_id = kwargs.get("item_id")
         if data is not None:
             req_win.fill_blank(data)
-        if "item_id" in kwargs:
-            req_win.item_id = kwargs["item_id"]
+
         self.notebook.add(tl, text="Request")
         self.notebook.select(self.notebook.index(tk.END) - 1)
+        self.tag_list.append(kwargs.get("item_id", ""))
 
     def show_history(self, data):
         self.history_window.clear()
@@ -182,7 +243,7 @@ class MainWindow:
                 pass
 
     def on_start(self):
-        filepath = os.path.join(BASE_DIR, "history.json")
+        filepath = os.path.join(WORK_DIR, "history.json")
         if os.path.exists(filepath):
             with open(filepath, "r", encoding="utf-8") as file:
                 try:
@@ -196,13 +257,17 @@ class MainWindow:
     def on_closing(self):
         self.col_win.on_close()
         with open(
-            os.path.join(BASE_DIR, "history.json"), "w", encoding="utf-8"
+            os.path.join(WORK_DIR, "history.json"), "w", encoding="utf-8"
         ) as file:
             file.write(json.dumps(self.history_list))
         self.root.destroy()
 
     def collection(self, **kwargs):
         if kwargs["tag"] in ["project", "folder"]:
+            if kwargs["item_id"] in self.tag_list:
+                self.notebook.select(self.tag_list.index(kwargs["item_id"]))
+                return
+
             folder_window = FolderWindow(
                 master=self.notebook,
                 item_id=kwargs["item_id"],
@@ -211,19 +276,20 @@ class MainWindow:
             )
             self.notebook.add(folder_window.root, text=kwargs["tag"])
             self.notebook.select(self.notebook.index(tk.END) - 1)
+            self.tag_list.append(kwargs["item_id"])
         else:
             self.new_request(kwargs["data"], item_id=kwargs["item_id"])
 
     def request(self, action, **kwargs):
-        """请求窗口回调"""
+        """Request window callback"""
         if action == "cache":
-            # 缓存历史记录
+            # Cache history
             self.history_list.append(kwargs.get("data"))
         elif action == "history":
-            # 写入历史记录列表
+            # Writes to the history list
             self.history_window.log(kwargs.get("data"))
         elif action == "console":
-            # 写入控制台
+            # Write console
             level = kwargs.get("level")
             if level == "log":
                 self.console_window.log(kwargs.get("content"))
@@ -234,10 +300,11 @@ class MainWindow:
             elif level == "warning":
                 self.console_window.warning(kwargs.get("content"))
         elif action == "save":
-            self.col_win.save_item(kwargs["item_id"], kwargs["data"])
+            return self.col_win.save_item(kwargs["item_id"], kwargs["data"])
+        return None
 
     def history(self, action, **kwargs):
-        """历史记录回调"""
+        """History callback"""
         if action == "select":
             index = kwargs.get("index")
             if index is not None:
@@ -255,4 +322,5 @@ class MainWindow:
             self.history_list = []
 
     def close_request(self):
+        self.tag_list.pop(self.notebook.index(self.notebook.select()))
         self.notebook.forget(self.notebook.select())

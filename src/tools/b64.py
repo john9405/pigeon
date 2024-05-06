@@ -4,7 +4,7 @@ from tkinter import messagebox, ttk
 
 
 class Base64GUI:
-    """ base64 加解密工具 """
+    """ base64 Window """
     def __init__(self, master=None) -> None:
         self.root = ttk.Frame(master)
 
@@ -14,9 +14,9 @@ class Base64GUI:
         self.input_box.pack()
         bframe = tk.Frame(self.root)
         bframe.pack()
-        ebtn = ttk.Button(bframe, text="加密", command=self.encrypto)
+        ebtn = ttk.Button(bframe, text="Encrypt", command=self.encrypto)
         ebtn.pack(side=tk.LEFT)
-        dbtn = ttk.Button(bframe, text="解密", command=self.decrypto)
+        dbtn = ttk.Button(bframe, text="Decrypt", command=self.decrypto)
         dbtn.pack(side=tk.LEFT)
         output_frame = ttk.LabelFrame(self.root, text="Output")
         output_frame.pack()
@@ -36,4 +36,4 @@ class Base64GUI:
             self.output_box.delete(1.0, tk.END)
             self.output_box.insert(1.0, res)
         except Exception as e:
-            messagebox.showerror("错误", e)
+            messagebox.showerror("Error", e)
