@@ -1,6 +1,7 @@
 import json
 import tkinter as tk
 from tkinter import messagebox, ttk
+import time
 import xml.dom.minidom
 from io import BytesIO
 import requests
@@ -15,8 +16,8 @@ class RequestWindow:
     method_list = ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]
 
     def __init__(self, **kwargs):
-        self.callback = kwargs.get('callback')
-        window = kwargs.get('window')
+        self.callback = kwargs.get("callback")
+        window = kwargs.get("window")
         self.get_script = kwargs.get("get_script")
 
         ff = ttk.Frame(window)
@@ -36,7 +37,9 @@ class RequestWindow:
         self.method_box["state"] = "readonly"
         self.method_box.pack(side=tk.LEFT)
         sub_btn = ttk.Button(north, text="Send")  # Send request button
-        sub_btn.config(command=self.send_request)  # Bind the event handler to send the request button
+        sub_btn.config(
+            command=self.send_request
+        )  # Bind the event handler to send the request button
         sub_btn.pack(side=tk.RIGHT)
         self.url_box = ttk.Entry(north)
         self.url_box.pack(fill=tk.BOTH, pady=3)
@@ -172,7 +175,7 @@ class RequestWindow:
         res_note.add(res_tests_frame, text="Test Results")
 
     def save_handler(self):
-        """ Save test script """
+        """Save test script"""
         name = self.name_entry.get()
         method = self.method_box.get()
         url = self.url_box.get()
@@ -245,15 +248,16 @@ class RequestWindow:
         self.name_entry.insert(tk.END, data.get("name", "New Request"))
 
     def send_request(self):
-        """ Define the function that sends the request """
+        """Define the function that sends the request"""
         console = Console(self.console)
 
         # Gets the request method and URL
         method = self.method_box.get()
         url = self.url_box.get()
         if url is None or url == "":
-            messagebox.showerror("Error", "Please print the request address")
+            messagebox.showerror("Error", "Please enter the request address")
             return
+
         # Gets query parameters, request headers, and request bodies
         params = self.params_box.get("1.0", tk.END)
         headers = self.headers_box.get("1.0", tk.END)
@@ -285,10 +289,10 @@ class RequestWindow:
 
         for script in script_list:
             try:
-                exec(script['pre_request_script'])
+                exec(script["pre_request_script"])
             except Exception as error:
                 console.error(str(error))
-
+        start_time = time.time()
         # 发送网络请求
         try:
             if method == "GET":
@@ -313,7 +317,12 @@ class RequestWindow:
         except requests.exceptions.MissingSchema:
             messagebox.showerror("Error", "Request error")
             return
-
+        cost_time = time.time() - start_time
+        if cost_time < 1:
+            cost_time = f"{round(cost_time * 1000)}ms"
+        else:
+            cost_time = f"{round(cost_time)}s"
+        console.log(f"Get {url} {response.status_code} {cost_time}")
         # 将响应显示在响应区域
         self.res_cookie_table.delete(*self.res_cookie_table.get_children())
         for item in response.cookies.keys():
@@ -359,7 +368,7 @@ class RequestWindow:
 
         for script in script_list:
             try:
-                exec(script['tests'])
+                exec(script["tests"])
             except Exception as error:
                 console.error(str(error))
 

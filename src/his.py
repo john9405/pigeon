@@ -51,3 +51,12 @@ class HistoryWindow:
         if selection:
             index = selection[0]
             self.callback("select", **{"index": index})
+
+    def on_start(self):
+        pass
+
+    def on_end(self):
+        pass
+    
+    def on_cache(self, data):
+        pass

@@ -14,7 +14,7 @@ class CollectionWindow:
         self.window = window
         self.callback = callback
 
-        self.tree = ttk.Treeview(window)
+        self.tree = ttk.Treeview(window, show="tree")
         self.tree.pack(fill="both", expand=True)
         self.tree.bind("<Double-1>", self.on_select)
         self.tree.bind("<Button-1>", self.hide_context_menu)

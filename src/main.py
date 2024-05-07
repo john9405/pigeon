@@ -9,6 +9,8 @@ from .his import HistoryWindow
 from .req import RequestWindow
 from .console import ConsoleWindow
 from .col import CollectionWindow
+from .env import EnvironmentWindow
+from .folder import FolderWindow
 from .doc.help import HelpWindow
 from .doc.about import AboutWindow
 from .tools.aes import AES_GUI
@@ -16,7 +18,7 @@ from .tools.b64 import Base64GUI
 from .tools.md5 import MD5GUI
 from .tools.pwd import GenPwdWindow
 from .tools.timestamp import TimestampWindow
-from .folder import FolderWindow
+from .tools.regex import RegexWindow
 
 
 class MainWindow:
@@ -52,6 +54,8 @@ class MainWindow:
         self.col_win.on_start()
         self.history_top = ttk.Frame(self.main_sidebar)
         self.history_window = HistoryWindow(self.history_top, self.history)
+        self.env_win = EnvironmentWindow(master=self.main_sidebar)
+        self.env_top = self.env_win.root
         self.col_top.pack(expand=True, fill=tk.BOTH)
         self.sidebar = "collection"
 
@@ -87,6 +91,9 @@ class MainWindow:
         ttk.Button(ff, text="Timestamp", command=self.ts_label).pack(
             side=tk.LEFT, padx=(0, 5)
         )
+        ttk.Button(ff, text="Regex", command=self.regex_label).pack(
+            side=tk.LEFT, padx=(0, 5)
+        )
         ttk.Button(ff, text="Help", command=self.help_label).pack(
             side=tk.LEFT, padx=(0, 5)
         )
@@ -119,78 +126,89 @@ class MainWindow:
         ttk.Button(fe, image="history", text="His", command=self.his_lab).pack()
 
     def col_lab(self):
-        self.show_lab("collection")
-
-    def his_lab(self):
-        self.show_lab("history")
-
-    def env_lab(self):
-        self.show_lab("environment")
-
-    def show_lab(self, command):
-        if command == "history" and self.sidebar != "history":
-            self.col_top.forget()
-            self.history_top.pack(expand=True, fill=tk.BOTH)
-            self.sidebar = "history"
-        elif command == "environment":
-            pass
-        elif command == "collection" and self.sidebar != "collection" :
+        if self.sidebar != "collection":
+            self.env_top.forget()
             self.history_top.forget()
-            self.col_top.pack(expand=True, fill=tk.BOTH)
+            self.col_top.pack(expand=tk.YES, fill=tk.BOTH)
             self.sidebar = "collection"
 
+    def his_lab(self):
+        if self.sidebar != "history":
+            self.col_top.forget()
+            self.env_top.forget()
+            self.history_top.pack(expand=tk.YES, fill=tk.BOTH)
+            self.sidebar = "history"
+
+    def env_lab(self):
+        if self.sidebar != 'environment':
+            self.col_top.forget()
+            self.history_top.forget()
+            self.env_top.pack(expand=tk.YES, fill=tk.BOTH)
+            self.sidebar = "environment"
+
     def aes_label(self):
-        self.new_label("aes")
+        if "AES" in self.tag_list:
+            self.notebook.select(self.tag_list.index("AES"))
+        else:
+            self.notebook.add(AES_GUI(self.notebook).root, text="AES")
+            self.notebook.select(self.notebook.index(tk.END) - 1)
+            self.tag_list.append("AES")
 
     def b64_label(self):
-        self.new_label("b64")
+        if "Base64" in self.tag_list:
+            self.notebook.select(self.tag_list.index("Base64"))
+        else:
+            self.notebook.add(Base64GUI(self.notebook).root, text="Base64")
+            self.notebook.select(self.notebook.index(tk.END) - 1)
+            self.tag_list.append("Base64")
 
     def md5_label(self):
-        self.new_label("md5")
+        if "MD5" in self.tag_list:
+            self.notebook.select(self.tag_list.index("MD5"))
+        else:
+            self.notebook.add(MD5GUI(self.notebook).root, text="MD5")
+            self.notebook.select(self.notebook.index(tk.END) - 1)
+            self.tag_list.append("MD5")
 
     def pwd_label(self):
-        self.new_label("pwd")
+        if "Password" in self.tag_list:
+            self.notebook.select(self.tag_list.index("Password"))
+        else:
+            self.notebook.add(GenPwdWindow(self.notebook).root, text="Password")
+            self.notebook.select(self.notebook.index(tk.END) - 1)
+            self.tag_list.append("Password")
 
     def ts_label(self):
-        self.new_label("ts")
+        if "Timestamp" in self.tag_list:
+            self.notebook.select(self.tag_list.index("Timestamp"))
+        else:
+            self.notebook.add(TimestampWindow(self.notebook).root, text="Timestamp")
+            self.notebook.select(self.notebook.index(tk.END) - 1)
+            self.tag_list.append("Timestamp")
+
+    def regex_label(self):
+        if 'Regex' in self.tag_list:
+            self.notebook.select(self.tag_list.index('Regex'))
+        else:
+            self.notebook.add(RegexWindow(self.notebook).root, text='Regex')
+            self.notebook.select(self.notebook.index(tk.END) - 1)
+            self.tag_list.append('Regex')
 
     def help_label(self):
-        self.new_label("help")
+        if "Help" in self.tag_list:
+            self.notebook.select(self.tag_list.index("Help"))
+        else:
+            self.notebook.add(HelpWindow(self.notebook).root, text="Help")
+            self.notebook.select(self.notebook.index(tk.END) - 1)
+            self.tag_list.append("Help")
 
     def about_label(self):
-        self.new_label("about")
-
-    def new_label(self, command):
-        if command == "aes":
-            gui = AES_GUI(self.notebook)
-            text = "AES"
-        elif command == "b64":
-            gui = Base64GUI(self.notebook)
-            text = "Base64"
-        elif command == "md5":
-            gui = MD5GUI(self.notebook)
-            text = "MD5"
-        elif command == "pwd":
-            gui = GenPwdWindow(self.notebook)
-            text = "Password"
-        elif command == "ts":
-            gui = TimestampWindow(self.notebook)
-            text = "Timestamp"
-        elif command == "about":
-            gui = AboutWindow(self.notebook)
-            text = "About"
-        elif command == "help":
-            gui = HelpWindow(self.notebook)
-            text = "Help"
-
-        if text in self.tag_list:
-            gui = None
-            self.notebook.select(self.tag_list.index(text))
-            return
-
-        self.notebook.add(gui.root, text=text)
-        self.notebook.select(self.notebook.index(tk.END) - 1)
-        self.tag_list.append(text)
+        if "About" in self.tag_list:
+            self.notebook.select(self.tag_list.index("About"))
+        else:
+            self.notebook.add(AboutWindow(self.notebook).root, text="About")
+            self.notebook.select(self.notebook.index(tk.END) - 1)
+            self.tag_list.append("About")
 
     def setup(self):
         if not os.path.exists(WORK_DIR):
@@ -243,6 +261,8 @@ class MainWindow:
                 pass
 
     def on_start(self):
+        thread = threading.Thread(target=self.env_win.on_start)
+        thread.start()
         filepath = os.path.join(WORK_DIR, "history.json")
         if os.path.exists(filepath):
             with open(filepath, "r", encoding="utf-8") as file:
@@ -255,6 +275,8 @@ class MainWindow:
                     pass
 
     def on_closing(self):
+        thread = threading.Thread(target=self.env_win.on_end)
+        thread.start()
         self.col_win.on_close()
         with open(
             os.path.join(WORK_DIR, "history.json"), "w", encoding="utf-8"
