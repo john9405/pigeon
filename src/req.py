@@ -372,7 +372,6 @@ class RequestWindow:
             except Exception as error:
                 console.error(str(error))
 
-        self.callback("history", **{"data": f"{method} {url}"})
         self.callback(
             "cache",
             **{

@@ -1,8 +1,14 @@
+import os
+import json
 import tkinter as tk
 from tkinter import ttk
 
+from . import WORK_DIR
+
 class HistoryWindow:
     """History window"""
+    history_list = []  # History list
+    cache_file = os.path.join(WORK_DIR, "history.json")
 
     def __init__(self, window, callback=None):
         self.window = window
@@ -10,7 +16,7 @@ class HistoryWindow:
         ff = ttk.Frame(window)
         ff.pack(fill=tk.X)
         ttk.Label(ff, text="History").pack(side=tk.LEFT)
-        ttk.Button(ff, text="Clear", command=self.clear).pack(side="right")
+        ttk.Button(ff, text="Clear", command=self.on_clear).pack(side="right")
         self.history_box = tk.Listbox(window)
         scrollbar = ttk.Scrollbar(window, command=self.history_box.yview)
         sbx = ttk.Scrollbar(
@@ -32,31 +38,43 @@ class HistoryWindow:
     def log(self, data):
         self.history_box.insert(0, data)
 
-    def clear(self):
-        self.history_box.delete(0, tk.END)
-
     def on_delete(self):
         selection = self.history_box.curselection()
         if selection:
             print(selection)
             self.history_box.delete(selection)
-            self.callback("destroy", **{"index": selection[0]})
+            i = len(self.history_list) - selection[0] - 1
+            self.history_list.pop(i)
 
     def on_clear(self):
-        self.clear()
-        self.callback("clear")
+        self.history_box.delete(0, tk.END)
+        self.history_list = []
 
     def on_select(self, event):
         selection = event.widget.curselection()
         if selection:
             index = selection[0]
-            self.callback("select", **{"index": index})
+            i = len(self.history_list) - index - 1
+            data = self.history_list[i]
+            self.callback("select", **{"data": data})
 
     def on_start(self):
-        pass
+        if os.path.exists(self.cache_file):
+            with open(self.cache_file, "r", encoding="utf-8") as file:
+                try:
+                    data = file.read()
+                    data = json.loads(data)
+                except json.JSONDecodeError:
+                    return
+                self.history_box.delete(0, tk.END)
+                for item in data:
+                    self.history_list.append(item)
+                    self.log(f"{item.get('method' '')} {item.get('url', '')}")
 
     def on_end(self):
-        pass
-    
+        with open(self.cache_file, "w", encoding="utf-8") as file:
+            file.write(json.dumps(self.history_list))
+
     def on_cache(self, data):
-        pass
+        self.history_list.append(data)
+        self.log(f"{data.get('method' '')} {data.get('url', '')}")

@@ -9,7 +9,7 @@ from .his import HistoryWindow
 from .req import RequestWindow
 from .console import ConsoleWindow
 from .col import CollectionWindow
-from .env import EnvironmentWindow
+from .env import EnvironmentWindow, VariableWindow
 from .folder import FolderWindow
 from .doc.help import HelpWindow
 from .doc.about import AboutWindow
@@ -22,7 +22,6 @@ from .tools.regex import RegexWindow
 
 
 class MainWindow:
-    history_list = []  # History list
     tag_list = []  # List of enabled labels
     sidebar = ""
 
@@ -51,10 +50,11 @@ class MainWindow:
 
         self.col_top = ttk.Frame(self.main_sidebar)
         self.col_win = CollectionWindow(self.col_top, **{"callback": self.collection})
-        self.col_win.on_start()
         self.history_top = ttk.Frame(self.main_sidebar)
         self.history_window = HistoryWindow(self.history_top, self.history)
-        self.env_win = EnvironmentWindow(master=self.main_sidebar)
+        self.env_win = EnvironmentWindow(
+            master=self.main_sidebar, callback=self.environment
+        )
         self.env_top = self.env_win.root
         self.col_top.pack(expand=True, fill=tk.BOTH)
         self.sidebar = "collection"
@@ -70,7 +70,7 @@ class MainWindow:
         ttk.Button(ff, text="New Project", command=self.col_win.new_proj).pack(
             side=tk.LEFT, padx=(0, 5)
         )
-        ttk.Button(ff, text="Open", command=self.col_win.open_proj).pack(
+        ttk.Button(ff, text="Import", command=self.col_win.open_proj).pack(
             side=tk.LEFT, padx=(0, 5)
         )
         ttk.Button(ff, text="CLose", command=self.close_request).pack(
@@ -106,20 +106,20 @@ class MainWindow:
                 name="collection",
                 file=os.path.join(BASE_DIR, *("assets", "send.png")),
                 height=32,
-                width=32
+                width=32,
             ),
             tk.PhotoImage(
                 name="environment",
                 file=os.path.join(BASE_DIR, *("assets", "book.png")),
                 height=32,
-                width=32
+                width=32,
             ),
             tk.PhotoImage(
                 name="history",
-                file=os.path.join(BASE_DIR, *('assets', 'history.png')),
+                file=os.path.join(BASE_DIR, *("assets", "history.png")),
                 height=32,
-                width=32
-            )
+                width=32,
+            ),
         ]
         ttk.Button(fe, image="collection", text="Col", command=self.col_lab).pack()
         ttk.Button(fe, image="environment", text="Env", command=self.env_lab).pack()
@@ -140,7 +140,7 @@ class MainWindow:
             self.sidebar = "history"
 
     def env_lab(self):
-        if self.sidebar != 'environment':
+        if self.sidebar != "environment":
             self.col_top.forget()
             self.history_top.forget()
             self.env_top.pack(expand=tk.YES, fill=tk.BOTH)
@@ -187,12 +187,12 @@ class MainWindow:
             self.tag_list.append("Timestamp")
 
     def regex_label(self):
-        if 'Regex' in self.tag_list:
-            self.notebook.select(self.tag_list.index('Regex'))
+        if "Regex" in self.tag_list:
+            self.notebook.select(self.tag_list.index("Regex"))
         else:
-            self.notebook.add(RegexWindow(self.notebook).root, text='Regex')
+            self.notebook.add(RegexWindow(self.notebook).root, text="Regex")
             self.notebook.select(self.notebook.index(tk.END) - 1)
-            self.tag_list.append('Regex')
+            self.tag_list.append("Regex")
 
     def help_label(self):
         if "Help" in self.tag_list:
@@ -244,44 +244,22 @@ class MainWindow:
         req_win.item_id = kwargs.get("item_id")
         if data is not None:
             req_win.fill_blank(data)
-
         self.notebook.add(tl, text="Request")
         self.notebook.select(self.notebook.index(tk.END) - 1)
         self.tag_list.append(kwargs.get("item_id", ""))
 
-    def show_history(self, data):
-        self.history_window.clear()
-        for item in data:
-            self.history_list.append(item)
-            try:
-                self.history_window.log(
-                    f"{item.get('method' '')} {item.get('url', '')}"
-                )
-            except AttributeError:
-                pass
-
     def on_start(self):
-        thread = threading.Thread(target=self.env_win.on_start)
-        thread.start()
-        filepath = os.path.join(WORK_DIR, "history.json")
-        if os.path.exists(filepath):
-            with open(filepath, "r", encoding="utf-8") as file:
-                try:
-                    data = file.read()
-                    data = json.loads(data)
-                    thread = threading.Thread(target=self.show_history, args=(data,))
-                    thread.start()
-                except json.JSONDecodeError:
-                    pass
+        t1 = threading.Thread(target=self.col_win.on_start)
+        t2 = threading.Thread(target=self.env_win.on_start)
+        t3 = threading.Thread(target=self.history_window.on_start)
+        t1.start()
+        t2.start()
+        t3.start()
 
     def on_closing(self):
-        thread = threading.Thread(target=self.env_win.on_end)
-        thread.start()
         self.col_win.on_close()
-        with open(
-            os.path.join(WORK_DIR, "history.json"), "w", encoding="utf-8"
-        ) as file:
-            file.write(json.dumps(self.history_list))
+        self.env_win.on_end()
+        self.history_window.on_end()
         self.root.destroy()
 
     def collection(self, **kwargs):
@@ -306,10 +284,7 @@ class MainWindow:
         """Request window callback"""
         if action == "cache":
             # Cache history
-            self.history_list.append(kwargs.get("data"))
-        elif action == "history":
-            # Writes to the history list
-            self.history_window.log(kwargs.get("data"))
+            self.history_window.on_cache(kwargs.get("data"))
         elif action == "console":
             # Write console
             level = kwargs.get("level")
@@ -328,20 +303,23 @@ class MainWindow:
     def history(self, action, **kwargs):
         """History callback"""
         if action == "select":
-            index = kwargs.get("index")
-            if index is not None:
-                i = len(self.history_list) - index - 1
-                data = self.history_list[i]
-                self.new_request(data)
+            self.new_request(kwargs.get("data"))
 
-        elif action == "destroy":
-            index = kwargs.get("index")
-            if index is not None:
-                i = len(self.history_list) - index - 1
-                self.history_list.pop(i)
-
-        elif action == "clear":
-            self.history_list = []
+    def environment(self, action, **kwargs):
+        if action == "edit":
+            if "env_" + kwargs.get("item_id") in self.tag_list:
+                self.notebook.select(self.tag_list.index("env_" + kwargs["item_id"]))
+                return
+            gui = VariableWindow(
+                self.notebook,
+                collection=kwargs.get("collection", ""),
+                data=kwargs.get("data", {}),
+                set_variable=self.env_win.set_variable,
+                del_variable=self.env_win.del_variable,
+            )
+            self.notebook.add(gui.root, text=kwargs.get("collection"))
+            self.notebook.select(self.notebook.index(tk.END) - 1)
+            self.tag_list.append("env_" + kwargs.get("item_id", ""))
 
     def close_request(self):
         self.tag_list.pop(self.notebook.index(self.notebook.select()))
