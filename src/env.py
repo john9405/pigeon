@@ -1,9 +1,9 @@
 import json
 import os
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, simpledialog, messagebox
 
-from . import WORK_DIR
+from . import WORK_DIR, BASE_DIR
 
 
 class EnvironmentWindow:
@@ -13,6 +13,24 @@ class EnvironmentWindow:
     def __init__(self, master=None, **kwargs):
         self.callback = kwargs.get("callback")
         self.root = ttk.Frame(master)
+        self.images = [
+            tk.PhotoImage(
+                name="add",
+                file=os.path.join(BASE_DIR, *("assets", "add.png")),
+                height=16,
+                width=16
+            ),
+            tk.PhotoImage(
+                name="delete",
+                file=os.path.join(BASE_DIR, *("assets", "delete.png")),
+                height=16,
+                width=16
+            )
+        ]
+        action_frame = ttk.Frame(self.root)
+        action_frame.pack(fill=tk.X)
+        ttk.Button(action_frame, image="delete", command=self.on_delete).pack(side=tk.RIGHT)
+        ttk.Button(action_frame, image="add", command=self.on_add).pack(side=tk.RIGHT)
         self.treeview = ttk.Treeview(self.root, show="tree")
         self.treeview.pack(fill=tk.BOTH, expand=tk.YES)
         self.treeview.bind("<Double-1>", self.on_select)
@@ -46,11 +64,19 @@ class EnvironmentWindow:
             item_id = self.treeview.selection()[0]
             item = self.treeview.item(item_id)
             self.callback(
-                "edit",
                 collection=item["text"],
                 data=self.data.get(item["text"], {}),
                 item_id=item_id,
             )
+
+    def on_add(self):
+        name = simpledialog.askstring("Add", prompt="Name", initialvalue="New Environment")
+        if name is not None and name in self.data:
+            messagebox.showerror("Error", "Already exist")
+            self.on_add()
+        elif name is not None:
+            self.data.update({name: {}})
+            self.treeview.insert("", tk.END, text=name)
 
     def on_delete(self):
         if len(self.treeview.selection()) > 0:
@@ -59,6 +85,8 @@ class EnvironmentWindow:
             if item["text"] != "Globals":
                 self.data.pop(item["text"])
                 self.treeview.delete(self.treeview.selection())
+            else:
+                messagebox.showwarning("Warning", "non-deletable")
 
     def get_variable(self, collection, name):
         if collection in self.data:
@@ -82,11 +110,31 @@ class VariableWindow:
 
     def __init__(self, master=None, **kwargs):
         self.root = ttk.Frame(master)
-        ff = ttk.Frame(self.root)
-        ff.pack(fill=tk.X)
-        ttk.Button(ff, text="Add", command=self.on_add).pack(side=tk.LEFT)
-        ttk.Button(ff, text="Edit", command=self.on_edit).pack(side=tk.LEFT)
-        ttk.Button(ff, text='Delete', command=self.on_delete).pack(side=tk.LEFT)
+        self.images = [
+            tk.PhotoImage(
+                name="add",
+                file=os.path.join(BASE_DIR, *("assets", "add.png")),
+                height=16,
+                width=16
+            ),
+            tk.PhotoImage(
+                name="edit",
+                file=os.path.join(BASE_DIR, *("assets", "edit.png")),
+                height=16,
+                width=16
+            ),
+            tk.PhotoImage(
+                name="delete",
+                file=os.path.join(BASE_DIR, *("assets", "delete.png")),
+                height=16,
+                width=16
+            )
+        ]
+        toolbar = ttk.Frame(self.root)
+        toolbar.pack(fill=tk.X)
+        ttk.Button(toolbar, image='delete', command=self.on_delete).pack(side=tk.RIGHT)
+        ttk.Button(toolbar, image="edit", command=self.on_edit).pack(side=tk.RIGHT)
+        ttk.Button(toolbar, image="add", command=self.on_add).pack(side=tk.RIGHT)
 
         self.treeview = ttk.Treeview(
             self.root,

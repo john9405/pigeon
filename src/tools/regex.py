@@ -64,7 +64,7 @@ class RegexWindow:
             flags |= re.MULTILINE
 
         try:
-            matches = re.findall(regex, text, flags)
+            matches = re.finditer(regex, text, flags)
             self.result_text.delete(1.0, tk.END)
             if matches:
                 for item in matches:

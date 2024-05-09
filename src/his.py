@@ -3,20 +3,31 @@ import json
 import tkinter as tk
 from tkinter import ttk
 
-from . import WORK_DIR
+from . import WORK_DIR, BASE_DIR
+
 
 class HistoryWindow:
     """History window"""
+
     history_list = []  # History list
     cache_file = os.path.join(WORK_DIR, "history.json")
 
     def __init__(self, window, callback=None):
         self.window = window
         self.callback = callback
+        self.images = [
+            tk.PhotoImage(
+                name="clear",
+                file=os.path.join(BASE_DIR, *("assets", "clear-f.png")),
+                height=16,
+                width=16,
+            )
+        ]
         ff = ttk.Frame(window)
         ff.pack(fill=tk.X)
-        ttk.Label(ff, text="History").pack(side=tk.LEFT)
-        ttk.Button(ff, text="Clear", command=self.on_clear).pack(side="right")
+        ttk.Button(ff, text="Clear", command=self.on_clear, image="clear").pack(
+            side=tk.RIGHT
+        )
         self.history_box = tk.Listbox(window)
         scrollbar = ttk.Scrollbar(window, command=self.history_box.yview)
         sbx = ttk.Scrollbar(
@@ -56,7 +67,7 @@ class HistoryWindow:
             index = selection[0]
             i = len(self.history_list) - index - 1
             data = self.history_list[i]
-            self.callback("select", **{"data": data})
+            self.callback(data=data)
 
     def on_start(self):
         if os.path.exists(self.cache_file):

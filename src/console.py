@@ -1,7 +1,9 @@
 import json
+import os
 import tkinter as tk
 from tkinter import ttk
 
+from . import BASE_DIR
 
 class Console:
     def __init__(self, callback):
@@ -36,10 +38,18 @@ class ConsoleWindow:
 
     def __init__(self, window):
         self.window = window
+        self.images = [
+            tk.PhotoImage(
+                name="clear",
+                file=os.path.join(BASE_DIR, *('assets', 'clear-f.png')),
+                height=16,
+                width=16
+            )
+        ]
         ff = ttk.Frame(window)
         ff.pack(fill=tk.X)
         ttk.Label(ff, text="Console").pack(side=tk.LEFT)
-        ttk.Button(ff, text="Clear", command=self.clear).pack(side="right")
+        ttk.Button(ff, image="clear", command=self.clear).pack(side="right")
 
         self.text_box = tk.Text(window, height=12)
         scrollbar = ttk.Scrollbar(window, command=self.text_box.yview)

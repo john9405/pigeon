@@ -38,89 +38,74 @@ class MainWindow:
         fe = ttk.Frame(self.root)
         fe.pack(side=tk.LEFT, fill=tk.Y)
 
-        pw1 = ttk.PanedWindow(self.root)
-        pw1.pack(fill="both", expand=True)
-        pw2 = ttk.PanedWindow(pw1, orient=tk.HORIZONTAL)
-        pw1.add(pw2)
-
-        self.main_sidebar = ttk.Frame(pw2)
-        pw2.add(self.main_sidebar)
+        pw1 = ttk.PanedWindow(self.root, orient=tk.HORIZONTAL)
+        self.main_sidebar = ttk.Frame(pw1)
+        pw1.add(self.main_sidebar)
+        pw2 = ttk.PanedWindow(pw1)
         self.notebook = ttk.Notebook(pw2)
         pw2.add(self.notebook)
+        console_top = ttk.Frame(pw2)
+        pw2.add(console_top)
+        pw1.add(pw2)
+        pw1.pack(fill="both", expand=True)
 
         self.col_top = ttk.Frame(self.main_sidebar)
         self.col_win = CollectionWindow(self.col_top, **{"callback": self.collection})
         self.history_top = ttk.Frame(self.main_sidebar)
         self.history_window = HistoryWindow(self.history_top, self.history)
-        self.env_win = EnvironmentWindow(
-            master=self.main_sidebar, callback=self.environment
-        )
+        self.env_win = EnvironmentWindow(master=self.main_sidebar, callback=self.environment)
         self.env_top = self.env_win.root
         self.col_top.pack(expand=True, fill=tk.BOTH)
         self.sidebar = "collection"
 
-        console_top = ttk.Frame(pw1)
-        pw1.add(console_top)
         self.console_window = ConsoleWindow(console_top)
         self.new_request()
 
-        ttk.Button(ff, text="New Request", command=self.new_request).pack(
-            side=tk.LEFT, padx=5, pady=5
-        )
-        ttk.Button(ff, text="New Project", command=self.col_win.new_proj).pack(
-            side=tk.LEFT, padx=(0, 5)
-        )
-        ttk.Button(ff, text="Import", command=self.col_win.open_proj).pack(
-            side=tk.LEFT, padx=(0, 5)
-        )
-        ttk.Button(ff, text="CLose", command=self.close_request).pack(
-            side=tk.LEFT, padx=(0, 5)
-        )
-        ttk.Button(ff, text="AES", command=self.aes_label).pack(
-            side=tk.LEFT, padx=(0, 5)
-        )
-        ttk.Button(ff, text="Base64", command=self.b64_label).pack(
-            side=tk.LEFT, padx=(0, 5)
-        )
-        ttk.Button(ff, text="MD5", command=self.md5_label).pack(
-            side=tk.LEFT, padx=(0, 5)
-        )
-        ttk.Button(ff, text="PWD", command=self.pwd_label).pack(
-            side=tk.LEFT, padx=(0, 5)
-        )
-        ttk.Button(ff, text="Timestamp", command=self.ts_label).pack(
-            side=tk.LEFT, padx=(0, 5)
-        )
-        ttk.Button(ff, text="Regex", command=self.regex_label).pack(
-            side=tk.LEFT, padx=(0, 5)
-        )
-        ttk.Button(ff, text="Help", command=self.help_label).pack(
-            side=tk.LEFT, padx=(0, 5)
-        )
-        ttk.Button(ff, text="About", command=self.about_label).pack(
-            side=tk.LEFT, padx=(0, 5)
-        )
+        ttk.Button(ff, text="AES", command=self.aes_label).pack(side=tk.LEFT, padx=(0, 5))
+        ttk.Button(ff, text="Base64", command=self.b64_label).pack(side=tk.LEFT, padx=(0, 5))
+        ttk.Button(ff, text="MD5", command=self.md5_label).pack(side=tk.LEFT, padx=(0, 5))
+        ttk.Button(ff, text="PWD", command=self.pwd_label).pack(side=tk.LEFT, padx=(0, 5))
+        ttk.Button(ff, text="Timestamp", command=self.ts_label).pack(side=tk.LEFT, padx=(0, 5))
+        ttk.Button(ff, text="Regex", command=self.regex_label).pack(side=tk.LEFT, padx=(0, 5))
+        ttk.Button(ff, text="Help", command=self.help_label).pack(side=tk.LEFT, padx=(0, 5))
+        ttk.Button(ff, text="About", command=self.about_label).pack(side=tk.LEFT, padx=(0, 5))
 
         self.images = [
             tk.PhotoImage(
                 name="collection",
-                file=os.path.join(BASE_DIR, *("assets", "send.png")),
+                file=os.path.join(BASE_DIR, *("assets", "32", "work.png")),
                 height=32,
                 width=32,
             ),
             tk.PhotoImage(
                 name="environment",
-                file=os.path.join(BASE_DIR, *("assets", "book.png")),
+                file=os.path.join(BASE_DIR, *("assets", "32", "training.png")),
                 height=32,
                 width=32,
             ),
             tk.PhotoImage(
                 name="history",
-                file=os.path.join(BASE_DIR, *("assets", "history.png")),
+                file=os.path.join(BASE_DIR, *("assets", "32", "history.png")),
                 height=32,
                 width=32,
             ),
+            tk.PhotoImage(
+                name="close",
+                file=os.path.join(BASE_DIR, *("assets", "close.png")),
+                height=16,
+                width=16
+            ),
+            tk.PhotoImage(
+                name="add",
+                file=os.path.join(BASE_DIR, *("assets", "add.png")),
+                height=16,
+                width=16
+            )
         ]
+        btnframe = ttk.Frame(self.root)
+        btnframe.place(relx=1-0.002, rely=0.04, anchor=tk.NE)
+        ttk.Button(btnframe, image="close", command=self.close_request).pack(side=tk.RIGHT)
+        ttk.Button(btnframe, image="add", command=self.new_request).pack(side=tk.RIGHT)
         ttk.Button(fe, image="collection", text="Col", command=self.col_lab).pack()
         ttk.Button(fe, image="environment", text="Env", command=self.env_lab).pack()
         ttk.Button(fe, image="history", text="His", command=self.his_lab).pack()
@@ -300,26 +285,24 @@ class MainWindow:
             return self.col_win.save_item(kwargs["item_id"], kwargs["data"])
         return None
 
-    def history(self, action, **kwargs):
+    def history(self, **kwargs):
         """History callback"""
-        if action == "select":
-            self.new_request(kwargs.get("data"))
+        self.new_request(kwargs.get("data"))
 
-    def environment(self, action, **kwargs):
-        if action == "edit":
-            if "env_" + kwargs.get("item_id") in self.tag_list:
-                self.notebook.select(self.tag_list.index("env_" + kwargs["item_id"]))
-                return
-            gui = VariableWindow(
-                self.notebook,
-                collection=kwargs.get("collection", ""),
-                data=kwargs.get("data", {}),
-                set_variable=self.env_win.set_variable,
-                del_variable=self.env_win.del_variable,
-            )
-            self.notebook.add(gui.root, text=kwargs.get("collection"))
-            self.notebook.select(self.notebook.index(tk.END) - 1)
-            self.tag_list.append("env_" + kwargs.get("item_id", ""))
+    def environment(self, **kwargs):
+        if "env_" + kwargs.get("item_id") in self.tag_list:
+            self.notebook.select(self.tag_list.index("env_" + kwargs["item_id"]))
+            return
+        gui = VariableWindow(
+            self.notebook,
+            collection=kwargs.get("collection", ""),
+            data=kwargs.get("data", {}),
+            set_variable=self.env_win.set_variable,
+            del_variable=self.env_win.del_variable,
+        )
+        self.notebook.add(gui.root, text=kwargs.get("collection"))
+        self.notebook.select(self.notebook.index(tk.END) - 1)
+        self.tag_list.append("env_" + kwargs.get("item_id", ""))
 
     def close_request(self):
         self.tag_list.pop(self.notebook.index(self.notebook.select()))

@@ -4,7 +4,7 @@ import tkinter as tk
 import uuid
 from tkinter import ttk, filedialog, messagebox
 
-from . import WORK_DIR, USER_DIR
+from . import WORK_DIR, USER_DIR, BASE_DIR
 
 
 class CollectionWindow:
@@ -13,7 +13,29 @@ class CollectionWindow:
     def __init__(self, window, callback=None):
         self.window = window
         self.callback = callback
-
+        self.images = [
+            tk.PhotoImage(
+                name="add",
+                file=os.path.join(BASE_DIR, *("assets", "add.png")),
+                height=16,
+                width=16
+            ),
+            tk.PhotoImage(
+                name="import",
+                file=os.path.join(BASE_DIR, *("assets", "import.png")),
+                height=16,
+                width=16
+            )
+        ]
+        frame = tk.Frame(window)
+        ttk.Button(frame, image="import", command=self.open_proj).pack(
+            side=tk.RIGHT
+        )
+        ttk.Button(frame, image="add", command=self.new_proj).pack(
+            side=tk.RIGHT
+        )
+        
+        frame.pack(fill=tk.X)
         self.tree = ttk.Treeview(window, show="tree")
         self.tree.pack(fill="both", expand=True)
         self.tree.bind("<Double-1>", self.on_select)
@@ -63,7 +85,7 @@ class CollectionWindow:
             tk.END,
             text=data["name"],
             values=[json.dumps(data)],
-            open=True,
+            open=False,
             tags=["project", str(uuid.uuid1())],
         )
 

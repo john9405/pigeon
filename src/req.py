@@ -2,6 +2,7 @@ import json
 import tkinter as tk
 from tkinter import messagebox, ttk
 import time
+import re
 import xml.dom.minidom
 from io import BytesIO
 import requests
@@ -19,6 +20,7 @@ class RequestWindow:
         self.callback = kwargs.get("callback")
         window = kwargs.get("window")
         self.get_script = kwargs.get("get_script")
+        self.get_variable = kwargs.get('get_variable')
 
         ff = ttk.Frame(window)
         ff.pack(fill=tk.X)
@@ -250,18 +252,40 @@ class RequestWindow:
     def send_request(self):
         """Define the function that sends the request"""
         console = Console(self.console)
-
+        get_variable = self.get_variable
         # Gets the request method and URL
         method = self.method_box.get()
         url = self.url_box.get()
         if url is None or url == "":
             messagebox.showerror("Error", "Please enter the request address")
             return
-
+        varlist = re.finditer(r"\{\{[^{}]*\}\}", url)
+        for m in varlist:
+            value = get_variable("Globals", m.group()[2:-2])
+            if value is not None:
+                url.replace(m.group(), value)
         # Gets query parameters, request headers, and request bodies
         params = self.params_box.get("1.0", tk.END)
         headers = self.headers_box.get("1.0", tk.END)
         body = self.body_box.get("1.0", tk.END)
+
+        varlist = re.finditer(r"\{\{[^{}]*\}\}", params)
+        for m in varlist:
+            value = get_variable("Globals", m.group()[2:-2])
+            if value is not None:
+                params.replace(m.group(), value)
+
+        varlist = re.finditer(r"\{\{[^{}]*\}\}", headers)
+        for m in varlist:
+            value = get_variable("Globals", m.group()[2:-2])
+            if value is not None:
+                headers.replace(m.group(), value)
+
+        varlist = re.finditer(r"\{\{[^{}]*\}\}", body)
+        for m in varlist:
+            value = get_variable("Globals", m.group()[2:-2])
+            if value is not None:
+                body.replace(m.group(), value)
 
         try:
             params = json.loads(params)
