@@ -112,7 +112,8 @@ class RequestWindow:
         self.res_body_box = tk.Text(res_body_frame, height=12)
         self.res_body_box.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.YES)
         res_body_scrollbar = ttk.Scrollbar(
-            res_body_frame, command=self.res_body_box.yview
+            res_body_frame, 
+            command=self.res_body_box.yview
         )
         res_body_scrollbar.pack(side=tk.LEFT, fill=tk.Y)
         self.res_body_box.config(yscrollcommand=res_body_scrollbar.set)
@@ -120,19 +121,27 @@ class RequestWindow:
 
         res_cookie_frame = ttk.Frame(res_note)
         self.res_cookie_table = ttk.Treeview(
-            res_cookie_frame, columns=("key", "value"), show="headings", height=6
+            res_cookie_frame, 
+            columns=("key", "value"), 
+            show="headings", 
+            height=6
         )
         res_cookie_scrollbar_x = ttk.Scrollbar(
-            res_cookie_frame, orient=tk.HORIZONTAL, command=self.res_cookie_table.xview
+            res_cookie_frame, 
+            orient=tk.HORIZONTAL, 
+            command=self.res_cookie_table.xview
         )
         res_cookie_scrollbar_y = ttk.Scrollbar(
-            res_cookie_frame, command=self.res_cookie_table.yview
+            res_cookie_frame, 
+            command=self.res_cookie_table.yview
         )
         self.res_cookie_table.column("key", width=1)
         self.res_cookie_table.heading("key", text="key")
         self.res_cookie_table.heading("value", text="value")
         res_cookie_scrollbar_y.pack(
-            side=tk.RIGHT, fill=tk.Y, pady=(0, res_cookie_scrollbar_x.winfo_reqheight())
+            side=tk.RIGHT, 
+            fill=tk.Y, 
+            pady=(0, res_cookie_scrollbar_x.winfo_reqheight())
         )
         res_cookie_scrollbar_x.pack(side=tk.BOTTOM, fill=tk.X)
         self.res_cookie_table.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.YES)
@@ -144,13 +153,18 @@ class RequestWindow:
 
         res_header_frame = ttk.Frame(res_note)
         self.res_header_table = ttk.Treeview(
-            res_header_frame, columns=("key", "value"), show="headings", height=6
+            res_header_frame, 
+            columns=("key", "value"), 
+            show="headings", 
+            height=6
         )
         self.res_header_table.column("key", width=1)
         self.res_header_table.heading("key", text="key")
         self.res_header_table.heading("value", text="value")
         res_header_scrollbar_x = ttk.Scrollbar(
-            res_header_frame, orient=tk.HORIZONTAL, command=self.res_header_table.xview
+            res_header_frame, 
+            orient=tk.HORIZONTAL, 
+            command=self.res_header_table.xview
         )
         res_header_scrollbar_y = ttk.Scrollbar(
             res_header_frame, command=self.res_header_table.yview
@@ -170,7 +184,8 @@ class RequestWindow:
         self.res_tests_box = tk.Text(res_tests_frame, height=12)
         self.res_tests_box.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.YES)
         res_tests_scrollbar = ttk.Scrollbar(
-            res_tests_frame, command=self.res_tests_box.yview
+            res_tests_frame, 
+            command=self.res_tests_box.yview
         )
         res_tests_scrollbar.pack(side=tk.LEFT, fill=tk.Y)
         self.res_tests_box.config(yscrollcommand=res_tests_scrollbar.set)
@@ -231,17 +246,11 @@ class RequestWindow:
         self.url_box.delete(0, tk.END)
         self.url_box.insert(tk.END, data.get("url", ""))
         self.params_box.delete("1.0", tk.END)
-        self.params_box.insert(
-            tk.END, json.dumps(data.get("params", {}), ensure_ascii=False, indent=4)
-        )
+        self.params_box.insert(tk.END, json.dumps(data.get("params", {}), ensure_ascii=False, indent=4))
         self.headers_box.delete("1.0", tk.END)
-        self.headers_box.insert(
-            tk.END, json.dumps(data.get("headers", {}), ensure_ascii=False, indent=4)
-        )
+        self.headers_box.insert(tk.END, json.dumps(data.get("headers", {}), ensure_ascii=False, indent=4))
         self.body_box.delete("1.0", tk.END)
-        self.body_box.insert(
-            tk.END, json.dumps(data.get("body", {}), ensure_ascii=False, indent=4)
-        )
+        self.body_box.insert(tk.END, json.dumps(data.get("body", {}), ensure_ascii=False, indent=4))
         self.script_box.delete("1.0", tk.END)
         self.script_box.insert(tk.END, data.get("pre_request_script", ""))
         self.tests_box.delete("1.0", tk.END)
@@ -302,6 +311,8 @@ class RequestWindow:
 
         if self.item_id is not None:
             script_list = self.get_script(self.item_id)
+        else:
+            script_list = []
 
         pre_request_script = self.script_box.get("1.0", tk.END)
         tests = self.tests_box.get("1.0", tk.END)
@@ -326,9 +337,7 @@ class RequestWindow:
             elif method == "PUT":
                 response = requests.put(url, params=params, data=body, headers=headers)
             elif method == "PATCH":
-                response = requests.patch(
-                    url, params=params, data=body, headers=headers
-                )
+                response = requests.patch(url, params=params, data=body, headers=headers)
             elif method == "DELETE":
                 response = requests.delete(url, params=params, headers=headers)
             elif method == "HEAD":
@@ -346,22 +355,17 @@ class RequestWindow:
             cost_time = f"{round(cost_time * 1000)}ms"
         else:
             cost_time = f"{round(cost_time)}s"
-        console.log(f"Get {url} {response.status_code} {cost_time}")
         # 将响应显示在响应区域
         self.res_cookie_table.delete(*self.res_cookie_table.get_children())
         for item in response.cookies.keys():
-            self.res_cookie_table.insert(
-                "", tk.END, values=(item, response.cookies.get(item))
-            )
+            self.res_cookie_table.insert("", tk.END, values=(item, response.cookies.get(item)))
 
         self.res_header_table.delete(*self.res_header_table.get_children())
         content_type = ""
         for item in response.headers.keys():
             if item == "Content-Type":
                 content_type = response.headers.get(item)
-            self.res_header_table.insert(
-                "", tk.END, values=(item, response.headers.get(item))
-            )
+            self.res_header_table.insert("", tk.END, values=(item, response.headers.get(item)))
 
         self.res_body_box.delete("1.0", tk.END)
         if "application/json" in content_type:
@@ -385,6 +389,7 @@ class RequestWindow:
             self.res_body_box.insert(tk.END, response.text)
 
         self.res_tests_box.delete("1.0", tk.END)
+        self.res_tests_box.insert(tk.END, f"Get {url} {response.status_code} {cost_time}")
         try:
             exec(tests)
         except Exception as error:
@@ -396,21 +401,17 @@ class RequestWindow:
             except Exception as error:
                 console.error(str(error))
 
-        self.callback(
-            "cache",
-            **{
-                "data": {
-                    "method": method,
-                    "url": url,
-                    "params": params,
-                    "headers": headers,
-                    "body": body,
-                    "pre_request_script": pre_request_script,
-                    "tests": tests,
-                }
-            },
-        )
-        self.save_handler()
+        self.callback("cache",**{"data": {
+            "method": method,
+            "url": url,
+            "params": params,
+            "headers": headers,
+            "body": body,
+            "pre_request_script": pre_request_script,
+            "tests": tests,
+        }})
+        if self.item_id is not None:
+            self.save_handler()
 
     def console(self, data):
         self.callback("console", **data)
