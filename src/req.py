@@ -20,7 +20,8 @@ class RequestWindow:
         self.callback = kwargs.get("callback")
         window = kwargs.get("window")
         self.get_script = kwargs.get("get_script")
-        self.get_variable = kwargs.get('get_variable')
+        self.env_variable = kwargs.get('env_variable')
+        self.local_variable = kwargs.get('local_variable')
 
         ff = ttk.Frame(window)
         ff.pack(fill=tk.X)
@@ -258,6 +259,13 @@ class RequestWindow:
         self.name_entry.delete(0, tk.END)
         self.name_entry.insert(tk.END, data.get("name", "New Request"))
 
+    def get_variable(self, name):
+        var = self.local_variable(self.item_id, name)
+        if var is not None:
+            return var
+        var = self.env_variable("Globals", name)
+        return var
+
     def send_request(self):
         """Define the function that sends the request"""
         console = Console(self.console)
@@ -270,7 +278,7 @@ class RequestWindow:
             return
         varlist = re.finditer(r"\{\{[^{}]*\}\}", url)
         for m in varlist:
-            value = get_variable("Globals", m.group()[2:-2])
+            value = get_variable(m.group()[2:-2])
             if value is not None:
                 url.replace(m.group(), value)
         # Gets query parameters, request headers, and request bodies
@@ -280,13 +288,13 @@ class RequestWindow:
 
         varlist = re.finditer(r"\{\{[^{}]*\}\}", params)
         for m in varlist:
-            value = get_variable("Globals", m.group()[2:-2])
+            value = get_variable(m.group()[2:-2])
             if value is not None:
                 params.replace(m.group(), value)
 
         varlist = re.finditer(r"\{\{[^{}]*\}\}", headers)
         for m in varlist:
-            value = get_variable("Globals", m.group()[2:-2])
+            value = get_variable(m.group()[2:-2])
             if value is not None:
                 headers.replace(m.group(), value)
 

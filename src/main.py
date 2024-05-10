@@ -8,9 +8,8 @@ from . import WORK_DIR, BASE_DIR
 from .his import HistoryWindow
 from .req import RequestWindow
 from .console import ConsoleWindow
-from .col import CollectionWindow
+from .col import CollectionWindow, ProjectWindow, FolderWindow
 from .env import EnvironmentWindow, VariableWindow
-from .folder import FolderWindow
 from .doc.help import HelpWindow
 from .doc.about import AboutWindow
 from .tools.aes import AES_GUI
@@ -203,20 +202,6 @@ class MainWindow:
         # Enter message loop
         self.root.mainloop()
 
-    def open_handler(self):
-        """Open file"""
-        filepath = filedialog.askopenfilename()
-        if filepath:
-            with open(filepath, "r", encoding="utf-8") as file:
-                data = file.read()
-                try:
-                    data = json.loads(data)
-                except json.JSONDecodeError:
-                    messagebox.showerror("Error", "The text content must be a json")
-                    return
-
-                self.new_request(data)
-
     def new_request(self, data=None, **kwargs):
         if kwargs.get("item_id") in self.tag_list:
             self.notebook.select(self.tag_list.index(kwargs["item_id"]))
@@ -224,7 +209,11 @@ class MainWindow:
 
         tl = ttk.Frame(self.notebook)
         req_win = RequestWindow(
-            window=tl, callback=self.request, get_script=self.col_win.get_script
+            window=tl, 
+            callback=self.request, 
+            get_script=self.col_win.get_script,
+            env_variable=self.env_win.get_variable,
+            local_variable=self.col_win.get_variable
         )
         req_win.item_id = kwargs.get("item_id")
         if data is not None:
@@ -248,11 +237,22 @@ class MainWindow:
         self.root.destroy()
 
     def collection(self, **kwargs):
-        if kwargs["tag"] in ["project", "folder"]:
-            if kwargs["item_id"] in self.tag_list:
-                self.notebook.select(self.tag_list.index(kwargs["item_id"]))
-                return
+        if kwargs["item_id"] in self.tag_list:
+            self.notebook.select(self.tag_list.index(kwargs["item_id"]))
+            return
 
+        if kwargs["tag"] == "project":
+            win = ProjectWindow(
+                master=self.notebook,
+                item_id=kwargs["item_id"],
+                callback=self.col_win.save_item,
+                data=kwargs["data"],
+            )
+            self.notebook.add(win.root, text=kwargs["tag"])
+            self.notebook.select(self.notebook.index(tk.END) - 1)
+            self.tag_list.append(kwargs["item_id"])
+
+        if kwargs["tag"] == "folder":
             folder_window = FolderWindow(
                 master=self.notebook,
                 item_id=kwargs["item_id"],
@@ -262,6 +262,7 @@ class MainWindow:
             self.notebook.add(folder_window.root, text=kwargs["tag"])
             self.notebook.select(self.notebook.index(tk.END) - 1)
             self.tag_list.append(kwargs["item_id"])
+
         else:
             self.new_request(kwargs["data"], item_id=kwargs["item_id"])
 

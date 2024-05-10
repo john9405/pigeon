@@ -311,3 +311,231 @@ class CollectionWindow:
             scripts_list += x
             return scripts_list
         return []
+
+    def get_variable(self, item_id, name):
+        if self.tree.parent(item_id):
+            item = self.tree.item(self.tree.parent(item_id))
+            if item["tags"][0] == 'project':
+                value = json.loads(item['values'][0])
+                for var in value.get("variable", []):
+                    if var['name'] == name:
+                        return var['value']
+                return None
+            return self.get_variable(item_id, name)
+
+
+class ProjectWindow:
+    def __init__(self, **kwargs) -> None:
+        self.root = ttk.Frame(kwargs.get("master"))
+        self.callback = kwargs.get("callback")
+        self.item_id = kwargs.get("item_id")
+        data = kwargs.get('data')
+
+        frame = ttk.Frame(self.root)
+        frame.pack(fill=tk.X)
+        ttk.Label(frame, text="Name:").pack(side=tk.LEFT)
+        self.name_entry = ttk.Entry(frame)
+        self.name_entry.insert(tk.END, data.get("name", "New Folder"))
+        self.name_entry.pack(side=tk.LEFT)
+        save_btn = ttk.Button(frame, text="Save", command=self.on_save)
+        save_btn.pack(side=tk.RIGHT)
+
+        notebook = ttk.Notebook(self.root)
+        # pre-request script
+        script_frame = ttk.Frame(notebook)
+        self.script_box = tk.Text(script_frame, height=12)
+        self.script_box.insert(tk.END, data.get("pre_request_script", ""))
+        self.script_box.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.YES)
+        script_scrollbar = ttk.Scrollbar(script_frame, command=self.script_box.yview)
+        script_scrollbar.pack(side=tk.LEFT, fill=tk.Y)
+        self.script_box.config(yscrollcommand=script_scrollbar.set)
+        notebook.add(script_frame, text="Pre-request Script")
+
+        # tests
+        tests_frame = ttk.Frame(notebook)
+        self.tests_box = tk.Text(tests_frame, height=12)
+        self.tests_box.insert(tk.END, data.get("tests", ""))
+        self.tests_box.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.YES)
+        tests_scrollbar = ttk.Scrollbar(tests_frame, command=self.tests_box.yview)
+        tests_scrollbar.pack(side=tk.LEFT, fill=tk.Y)
+        self.tests_box.config(yscrollcommand=tests_scrollbar.set)
+        notebook.add(tests_frame, text="Tests")
+
+        variable_frame = ttk.Frame(notebook)
+        self.images = [
+            tk.PhotoImage(
+                name="add",
+                file=os.path.join(BASE_DIR, *("assets", "add.png")),
+                height=16,
+                width=16
+            ),
+            tk.PhotoImage(
+                name="edit",
+                file=os.path.join(BASE_DIR, *("assets", "edit.png")),
+                height=16,
+                width=16
+            ),
+            tk.PhotoImage(
+                name="delete",
+                file=os.path.join(BASE_DIR, *("assets", "delete.png")),
+                height=16,
+                width=16
+            )
+        ]
+        toolbar = ttk.Frame(variable_frame)
+        toolbar.pack(fill=tk.X)
+        ttk.Button(toolbar, image='delete', command=self.on_delete).pack(side=tk.RIGHT)
+        ttk.Button(toolbar, image="edit", command=self.on_edit).pack(side=tk.RIGHT)
+        ttk.Button(toolbar, image="add", command=self.on_add).pack(side=tk.RIGHT)
+        self.treeview = ttk.Treeview(variable_frame, columns=("name", "value"), show="headings")
+        self.treeview.pack(fill=tk.BOTH, expand=tk.YES)
+        self.treeview.heading("name", text="name", anchor=tk.CENTER)
+        self.treeview.heading("value", text="value", anchor=tk.CENTER)
+        self.treeview.column("name", width=100, anchor=tk.CENTER)
+        self.treeview.column("value", width=100, anchor=tk.CENTER)
+        for item in data.get("variable", []):
+            self.treeview.insert("", tk.END, values=(item['name'], item['value']))
+        notebook.add(variable_frame, text="Variable")
+        notebook.pack(expand=tk.YES, fill=tk.BOTH)
+
+    def on_add(self):
+        self.editor()
+
+    def on_edit(self):
+        if len(self.treeview.selection()) > 0:
+            item_id = self.treeview.selection()[0]
+            item = self.treeview.item(item_id)
+            self.editor(item_id, name=item['values'][0], value=item['values'][1])
+    
+    def on_delete(self):
+        self.treeview.delete(self.treeview.selection())
+    
+    def editor(self, item_id=None, name=None, value=None):
+        def on_submit():
+            name = name_entry.get()
+            value = value_entry.get()
+            if item_id is None:
+                self.treeview.insert("", tk.END, values=(name, value))
+            else:
+                self.treeview.item(item_id, values=(name, value))
+            win.destroy()
+
+        win = tk.Toplevel()
+        win.title("Edit")
+
+        name_frame = ttk.Frame(win)
+        name_frame.pack()
+        name_label = ttk.Label(name_frame, text='Name:')
+        name_label.pack(side=tk.LEFT)
+        name_entry = ttk.Entry(name_frame)
+        if name is not None:
+            name_entry.insert(0, name)
+        name_entry.pack(side=tk.LEFT)
+        value_frame = ttk.Frame(win)
+        value_frame.pack()
+        value_label = ttk.Label(value_frame, text="Value:")
+        value_label.pack(side=tk.LEFT)
+        value_entry = ttk.Entry(value_frame)
+        if value is not None:
+            value_entry.insert(0, value)
+        value_entry.pack(side=tk.LEFT)
+        action_frame = ttk.Frame(win)
+        action_frame.pack()
+        can_btn = ttk.Button(action_frame, command=win.destroy, text="Cannel")
+        can_btn.pack(side=tk.RIGHT)
+        sub_btn = ttk.Button(action_frame, command=on_submit, text="Submit")
+        sub_btn.pack(side=tk.RIGHT)
+
+    def on_save(self):
+        name = self.name_entry.get()
+        pre_request_script = self.script_box.get("1.0", tk.END)
+        tests = self.tests_box.get("1.0", tk.END)
+        variable = []
+
+        if pre_request_script == "\n":
+            pre_request_script = ""
+        if tests == "\n":
+            tests = ""
+
+        for child in self.treeview.get_children():
+            item = self.treeview.item(child)
+            variable.append({'name': item['values'][0], 'value': item['values'][1]})
+
+        if self.item_id is None:
+            messagebox.showerror("Failed", "Save failed, item id missing.")
+            return
+
+        self.callback(
+            item_id=self.item_id,
+            data={
+                "name": name,
+                "pre_request_script": pre_request_script,
+                "tests": tests,
+                "variable": variable
+            },
+        )
+
+class FolderWindow:
+    """Folder properties"""
+
+    item_id = None
+
+    def __init__(self, **kwargs) -> None:
+        self.root = ttk.Frame(kwargs.get("master"))
+        self.callback = kwargs.get("callback")
+        self.item_id = kwargs.get("item_id")
+        data = kwargs.get('data')
+
+        frame = ttk.Frame(self.root)
+        frame.pack(fill=tk.X)
+        ttk.Label(frame, text="Name:").pack(side=tk.LEFT)
+        self.name_entry = ttk.Entry(frame)
+        self.name_entry.insert(tk.END, data.get("name", "New Folder"))
+        self.name_entry.pack(side=tk.LEFT)
+        save_btn = ttk.Button(frame, text="Save", command=self.on_save)
+        save_btn.pack(side=tk.RIGHT)
+
+        notebook = ttk.Notebook(self.root)
+        # pre-request script
+        script_frame = ttk.Frame(notebook)
+        self.script_box = tk.Text(script_frame, height=12)
+        self.script_box.insert(tk.END, data.get("pre_request_script", ""))
+        self.script_box.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.YES)
+        script_scrollbar = ttk.Scrollbar(script_frame, command=self.script_box.yview)
+        script_scrollbar.pack(side=tk.LEFT, fill=tk.Y)
+        self.script_box.config(yscrollcommand=script_scrollbar.set)
+        notebook.add(script_frame, text="Pre-request Script")
+
+        # tests
+        tests_frame = ttk.Frame(notebook)
+        self.tests_box = tk.Text(tests_frame, height=12)
+        self.tests_box.insert(tk.END, data.get("tests", ""))
+        self.tests_box.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.YES)
+        tests_scrollbar = ttk.Scrollbar(tests_frame, command=self.tests_box.yview)
+        tests_scrollbar.pack(side=tk.LEFT, fill=tk.Y)
+        self.tests_box.config(yscrollcommand=tests_scrollbar.set)
+        notebook.add(tests_frame, text="Tests")
+
+        notebook.pack(expand=tk.YES, fill=tk.BOTH)
+
+    def on_save(self):
+        name = self.name_entry.get()
+        pre_request_script = self.script_box.get("1.0", tk.END)
+        tests = self.tests_box.get("1.0", tk.END)
+        if pre_request_script == "\n":
+            pre_request_script = ""
+        if tests == "\n":
+            tests = ""
+
+        if self.item_id is None:
+            messagebox.showerror("Failed", "Save failed, item id missing.")
+            return
+
+        self.callback(
+            item_id=self.item_id,
+            data={
+                "name": name,
+                "pre_request_script": pre_request_script,
+                "tests": tests,
+            },
+        )
