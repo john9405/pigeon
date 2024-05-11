@@ -41,9 +41,9 @@ class MainWindow:
         pw1.add(self.main_sidebar)
         pw2 = ttk.PanedWindow(pw1)
         self.notebook = ttk.Notebook(pw2)
-        pw2.add(self.notebook)
+        pw2.add(self.notebook, weight=11)
         console_top = ttk.Frame(pw2)
-        pw2.add(console_top)
+        pw2.add(console_top, weight=1)
         pw1.add(pw2)
         pw1.pack(fill="both", expand=True)
 
@@ -59,14 +59,14 @@ class MainWindow:
         self.console_window = ConsoleWindow(console_top)
         self.new_request()
 
-        ttk.Button(ff, text="AES", command=self.aes_label).pack(side=tk.LEFT, padx=(0, 5))
-        ttk.Button(ff, text="Base64", command=self.b64_label).pack(side=tk.LEFT, padx=(0, 5))
-        ttk.Button(ff, text="MD5", command=self.md5_label).pack(side=tk.LEFT, padx=(0, 5))
-        ttk.Button(ff, text="PWD", command=self.pwd_label).pack(side=tk.LEFT, padx=(0, 5))
-        ttk.Button(ff, text="Timestamp", command=self.ts_label).pack(side=tk.LEFT, padx=(0, 5))
-        ttk.Button(ff, text="Regex", command=self.regex_label).pack(side=tk.LEFT, padx=(0, 5))
-        ttk.Button(ff, text="Help", command=self.help_label).pack(side=tk.LEFT, padx=(0, 5))
-        ttk.Button(ff, text="About", command=self.about_label).pack(side=tk.LEFT, padx=(0, 5))
+        ttk.Button(ff, text="AES", command=self.aes_label).pack(side=tk.LEFT)
+        ttk.Button(ff, text="Base64", command=self.b64_label).pack(side=tk.LEFT)
+        ttk.Button(ff, text="MD5", command=self.md5_label).pack(side=tk.LEFT)
+        ttk.Button(ff, text="PWD", command=self.pwd_label).pack(side=tk.LEFT)
+        ttk.Button(ff, text="Timestamp", command=self.ts_label).pack(side=tk.LEFT)
+        ttk.Button(ff, text="Regex", command=self.regex_label).pack(side=tk.LEFT)
+        ttk.Button(ff, text="Help", command=self.help_label).pack(side=tk.LEFT)
+        ttk.Button(ff, text="About", command=self.about_label).pack(side=tk.LEFT)
 
         self.images = [
             tk.PhotoImage(
@@ -101,7 +101,7 @@ class MainWindow:
             )
         ]
         btnframe = ttk.Frame(self.root)
-        btnframe.place(relx=1-0.002, rely=0.04, anchor=tk.NE)
+        btnframe.place(relx=1-0.0016, y=26, anchor=tk.NE)
         ttk.Button(btnframe, image="close", command=self.close_request).pack(side=tk.RIGHT)
         ttk.Button(btnframe, image="add", command=self.new_request).pack(side=tk.RIGHT)
         ttk.Button(fe, image="collection", text="Col", command=self.col_lab).pack()

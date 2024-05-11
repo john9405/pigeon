@@ -53,7 +53,7 @@ class RequestWindow:
 
         # Create notebook
         notebook = ttk.Notebook(paned_window)
-        paned_window.add(notebook)
+        paned_window.add(notebook, weight=1)
 
         # Create a query parameter page
         params_frame = ttk.Frame(notebook)
@@ -107,7 +107,7 @@ class RequestWindow:
 
         # Create response area
         res_note = ttk.Notebook(paned_window)
-        paned_window.add(res_note)
+        paned_window.add(res_note, weight=1)
 
         res_body_frame = ttk.Frame(res_note)
         self.res_body_box = tk.Text(res_body_frame, height=12)
