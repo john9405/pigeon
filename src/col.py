@@ -16,13 +16,13 @@ class CollectionWindow:
         self.images = [
             tk.PhotoImage(
                 name="add",
-                file=os.path.join(BASE_DIR, *("assets", "add.png")),
+                file=os.path.join(BASE_DIR, *("assets", "16", "add.png")),
                 height=16,
                 width=16
             ),
             tk.PhotoImage(
                 name="import",
-                file=os.path.join(BASE_DIR, *("assets", "import.png")),
+                file=os.path.join(BASE_DIR, *("assets", "16", "import.png")),
                 height=16,
                 width=16
             )
@@ -365,19 +365,19 @@ class ProjectWindow:
         self.images = [
             tk.PhotoImage(
                 name="add",
-                file=os.path.join(BASE_DIR, *("assets", "add.png")),
+                file=os.path.join(BASE_DIR, *("assets", "16", "add.png")),
                 height=16,
                 width=16
             ),
             tk.PhotoImage(
                 name="edit",
-                file=os.path.join(BASE_DIR, *("assets", "edit.png")),
+                file=os.path.join(BASE_DIR, *("assets", "16", "edit.png")),
                 height=16,
                 width=16
             ),
             tk.PhotoImage(
                 name="delete",
-                file=os.path.join(BASE_DIR, *("assets", "delete.png")),
+                file=os.path.join(BASE_DIR, *("assets", "16", "delete.png")),
                 height=16,
                 width=16
             )

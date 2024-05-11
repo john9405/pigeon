@@ -41,7 +41,7 @@ class ConsoleWindow:
         self.images = [
             tk.PhotoImage(
                 name="clear",
-                file=os.path.join(BASE_DIR, *('assets', 'clear-f.png')),
+                file=os.path.join(BASE_DIR, *('assets', "16", 'clear-f.png')),
                 height=16,
                 width=16
             )

@@ -1,8 +1,7 @@
-import json
 import os
 import threading
 import tkinter as tk
-from tkinter import filedialog, messagebox, ttk
+from tkinter import ttk
 
 from . import WORK_DIR, BASE_DIR
 from .his import HistoryWindow
@@ -90,13 +89,13 @@ class MainWindow:
             ),
             tk.PhotoImage(
                 name="close",
-                file=os.path.join(BASE_DIR, *("assets", "close.png")),
+                file=os.path.join(BASE_DIR, *("assets", "16", "close.png")),
                 height=16,
                 width=16
             ),
             tk.PhotoImage(
                 name="add",
-                file=os.path.join(BASE_DIR, *("assets", "add.png")),
+                file=os.path.join(BASE_DIR, *("assets", "16", "add.png")),
                 height=16,
                 width=16
             )

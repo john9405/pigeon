@@ -270,6 +270,8 @@ class RequestWindow:
         """Define the function that sends the request"""
         console = Console(self.console)
         get_variable = self.get_variable
+        collectionVariables = self.local_variable
+        environment = self.env_variable
         # Gets the request method and URL
         method = self.method_box.get()
         url = self.url_box.get()
@@ -300,7 +302,7 @@ class RequestWindow:
 
         varlist = re.finditer(r"\{\{[^{}]*\}\}", body)
         for m in varlist:
-            value = get_variable("Globals", m.group()[2:-2])
+            value = get_variable(m.group()[2:-2])
             if value is not None:
                 body.replace(m.group(), value)
 
