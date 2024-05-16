@@ -11,6 +11,53 @@ from PIL import Image, ImageTk
 
 from .console import Console
 
+class ParamsFrame:
+    def __init__(self, **kw) -> None:
+        self.root = ttk.Frame(kw.get("master"))
+
+        toolbar = ttk.Frame(self.root)
+        toolbar.pack(fill=tk.X)
+
+        add_btn = ttk.Button(toolbar, text="add")
+        add_btn.pack(side=tk.LEFT)
+        edt_btn = ttk.Button(toolbar, text="edit")
+        edt_btn.pack(side=tk.LEFT)
+        del_btn = ttk.Button(toolbar, text="del")
+        del_btn.pack(side=tk.LEFT)
+
+        self.treeview = ttk.Treeview(self.root)
+        self.treeview.pack(fill=tk.BOTH, expand=True)
+
+    def get_data(self):
+        pass
+
+    def set_date(self):
+        pass
+
+
+class HeaderFrame:
+    def __init__(self, **kw) -> None:
+        self.root = ttk.Frame(kw.get('master'))
+
+        toolbar = ttk.Frame(self.root)
+        toolbar.pack(fill=tk.X)
+
+        add_btn = ttk.Button(toolbar, text="add")
+        add_btn.pack(side=tk.LEFT)
+        edt_btn = ttk.Button(toolbar, text="edit")
+        edt_btn.pack(side=tk.LEFT)
+        del_btn = ttk.Button(toolbar, text="del")
+        del_btn.pack(side=tk.LEFT)
+
+        self.treeview = ttk.Treeview(self.root, columns=("name", "value",))
+        self.treeview.pack(fill=tk.BOTH, expand=True)
+
+    def get_data(self):
+        pass
+    
+    def set_date(self):
+        pass
+
 
 class RequestWindow:
     item_id = None
