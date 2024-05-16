@@ -40,9 +40,7 @@ class RequestWindow:
         self.method_box["state"] = "readonly"
         self.method_box.pack(side=tk.LEFT)
         sub_btn = ttk.Button(north, text="Send")  # Send request button
-        sub_btn.config(
-            command=self.send_request
-        )  # Bind the event handler to send the request button
+        sub_btn.config(command=self.send_request)  # Bind the event handler to send the request button
         sub_btn.pack(side=tk.RIGHT)
         self.url_box = ttk.Entry(north)
         self.url_box.pack(fill=tk.BOTH, pady=3)
@@ -282,7 +280,7 @@ class RequestWindow:
         for m in varlist:
             value = get_variable(m.group()[2:-2])
             if value is not None:
-                url.replace(m.group(), value)
+                url = url.replace(m.group(), value)
         # Gets query parameters, request headers, and request bodies
         params = self.params_box.get("1.0", tk.END)
         headers = self.headers_box.get("1.0", tk.END)
@@ -292,19 +290,19 @@ class RequestWindow:
         for m in varlist:
             value = get_variable(m.group()[2:-2])
             if value is not None:
-                params.replace(m.group(), value)
+                params = params.replace(m.group(), value)
 
         varlist = re.finditer(r"\{\{[^{}]*\}\}", headers)
         for m in varlist:
             value = get_variable(m.group()[2:-2])
             if value is not None:
-                headers.replace(m.group(), value)
+                headers = headers.replace(m.group(), value)
 
         varlist = re.finditer(r"\{\{[^{}]*\}\}", body)
         for m in varlist:
             value = get_variable(m.group()[2:-2])
             if value is not None:
-                body.replace(m.group(), value)
+                body = body.replace(m.group(), value)
 
         try:
             params = json.loads(params)
