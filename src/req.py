@@ -1,3 +1,4 @@
+import os
 import json
 import tkinter as tk
 from tkinter import messagebox, ttk
@@ -9,54 +10,215 @@ import requests
 from bs4 import BeautifulSoup
 from PIL import Image, ImageTk
 
+from . import BASE_DIR
 from .console import Console
 
 class ParamsFrame:
     def __init__(self, **kw) -> None:
+        self.images = [
+            tk.PhotoImage(
+                name="add",
+                file=os.path.join(BASE_DIR, *("assets", "16", "add.png")),
+                height=16,
+                width=16
+            ),
+            tk.PhotoImage(
+                name="edit",
+                file=os.path.join(BASE_DIR, *("assets", "16", "edit.png")),
+                height=16,
+                width=16
+            ),
+            tk.PhotoImage(
+                name="delete",
+                file=os.path.join(BASE_DIR, *("assets", "16", "delete.png")),
+                height=16,
+                width=16
+            )
+        ]
         self.root = ttk.Frame(kw.get("master"))
 
         toolbar = ttk.Frame(self.root)
         toolbar.pack(fill=tk.X)
 
-        add_btn = ttk.Button(toolbar, text="add")
+        add_btn = ttk.Button(toolbar, image="add", command=self.on_add)
         add_btn.pack(side=tk.LEFT)
-        edt_btn = ttk.Button(toolbar, text="edit")
+        edt_btn = ttk.Button(toolbar, image="edit", command=self.on_edit)
         edt_btn.pack(side=tk.LEFT)
-        del_btn = ttk.Button(toolbar, text="del")
+        del_btn = ttk.Button(toolbar, image="delete", command=self.on_del)
         del_btn.pack(side=tk.LEFT)
 
-        self.treeview = ttk.Treeview(self.root)
+        self.treeview = ttk.Treeview(self.root, columns=("name","value"), show="headings")
         self.treeview.pack(fill=tk.BOTH, expand=True)
 
-    def get_data(self):
-        pass
+        self.treeview.heading("name", text="name", anchor=tk.CENTER)
+        self.treeview.heading("value", text="value", anchor=tk.CENTER)
 
-    def set_date(self):
-        pass
+        self.treeview.column("name", width=100, anchor=tk.CENTER)
+        self.treeview.column("value", width=100, anchor=tk.CENTER)
+
+    def get_data(self) -> dict:
+        data = {}
+        for child in self.treeview.get_children():
+            item = self.treeview.item(child)
+            data.update({item['values'][0]: item['values'][1]})
+        return data
+
+    def set_date(self, data: dict):
+        for key in data.keys():
+            self.treeview.insert("", tk.END, values=(key, data[key]))
+
+    def on_add(self):
+        self.editor()
+
+    def on_edit(self):
+        if len(self.treeview.selection()) > 0:
+            item_id = self.treeview.selection()[0]
+            item = self.treeview.item(item_id)
+            self.editor(item_id, name=item['values'][0], value=item['values'][1])
+
+    def on_del(self):
+        if len(self.treeview.selection()) > 0:
+            self.treeview.delete(self.treeview.selection())
+
+    def editor(self, item_id=None, name=None, value=None):
+        def on_submit():
+            name = name_entry.get()
+            value = value_entry.get()
+            if item_id is None:
+                self.treeview.insert("", tk.END, values=(name, value))
+            else:
+                self.treeview.item(item_id, values=(name, value))
+            win.destroy()
+
+        win = tk.Toplevel()
+        win.title("Edit")
+
+        name_frame = ttk.Frame(win)
+        name_frame.pack(fill=tk.X)
+        name_label = ttk.Label(name_frame, text='Name:')
+        name_label.pack(side=tk.LEFT)
+        name_entry = ttk.Entry(name_frame)
+        if name is not None:
+            name_entry.insert(0, name)
+        name_entry.pack(side=tk.RIGHT)
+        value_frame = ttk.Frame(win)
+        value_frame.pack(fill=tk.X)
+        value_label = ttk.Label(value_frame, text="Value:")
+        value_label.pack(side=tk.LEFT)
+        value_entry = ttk.Entry(value_frame)
+        if value is not None:
+            value_entry.insert(0, value)
+        value_entry.pack(side=tk.RIGHT)
+        action_frame = ttk.Frame(win)
+        action_frame.pack()
+        can_btn = ttk.Button(action_frame, command=win.destroy, text="Cannel")
+        can_btn.pack(side=tk.RIGHT)
+        sub_btn = ttk.Button(action_frame, command=on_submit, text="Submit")
+        sub_btn.pack(side=tk.RIGHT)
 
 
 class HeaderFrame:
     def __init__(self, **kw) -> None:
+        self.images = [
+            tk.PhotoImage(
+                name="add",
+                file=os.path.join(BASE_DIR, *("assets", "16", "add.png")),
+                height=16,
+                width=16
+            ),
+            tk.PhotoImage(
+                name="edit",
+                file=os.path.join(BASE_DIR, *("assets", "16", "edit.png")),
+                height=16,
+                width=16
+            ),
+            tk.PhotoImage(
+                name="delete",
+                file=os.path.join(BASE_DIR, *("assets", "16", "delete.png")),
+                height=16,
+                width=16
+            )
+        ]
         self.root = ttk.Frame(kw.get('master'))
 
         toolbar = ttk.Frame(self.root)
         toolbar.pack(fill=tk.X)
 
-        add_btn = ttk.Button(toolbar, text="add")
+        add_btn = ttk.Button(toolbar, image="add", command=self.on_add)
         add_btn.pack(side=tk.LEFT)
-        edt_btn = ttk.Button(toolbar, text="edit")
+        edt_btn = ttk.Button(toolbar, image="edit", command=self.on_edit)
         edt_btn.pack(side=tk.LEFT)
-        del_btn = ttk.Button(toolbar, text="del")
+        del_btn = ttk.Button(toolbar, image="delete", command=self.on_del)
         del_btn.pack(side=tk.LEFT)
 
-        self.treeview = ttk.Treeview(self.root, columns=("name", "value",))
+        self.treeview = ttk.Treeview(self.root, columns=("name", "value",), show="headings")
         self.treeview.pack(fill=tk.BOTH, expand=True)
+        
+        self.treeview.heading("name", text="name", anchor=tk.CENTER)
+        self.treeview.heading("value", text="value", anchor=tk.CENTER)
 
-    def get_data(self):
-        pass
-    
-    def set_date(self):
-        pass
+        self.treeview.column("name", width=100, anchor=tk.CENTER)
+        self.treeview.column("value", width=100, anchor=tk.CENTER)
+
+    def get_data(self) -> dict:
+        data = {}
+        for child in self.treeview.get_children():
+            item = self.treeview.item(child)
+            data.update({item['values'][0]: item['values'][1]})
+        return data
+
+    def set_date(self, data: dict):
+        for key in data.keys():
+            self.treeview.insert("", tk.END, values=(key, data[key]))
+
+    def on_add(self):
+        self.editor()
+
+    def on_edit(self):
+        if len(self.treeview.selection()) > 0:
+            item_id = self.treeview.selection()[0]
+            item = self.treeview.item(item_id)
+            self.editor(item_id, name=item['values'][0], value=item['values'][1])
+
+    def on_del(self):
+        if len(self.treeview.selection()) > 0:
+            self.treeview.delete(self.treeview.selection())
+
+    def editor(self, item_id=None, name=None, value=None):
+        def on_submit():
+            name = name_entry.get()
+            value = value_entry.get()
+            if item_id is None:
+                self.treeview.insert("", tk.END, values=(name, value))
+            else:
+                self.treeview.item(item_id, values=(name, value))
+            win.destroy()
+
+        win = tk.Toplevel()
+        win.title("Edit")
+
+        name_frame = ttk.Frame(win)
+        name_frame.pack(fill=tk.X)
+        name_label = ttk.Label(name_frame, text='Name:')
+        name_label.pack(side=tk.LEFT)
+        name_entry = ttk.Entry(name_frame)
+        if name is not None:
+            name_entry.insert(0, name)
+        name_entry.pack(side=tk.RIGHT)
+        value_frame = ttk.Frame(win)
+        value_frame.pack(fill=tk.X)
+        value_label = ttk.Label(value_frame, text="Value:")
+        value_label.pack(side=tk.LEFT)
+        value_entry = ttk.Entry(value_frame)
+        if value is not None:
+            value_entry.insert(0, value)
+        value_entry.pack(side=tk.RIGHT)
+        action_frame = ttk.Frame(win)
+        action_frame.pack()
+        can_btn = ttk.Button(action_frame, command=win.destroy, text="Cannel")
+        can_btn.pack(side=tk.RIGHT)
+        sub_btn = ttk.Button(action_frame, command=on_submit, text="Submit")
+        sub_btn.pack(side=tk.RIGHT)
 
 
 class RequestWindow:
@@ -111,14 +273,8 @@ class RequestWindow:
         notebook.add(params_frame, text="Params")
 
         # Create the request header page
-        headers_frame = ttk.Frame(notebook)
-        self.headers_box = tk.Text(headers_frame, height=12)
-        self.headers_box.insert(tk.END, "{}")
-        self.headers_box.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.YES)
-        headers_scrollbar = ttk.Scrollbar(headers_frame, command=self.headers_box.yview)
-        headers_scrollbar.pack(side=tk.LEFT, fill=tk.Y)
-        self.headers_box.config(yscrollcommand=headers_scrollbar.set)
-        notebook.add(headers_frame, text="Headers")
+        self.headers_frame = HeaderFrame(master=notebook)
+        notebook.add(self.headers_frame.root, text="Headers")
 
         # Create the request body page
         body_frame = ttk.Frame(notebook)
@@ -169,8 +325,7 @@ class RequestWindow:
         self.res_cookie_table = ttk.Treeview(
             res_cookie_frame, 
             columns=("key", "value"), 
-            show="headings", 
-            height=6
+            show="headings"
         )
         res_cookie_scrollbar_x = ttk.Scrollbar(
             res_cookie_frame, 
@@ -201,8 +356,7 @@ class RequestWindow:
         self.res_header_table = ttk.Treeview(
             res_header_frame, 
             columns=("key", "value"), 
-            show="headings", 
-            height=6
+            show="headings"
         )
         self.res_header_table.column("key", width=1)
         self.res_header_table.heading("key", text="key")
@@ -243,7 +397,7 @@ class RequestWindow:
         method = self.method_box.get()
         url = self.url_box.get()
         params = self.params_box.get("1.0", tk.END)
-        headers = self.headers_box.get("1.0", tk.END)
+        headers = self.headers_frame.get_data()
         body = self.body_box.get("1.0", tk.END)
         pre_request_script = self.script_box.get("1.0", tk.END)
         tests = self.tests_box.get("1.0", tk.END)
@@ -252,10 +406,7 @@ class RequestWindow:
             params = json.loads(params)
         except json.JSONDecodeError:
             params = {}
-        try:
-            headers = json.loads(headers)
-        except json.JSONDecodeError:
-            headers = {}
+
         try:
             body = json.loads(body)
         except json.JSONDecodeError:
@@ -293,8 +444,7 @@ class RequestWindow:
         self.url_box.insert(tk.END, data.get("url", ""))
         self.params_box.delete("1.0", tk.END)
         self.params_box.insert(tk.END, json.dumps(data.get("params", {}), ensure_ascii=False, indent=4))
-        self.headers_box.delete("1.0", tk.END)
-        self.headers_box.insert(tk.END, json.dumps(data.get("headers", {}), ensure_ascii=False, indent=4))
+        self.headers_frame.set_date(data.get("headers", {}))
         self.body_box.delete("1.0", tk.END)
         self.body_box.insert(tk.END, json.dumps(data.get("body", {}), ensure_ascii=False, indent=4))
         self.script_box.delete("1.0", tk.END)
@@ -330,7 +480,7 @@ class RequestWindow:
                 url = url.replace(m.group(), value)
         # Gets query parameters, request headers, and request bodies
         params = self.params_box.get("1.0", tk.END)
-        headers = self.headers_box.get("1.0", tk.END)
+        headers = self.headers_frame.get_data()
         body = self.body_box.get("1.0", tk.END)
 
         varlist = re.finditer(r"\{\{[^{}]*\}\}", params)
@@ -355,10 +505,7 @@ class RequestWindow:
             params = json.loads(params)
         except json.JSONDecodeError:
             params = {}
-        try:
-            headers = json.loads(headers)
-        except json.JSONDecodeError:
-            headers = {}
+
         try:
             body = json.loads(body)
         except json.JSONDecodeError:
