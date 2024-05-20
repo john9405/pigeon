@@ -2,7 +2,7 @@ import json
 import os
 import tkinter as tk
 import uuid
-from tkinter import ttk, filedialog, messagebox
+from tkinter import ttk, filedialog, messagebox, simpledialog
 
 from . import WORK_DIR, USER_DIR, BASE_DIR
 
@@ -187,15 +187,17 @@ class CollectionWindow:
             self.cmenu = None
 
     def new_proj(self):
+        name = simpledialog.askstring("ask", "Name:")
         self.tree.insert(
             "",
             tk.END,
-            text="New Collection",
+            text= name if name > "" else "New Collection",
             tags=["project", str(uuid.uuid1())],
-            values=[json.dumps({"name": "New Collection"})],
+            values=[json.dumps({"name": name if name > "" else "New Collection"})],
         )
 
     def new_col(self):
+        name = simpledialog.askstring("ask", "Name:")
         try:
             ctag = self.tree.item(self.tree.selection()[0])["tags"][0]
             if ctag in ("folder", "project"):
@@ -205,23 +207,24 @@ class CollectionWindow:
             self.tree.insert(
                 selected_node,
                 tk.END,
-                text="New Folder",
+                text= name if name > "" else "New Folder",
                 tags=["folder", str(uuid.uuid1())],
-                values=[json.dumps({"name": "New Folder"})],
+                values=[json.dumps({"name": name if name > "" else "New Folder"})],
             )
         except IndexError:
             self.tree.insert(
                 "",
                 tk.END,
-                text="New Collection",
+                text= name if name > "" else "New Collection",
                 tags=["project", str(uuid.uuid1())],
-                values=[json.dumps({"name": "New Collection"})],
+                values=[json.dumps({"name": name if name > "" else "New Collection"})],
             )
 
     def new_req(self, data=None):
         if data is None:
+            name = simpledialog.askstring("ask", "Name:")
             data = {
-                "name": "New Request",
+                "name": name if name > "" else "New Request",
                 "method": "GET",
                 "url": "",
                 "params": {},
