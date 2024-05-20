@@ -27,7 +27,7 @@ class CollectionWindow:
                 width=16
             )
         ]
-        frame = tk.Frame(window)
+        frame = ttk.Frame(window)
         ttk.Button(frame, image="import", command=self.open_proj).pack(
             side=tk.RIGHT
         )

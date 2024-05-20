@@ -53,17 +53,17 @@ class ParamsFrame:
         self.treeview.heading("name", text="name", anchor=tk.CENTER)
         self.treeview.heading("value", text="value", anchor=tk.CENTER)
 
-        self.treeview.column("name", width=100, anchor=tk.CENTER)
-        self.treeview.column("value", width=100, anchor=tk.CENTER)
+        self.treeview.column("name", width=1)
+        self.treeview.column("value")
 
     def get_data(self) -> dict:
         data = {}
         for child in self.treeview.get_children():
             item = self.treeview.item(child)
-            data.update({item['values'][0]: item['values'][1]})
+            data.update({str(item['values'][0]): str(item['values'][1])})
         return data
 
-    def set_date(self, data: dict):
+    def set_data(self, data: dict):
         for key in data.keys():
             self.treeview.insert("", tk.END, values=(key, data[key]))
 
@@ -157,17 +157,17 @@ class HeaderFrame:
         self.treeview.heading("name", text="name", anchor=tk.CENTER)
         self.treeview.heading("value", text="value", anchor=tk.CENTER)
 
-        self.treeview.column("name", width=100, anchor=tk.CENTER)
-        self.treeview.column("value", width=100, anchor=tk.CENTER)
+        self.treeview.column("name", width=1)
+        self.treeview.column("value")
 
     def get_data(self) -> dict:
         data = {}
         for child in self.treeview.get_children():
             item = self.treeview.item(child)
-            data.update({item['values'][0]: item['values'][1]})
+            data.update({str(item['values'][0]): str(item['values'][1])})
         return data
 
-    def set_date(self, data: dict):
+    def set_data(self, data: dict):
         for key in data.keys():
             self.treeview.insert("", tk.END, values=(key, data[key]))
 
@@ -263,14 +263,8 @@ class RequestWindow:
         paned_window.add(notebook, weight=1)
 
         # Create a query parameter page
-        params_frame = ttk.Frame(notebook)
-        self.params_box = tk.Text(params_frame, height=12)
-        self.params_box.insert(tk.END, "{}")
-        self.params_box.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.YES)
-        params_scrollbar = ttk.Scrollbar(params_frame, command=self.params_box.yview)
-        params_scrollbar.pack(side=tk.LEFT, fill=tk.Y)
-        self.params_box.config(yscrollcommand=params_scrollbar.set)
-        notebook.add(params_frame, text="Params")
+        self.params_frame = ParamsFrame(master=notebook)
+        notebook.add(self.params_frame.root, text="Params")
 
         # Create the request header page
         self.headers_frame = HeaderFrame(master=notebook)
@@ -396,16 +390,11 @@ class RequestWindow:
         name = self.name_entry.get()
         method = self.method_box.get()
         url = self.url_box.get()
-        params = self.params_box.get("1.0", tk.END)
+        params = self.headers_frame.get_data()
         headers = self.headers_frame.get_data()
         body = self.body_box.get("1.0", tk.END)
         pre_request_script = self.script_box.get("1.0", tk.END)
         tests = self.tests_box.get("1.0", tk.END)
-
-        try:
-            params = json.loads(params)
-        except json.JSONDecodeError:
-            params = {}
 
         try:
             body = json.loads(body)
@@ -442,9 +431,8 @@ class RequestWindow:
         self.method_box.current(self.method_list.index(method))
         self.url_box.delete(0, tk.END)
         self.url_box.insert(tk.END, data.get("url", ""))
-        self.params_box.delete("1.0", tk.END)
-        self.params_box.insert(tk.END, json.dumps(data.get("params", {}), ensure_ascii=False, indent=4))
-        self.headers_frame.set_date(data.get("headers", {}))
+        self.params_frame.set_data(data.get("params", {}))
+        self.headers_frame.set_data(data.get("headers", {}))
         self.body_box.delete("1.0", tk.END)
         self.body_box.insert(tk.END, json.dumps(data.get("body", {}), ensure_ascii=False, indent=4))
         self.script_box.delete("1.0", tk.END)
@@ -479,32 +467,31 @@ class RequestWindow:
             if value is not None:
                 url = url.replace(m.group(), value)
         # Gets query parameters, request headers, and request bodies
-        params = self.params_box.get("1.0", tk.END)
+        params = self.params_frame.get_data()
         headers = self.headers_frame.get_data()
         body = self.body_box.get("1.0", tk.END)
 
+        params = json.dumps(params)
         varlist = re.finditer(r"\{\{[^{}]*\}\}", params)
         for m in varlist:
             value = get_variable(m.group()[2:-2])
             if value is not None:
                 params = params.replace(m.group(), value)
+        params = json.loads(params)
 
+        headers = json.dumps(headers)
         varlist = re.finditer(r"\{\{[^{}]*\}\}", headers)
         for m in varlist:
             value = get_variable(m.group()[2:-2])
             if value is not None:
                 headers = headers.replace(m.group(), value)
+        headers = json.loads(headers)
 
         varlist = re.finditer(r"\{\{[^{}]*\}\}", body)
         for m in varlist:
             value = get_variable(m.group()[2:-2])
             if value is not None:
                 body = body.replace(m.group(), value)
-
-        try:
-            params = json.loads(params)
-        except json.JSONDecodeError:
-            params = {}
 
         try:
             body = json.loads(body)
