@@ -400,10 +400,9 @@ class RequestWindow:
             body = json.loads(body)
         except json.JSONDecodeError:
             body = {}
-        if pre_request_script == "\n":
-            pre_request_script = ""
-        if tests == "\n":
-            tests = ""
+        
+        pre_request_script = pre_request_script.rstrip("\n")
+        tests = tests.rstrip("\n")
 
         if name == "" and url > "":
             name = url

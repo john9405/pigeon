@@ -324,7 +324,7 @@ class CollectionWindow:
                     if var['name'] == name:
                         return var['value']
                 return None
-            return self.get_variable(item_id, name)
+            return self.get_variable(self.tree.parent(item_id), name)
 
 
 class ProjectWindow:
@@ -455,10 +455,8 @@ class ProjectWindow:
         tests = self.tests_box.get("1.0", tk.END)
         variable = []
 
-        if pre_request_script == "\n":
-            pre_request_script = ""
-        if tests == "\n":
-            tests = ""
+        pre_request_script = pre_request_script.rstrip("\n")
+        tests = tests.rstrip("\n")
 
         for child in self.treeview.get_children():
             item = self.treeview.item(child)
@@ -525,10 +523,9 @@ class FolderWindow:
         name = self.name_entry.get()
         pre_request_script = self.script_box.get("1.0", tk.END)
         tests = self.tests_box.get("1.0", tk.END)
-        if pre_request_script == "\n":
-            pre_request_script = ""
-        if tests == "\n":
-            tests = ""
+
+        pre_request_script = pre_request_script.rstrip("\n")
+        tests = tests.rstrip("\n")
 
         if self.item_id is None:
             messagebox.showerror("Failed", "Save failed, item id missing.")
