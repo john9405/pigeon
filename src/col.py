@@ -188,6 +188,8 @@ class CollectionWindow:
 
     def new_proj(self):
         name = simpledialog.askstring("ask", "Name:")
+        if name is None:
+            return
         self.tree.insert(
             "",
             tk.END,
@@ -198,6 +200,8 @@ class CollectionWindow:
 
     def new_col(self):
         name = simpledialog.askstring("ask", "Name:")
+        if name is None:
+            return
         try:
             ctag = self.tree.item(self.tree.selection()[0])["tags"][0]
             if ctag in ("folder", "project"):
@@ -223,6 +227,8 @@ class CollectionWindow:
     def new_req(self, data=None):
         if data is None:
             name = simpledialog.askstring("ask", "Name:")
+            if name is None:
+                return
             data = {
                 "name": name if name > "" else "New Request",
                 "method": "GET",
