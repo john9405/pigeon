@@ -2,6 +2,7 @@ import os
 import json
 import tkinter as tk
 from tkinter import messagebox, ttk
+from tkinter.scrolledtext import ScrolledText
 import time
 import re
 import xml.dom.minidom
@@ -271,49 +272,23 @@ class RequestWindow:
         notebook.add(self.headers_frame.root, text="Headers")
 
         # Create the request body page
-        body_frame = ttk.Frame(notebook)
-        self.body_box = tk.Text(body_frame, height=12)
-        self.body_box.insert(tk.END, "{}")
-        self.body_box.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.YES)
-        body_scrollbar = ttk.Scrollbar(body_frame, command=self.body_box.yview)
-        body_scrollbar.pack(side=tk.LEFT, fill=tk.Y)
-        self.body_box.config(yscrollcommand=body_scrollbar.set)
-        notebook.add(body_frame, text="Body")
+        self.body_box = ScrolledText(notebook)
+        notebook.add(self.body_box, text="Body")
 
         # pre-request script
-        script_frame = ttk.Frame(notebook)
-        self.script_box = tk.Text(script_frame, height=12)
-        self.script_box.insert(tk.END, "")
-        self.script_box.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.YES)
-        script_scrollbar = ttk.Scrollbar(script_frame, command=self.script_box.yview)
-        script_scrollbar.pack(side=tk.LEFT, fill=tk.Y)
-        self.script_box.config(yscrollcommand=script_scrollbar.set)
-        notebook.add(script_frame, text="Pre-request Script")
+        self.script_box = ScrolledText(notebook)
+        notebook.add(self.script_box, text="Pre-request Script")
 
         # tests
-        tests_frame = ttk.Frame(notebook)
-        self.tests_box = tk.Text(tests_frame, height=12)
-        self.tests_box.insert(tk.END, "")
-        self.tests_box.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.YES)
-        tests_scrollbar = ttk.Scrollbar(tests_frame, command=self.tests_box.yview)
-        tests_scrollbar.pack(side=tk.LEFT, fill=tk.Y)
-        self.tests_box.config(yscrollcommand=tests_scrollbar.set)
-        notebook.add(tests_frame, text="Tests")
+        self.tests_box = ScrolledText(notebook)
+        notebook.add(self.tests_box, text="Tests")
 
         # Create response area
         res_note = ttk.Notebook(paned_window)
         paned_window.add(res_note, weight=1)
 
-        res_body_frame = ttk.Frame(res_note)
-        self.res_body_box = tk.Text(res_body_frame, height=12)
-        self.res_body_box.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.YES)
-        res_body_scrollbar = ttk.Scrollbar(
-            res_body_frame, 
-            command=self.res_body_box.yview
-        )
-        res_body_scrollbar.pack(side=tk.LEFT, fill=tk.Y)
-        self.res_body_box.config(yscrollcommand=res_body_scrollbar.set)
-        res_note.add(res_body_frame, text="Body")
+        self.res_body_box = ScrolledText(res_note)
+        res_note.add(self.res_body_box, text="Body")
 
         res_cookie_frame = ttk.Frame(res_note)
         self.res_cookie_table = ttk.Treeview(
@@ -374,16 +349,8 @@ class RequestWindow:
         )
         res_note.add(res_header_frame, text="Headers")
 
-        res_tests_frame = ttk.Frame(res_note)
-        self.res_tests_box = tk.Text(res_tests_frame, height=12)
-        self.res_tests_box.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.YES)
-        res_tests_scrollbar = ttk.Scrollbar(
-            res_tests_frame, 
-            command=self.res_tests_box.yview
-        )
-        res_tests_scrollbar.pack(side=tk.LEFT, fill=tk.Y)
-        self.res_tests_box.config(yscrollcommand=res_tests_scrollbar.set)
-        res_note.add(res_tests_frame, text="Test Results")
+        self.res_tests_box = ScrolledText(res_note)
+        res_note.add(self.res_tests_box, text="Test Results")
 
     def save_handler(self):
         """Save test script"""

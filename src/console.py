@@ -2,6 +2,7 @@ import json
 import os
 import tkinter as tk
 from tkinter import ttk
+from tkinter.scrolledtext import ScrolledText
 
 from . import BASE_DIR
 
@@ -51,11 +52,8 @@ class ConsoleWindow:
         ttk.Label(ff, text="Console").pack(side=tk.LEFT)
         ttk.Button(ff, image="clear", command=self.clear).pack(side="right")
 
-        self.text_box = tk.Text(window, height=12)
-        scrollbar = ttk.Scrollbar(window, command=self.text_box.yview)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        self.text_box.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.YES)
-        self.text_box.config(yscrollcommand=scrollbar.set)
+        self.text_box = ScrolledText(window, height=12)
+        self.text_box.pack(fill=tk.BOTH, expand=tk.YES)
 
     def log(self, data):
         self.text_box.insert(tk.END, data)
