@@ -33,6 +33,7 @@ class MainWindow:
 
         ff = ttk.Frame(self.root)
         ff.pack(fill=tk.X)
+        ttk.Separator(self.root).pack(fill=tk.X)
         fe = ttk.Frame(self.root)
         fe.pack(side=tk.LEFT, fill=tk.Y)
 
@@ -94,16 +95,15 @@ class MainWindow:
                 width=16
             ),
             tk.PhotoImage(
-                name="add",
-                file=os.path.join(BASE_DIR, *("assets", "16", "add.png")),
+                name="file-add",
+                file=os.path.join(BASE_DIR, *("assets", "16", "file-add.png")),
                 height=16,
                 width=16
             )
         ]
-        btnframe = ttk.Frame(self.root)
-        btnframe.place(relx=1-0.0016, y=26, anchor=tk.NE)
-        ttk.Button(btnframe, image="close", command=self.close_request).pack(side=tk.RIGHT)
-        ttk.Button(btnframe, image="add", command=self.new_request).pack(side=tk.RIGHT)
+        ttk.Button(ff, image="close", command=self.close_request).pack(side=tk.RIGHT)
+        ttk.Button(ff, image="file-add", command=self.new_request).pack(side=tk.RIGHT)
+        ttk.Separator(ff, orient=tk.VERTICAL).pack(side=tk.RIGHT, fill=tk.Y)
         ttk.Button(fe, image="collection", text="Col", command=self.col_lab).pack()
         ttk.Button(fe, image="environment", text="Env", command=self.env_lab).pack()
         ttk.Button(fe, image="history", text="His", command=self.his_lab).pack()

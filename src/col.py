@@ -2,6 +2,7 @@ import json
 import os
 import tkinter as tk
 import uuid
+import platform
 from tkinter import ttk, filedialog, messagebox, simpledialog
 from tkinter.scrolledtext import ScrolledText
 
@@ -41,7 +42,12 @@ class CollectionWindow:
         self.tree.pack(fill="both", expand=True)
         self.tree.bind("<Double-1>", self.on_select)
         self.tree.bind("<Button-1>", self.hide_context_menu)
-        self.tree.bind("<Button-3>", self.on_right_click)
+        if platform.system() == "Darwin":
+            self.tree.bind("<Control-Button-1>",self.on_right_click)
+            self.tree.bind("<Button-2>", self.on_right_click)
+        else:
+            self.tree.bind("<Button-3>", self.on_right_click)
+
 
         self.context_nenu = tk.Menu(window, tearoff=0)
         self.context_nenu.add_command(label="new Project", command=self.new_proj)
