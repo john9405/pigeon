@@ -1,7 +1,9 @@
 import tkinter as tk
 from tkinter import ttk
+from tkinter.scrolledtext import ScrolledText
 import re
-
+import os
+from .. import BASE_DIR
 
 class RegexWindow:
     def __init__(self, master=None) -> None:
@@ -39,15 +41,20 @@ class RegexWindow:
 
         # 创建文本输入框
         text_label = ttk.Label(root, text="Input:")
-        text_label.pack()
-        text_entry = tk.Text(root, height=10)
-        text_entry.pack()
+        text_label.pack(anchor=tk.W, padx=10)
+        text_entry = ScrolledText(root, height=10)
+        text_entry.pack(padx=10)
 
         # 创建结果显示区域
         result_label = ttk.Label(root, text="Output:")
-        result_label.pack()
-        result_text = tk.Text(root, height=10)
-        result_text.pack()
+        result_label.pack(anchor=tk.W, padx=10)
+        result_text = ScrolledText(root, height=10)
+        result_text.pack(padx=10)
+
+        with open(os.path.join(BASE_DIR, *("assets", "regex.md")), "r", encoding="utf-8") as f:
+            st = ScrolledText(root)
+            st.insert("1.0", f.read())
+            st.pack(padx=10, pady=10)
 
         self.root = root
         self.regex_entry = regex_entry
