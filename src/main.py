@@ -22,6 +22,7 @@ from .tools.regex import RegexWindow
 class MainWindow:
     tag_list = []  # List of enabled labels
     sidebar = ""
+    console_state = False
 
     def __init__(self):
         self.setup()
@@ -34,18 +35,21 @@ class MainWindow:
         ff = ttk.Frame(self.root)
         ff.pack(fill=tk.X)
         ttk.Separator(self.root).pack(fill=tk.X)
+        state_bar = ttk.Frame(self.root)
+        state_bar.pack(side=tk.BOTTOM, fill=tk.X)
+        ttk.Separator(self.root).pack(side=tk.BOTTOM, fill=tk.X)
         fe = ttk.Frame(self.root)
         fe.pack(side=tk.LEFT, fill=tk.Y)
+        ttk.Separator(self.root, orient=tk.VERTICAL).pack(side=tk.LEFT, fill=tk.Y)
 
         pw1 = ttk.PanedWindow(self.root, orient=tk.HORIZONTAL)
         self.main_sidebar = ttk.Frame(pw1)
         pw1.add(self.main_sidebar)
-        pw2 = ttk.PanedWindow(pw1)
-        self.notebook = ttk.Notebook(pw2)
-        pw2.add(self.notebook, weight=11)
-        console_top = ttk.Frame(pw2)
-        pw2.add(console_top, weight=1)
-        pw1.add(pw2)
+        self.pw2 = ttk.PanedWindow(pw1)
+        self.notebook = ttk.Notebook(self.pw2)
+        self.pw2.add(self.notebook, weight=11)
+        self.console_top = ttk.Frame(self.pw2)
+        pw1.add(self.pw2)
         pw1.pack(fill="both", expand=True)
 
         self.col_top = ttk.Frame(self.main_sidebar)
@@ -57,9 +61,9 @@ class MainWindow:
         self.col_top.pack(expand=True, fill=tk.BOTH)
         self.sidebar = "collection"
 
-        self.console_window = ConsoleWindow(console_top)
+        self.console_window = ConsoleWindow(self.console_top)
         self.new_request()
-
+        ttk.Button(state_bar, text="console", command=self.show_console).pack()
         ttk.Button(ff, text="AES", command=self.aes_label).pack(side=tk.LEFT)
         ttk.Button(ff, text="Base64", command=self.b64_label).pack(side=tk.LEFT)
         ttk.Button(ff, text="MD5", command=self.md5_label).pack(side=tk.LEFT)
@@ -107,6 +111,14 @@ class MainWindow:
         ttk.Button(fe, image="collection", text="Col", command=self.col_lab).pack()
         ttk.Button(fe, image="environment", text="Env", command=self.env_lab).pack()
         ttk.Button(fe, image="history", text="His", command=self.his_lab).pack()
+        
+    def show_console(self):
+        if self.console_state:
+            self.pw2.forget(self.console_top)
+            self.console_state =False
+        else:
+            self.pw2.add(self.console_top, weight=1)
+            self.console_state = True
 
     def col_lab(self):
         if self.sidebar != "collection":

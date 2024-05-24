@@ -30,6 +30,7 @@ class CollectionWindow:
             )
         ]
         frame = ttk.Frame(window)
+        ttk.Label(frame, text='Collection').pack(side=tk.LEFT)
         ttk.Button(frame, image="import", command=self.open_proj).pack(
             side=tk.RIGHT
         )

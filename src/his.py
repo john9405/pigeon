@@ -31,6 +31,7 @@ class HistoryWindow:
         ]
         ff = ttk.Frame(window)
         ff.pack(fill=tk.X)
+        ttk.Label(ff, text='History').pack(side=tk.LEFT)
         ttk.Button(ff, image="delete", command=self.on_delete).pack(side=tk.RIGHT)
         ttk.Button(ff, command=self.on_clear, image="clear").pack(side=tk.RIGHT)
         self.history_box = tk.Listbox(window)
