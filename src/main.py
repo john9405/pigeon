@@ -63,15 +63,6 @@ class MainWindow:
 
         self.console_window = ConsoleWindow(self.console_top)
         self.new_request()
-        ttk.Button(state_bar, text="console", command=self.show_console).pack()
-        ttk.Button(ff, text="AES", command=self.aes_label).pack(side=tk.LEFT)
-        ttk.Button(ff, text="Base64", command=self.b64_label).pack(side=tk.LEFT)
-        ttk.Button(ff, text="MD5", command=self.md5_label).pack(side=tk.LEFT)
-        ttk.Button(ff, text="PWD", command=self.pwd_label).pack(side=tk.LEFT)
-        ttk.Button(ff, text="Timestamp", command=self.ts_label).pack(side=tk.LEFT)
-        ttk.Button(ff, text="Regex", command=self.regex_label).pack(side=tk.LEFT)
-        ttk.Button(ff, text="Help", command=self.help_label).pack(side=tk.LEFT)
-        ttk.Button(ff, text="About", command=self.about_label).pack(side=tk.LEFT)
 
         self.images = [
             tk.PhotoImage(
@@ -103,14 +94,29 @@ class MainWindow:
                 file=os.path.join(BASE_DIR, *("assets", "16", "file-add.png")),
                 height=16,
                 width=16
+            ),
+            tk.PhotoImage(
+                name="comment",
+                file=os.path.join(BASE_DIR, *("assets", "16", "comment.png")),
+                height=16,
+                width=16
             )
         ]
+        ttk.Button(ff, text="AES", command=self.aes_label).pack(side=tk.LEFT)
+        ttk.Button(ff, text="Base64", command=self.b64_label).pack(side=tk.LEFT)
+        ttk.Button(ff, text="MD5", command=self.md5_label).pack(side=tk.LEFT)
+        ttk.Button(ff, text="PWD", command=self.pwd_label).pack(side=tk.LEFT)
+        ttk.Button(ff, text="Timestamp", command=self.ts_label).pack(side=tk.LEFT)
+        ttk.Button(ff, text="Regex", command=self.regex_label).pack(side=tk.LEFT)
+        ttk.Button(ff, text="Help", command=self.help_label).pack(side=tk.LEFT)
+        ttk.Button(ff, text="About", command=self.about_label).pack(side=tk.LEFT)
         ttk.Button(ff, image="close", command=self.close_request).pack(side=tk.RIGHT)
         ttk.Button(ff, image="file-add", command=self.new_request).pack(side=tk.RIGHT)
         ttk.Separator(ff, orient=tk.VERTICAL).pack(side=tk.RIGHT, fill=tk.Y)
         ttk.Button(fe, image="collection", text="Col", command=self.col_lab).pack()
         ttk.Button(fe, image="environment", text="Env", command=self.env_lab).pack()
         ttk.Button(fe, image="history", text="His", command=self.his_lab).pack()
+        ttk.Button(state_bar, image="comment", command=self.show_console).pack(side=tk.RIGHT)
         
     def show_console(self):
         if self.console_state:
