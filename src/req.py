@@ -486,19 +486,19 @@ class RequestWindow:
         # 发送网络请求
         try:
             if method == "GET":
-                response = requests.get(url, params=params, headers=headers)
+                response = requests.get(url, params=params, headers=headers, timeout=60)
             elif method == "POST":
-                response = requests.post(url, params=params, data=body, headers=headers)
+                response = requests.post(url, params=params, data=body, headers=headers, timeout=60)
             elif method == "PUT":
-                response = requests.put(url, params=params, data=body, headers=headers)
+                response = requests.put(url, params=params, data=body, headers=headers, timeout=60)
             elif method == "PATCH":
-                response = requests.patch(url, params=params, data=body, headers=headers)
+                response = requests.patch(url, params=params, data=body, headers=headers, timeout=60)
             elif method == "DELETE":
-                response = requests.delete(url, params=params, headers=headers)
+                response = requests.delete(url, params=params, headers=headers, timeout=60)
             elif method == "HEAD":
-                response = requests.head(url, params=params, headers=headers)
+                response = requests.head(url, params=params, headers=headers, timeout=60)
             elif method == "OPTIONS":
-                response = requests.head(url, params=params, headers=headers)
+                response = requests.head(url, params=params, headers=headers, timeout=60)
             else:
                 messagebox.showerror("Error", "Unsupported request type")
                 return
