@@ -128,43 +128,40 @@ class MainWindow:
 
     def switch_label(self, name):
         if self.sidebar != name:
-            match self.sidebar:
-                case 'collection':
-                    self.col_top.forget()
-                case 'history':
-                    self.history_top.forget()
-                case 'environment':
-                    self.env_top.forget()
-            match name:
-                case 'collection':
-                    self.col_top.pack(expand=tk.YES, fill=tk.BOTH)
-                case 'history':
-                    self.history_top.pack(expand=tk.YES, fill=tk.BOTH)
-                case 'environment':
-                    self.env_top.pack(expand=tk.YES, fill=tk.BOTH)
+            if self.sidebar == 'collection':
+                self.col_top.forget()
+            elif self.sidebar == 'history':
+                self.history_top.forget()
+            elif self.sidebar == 'environment':
+                self.env_top.forget()
+            if name == 'collection':
+                self.col_top.pack(expand=tk.YES, fill=tk.BOTH)
+            elif name ==  'history':
+                self.history_top.pack(expand=tk.YES, fill=tk.BOTH)
+            elif name == 'environment':
+                self.env_top.pack(expand=tk.YES, fill=tk.BOTH)
             self.sidebar = name
 
     def show_label(self, name):
-        match name:
-            case "AES":
-                gui = AES_GUI(self.notebook)
-            case "Base64":
-                gui = Base64GUI(self.notebook)
-            case "MD5":
-                gui = MD5GUI(self.notebook)
-            case "Password":
-                gui = GenPwdWindow(self.notebook)
-            case "Timestamp":
-                gui = TimestampWindow(self.notebook)
-            case "Regex":
-                gui = RegexWindow(self.notebook)
-            case "Help":
-                gui = HelpWindow(self.notebook)
-            case "About":
-                gui = AboutWindow(self.notebook)
         if name in self.tag_list:
             self.notebook.select(self.tag_list.index(name))
         else:
+            if name == "AES":
+                gui = AES_GUI(self.notebook)
+            elif name == "Base64":
+                gui = Base64GUI(self.notebook)
+            elif name == "MD5":
+                gui = MD5GUI(self.notebook)
+            elif name == "Password":
+                gui = GenPwdWindow(self.notebook)
+            elif name == "Timestamp":
+                gui = TimestampWindow(self.notebook)
+            elif name == "Regex":
+                gui = RegexWindow(self.notebook)
+            elif name == "Help":
+                gui = HelpWindow(self.notebook)
+            elif name == "About":
+                gui = AboutWindow(self.notebook)
             self.notebook.add(gui.root, text=name)
             self.notebook.select(self.notebook.index(tk.END) - 1)
             self.tag_list.append(name)
