@@ -40,20 +40,21 @@ class RegexWindow:
         find_button.pack(side=tk.LEFT)
 
         # 创建文本输入框
-        text_label = ttk.Label(root, text="Input:")
-        text_label.pack(anchor=tk.W, padx=10)
-        text_entry = ScrolledText(root, height=10)
-        text_entry.pack(padx=10)
+        text_label = ttk.LabelFrame(root, text="Input:")
+        text_label.pack(padx=10)
+        text_entry = ScrolledText(text_label, height=10)
+        text_entry.pack()
 
         # 创建结果显示区域
-        result_label = ttk.Label(root, text="Output:")
-        result_label.pack(anchor=tk.W, padx=10)
-        result_text = ScrolledText(root, height=10)
-        result_text.pack(padx=10)
+        result_label = ttk.LabelFrame(root, text="Output:")
+        result_label.pack(padx=10)
+        result_text = ScrolledText(result_label, height=10)
+        result_text.pack()
 
         with open(os.path.join(BASE_DIR, *("assets", "regex.md")), "r", encoding="utf-8") as f:
             st = ScrolledText(root)
             st.insert("1.0", f.read())
+            st.configure(state='disabled')
             st.pack(padx=10, pady=10)
 
         self.root = root

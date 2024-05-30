@@ -10,31 +10,23 @@ class TimestampWindow:
     def __init__(self, master=None):
         self.root = ttk.Frame(master)
         # 时间戳转日期时间
-        intframe = ttk.Frame(self.root)
-        intframe.pack(fill=tk.X)
-        ttk.Label(intframe, text="Timestamp:").pack(side=tk.LEFT)
-        self.timestamp_entry = ttk.Entry(intframe)
-        self.timestamp_entry.pack(side=tk.LEFT)
-        ttk.Button(intframe, text="transform", command=self.timestamp_to_datetime).pack(
-            side=tk.LEFT
-        )
-        ttk.Label(intframe, text="Datetime:").pack(side=tk.LEFT)
-        self.datetime_entry = ttk.Entry(intframe)
-        self.datetime_entry.pack(side=tk.LEFT)
+        ttk.Label(self.root, text="Timestamp:").grid(row=0, column=0)
+        self.timestamp_entry = ttk.Entry(self.root)
+        self.timestamp_entry.grid(row=0, column=1)
+        ttk.Button(self.root, text="transform", command=self.timestamp_to_datetime).grid(row=0, column=2)
+        ttk.Label(self.root, text="Datetime:").grid(row=0, column=3)
+        self.datetime_entry = ttk.Entry(self.root)
+        self.datetime_entry.grid(row=0, column=4)
 
         # 日期时间转时间戳
-        strframe = ttk.Frame(self.root)
-        strframe.pack(fill=tk.X)
-        ttk.Label(strframe, text="DateTime:").pack(side=tk.LEFT)
-        self.date_entry = ttk.Entry(strframe)
-        self.date_entry.pack(side=tk.LEFT)
-        ttk.Button(strframe, text="transform", command=self.datetime_to_timestamp).pack(
-            side=tk.LEFT
-        )
-        ttk.Label(strframe, text="Timestamp:").pack(side=tk.LEFT)
-        self.time_entry = ttk.Entry(strframe)
-        self.time_entry.pack(side=tk.LEFT)
-        ttk.Label(self.root, text="(YYYY-MM-DD HH:MM:SS)").pack()
+        ttk.Label(self.root, text="DateTime:").grid(row=1, column=0)
+        self.date_entry = ttk.Entry(self.root)
+        self.date_entry.grid(row=1, column=1)
+        ttk.Button(self.root, text="transform", command=self.datetime_to_timestamp).grid(row=1, column=2)
+        ttk.Label(self.root, text="Timestamp:").grid(row=1, column=3)
+        self.time_entry = ttk.Entry(self.root)
+        self.time_entry.grid(row=1, column=4)
+        ttk.Label(self.root, text="(YYYY-MM-DD HH:MM:SS)").grid(row=2, column=0, columnspan=2)
 
     def timestamp_to_datetime(self):
         timestamp = self.timestamp_entry.get()

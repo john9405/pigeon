@@ -14,7 +14,7 @@ class GenPwdWindow:
         length_label.grid(row=0, column=0)
         self.length_entry = tk.Entry(window)
         self.length_entry.insert(0, "6")
-        self.length_entry.grid(row=0, column=1)
+        self.length_entry.grid(row=0, column=1, sticky='w')
 
         # 密码复杂程度选择
         complexity_label = tk.Label(window, text="Password Complexity:")
@@ -32,7 +32,7 @@ class GenPwdWindow:
         password_label.grid(row=3, column=0)
 
         self.pwd_entry = tk.Entry(window)
-        self.pwd_entry.grid(row=3, column=1)
+        self.pwd_entry.grid(row=3, column=1,  sticky='w')
 
     def generate_password(self):
         password_length = int(self.length_entry.get())
