@@ -5,5 +5,5 @@ A simple api testing tool
 Under continuous development
 
 ```
-pyinstaller apitest.py -w -y --hidden-import cryptojwt --clean
+pyinstaller __main__.py -n ApiTest -w -y --hidden-import cryptojwt --clean
 ```

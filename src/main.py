@@ -3,7 +3,7 @@ import threading
 import tkinter as tk
 from tkinter import ttk
 
-from . import WORK_DIR, BASE_DIR
+from . import BASE_DIR
 from .his import HistoryWindow
 from .req import RequestWindow
 from .console import ConsoleWindow
@@ -25,7 +25,6 @@ class MainWindow:
     console_state = False
 
     def __init__(self):
-        self.setup()
         self.root = tk.Tk()
         # Create main window
         self.root.title("HTTP Client")
@@ -165,14 +164,6 @@ class MainWindow:
             self.notebook.add(gui.root, text=name)
             self.notebook.select(self.notebook.index(tk.END) - 1)
             self.tag_list.append(name)
-
-    def setup(self):
-        if not os.path.exists(WORK_DIR):
-            os.mkdir(WORK_DIR)
-
-    def run(self):
-        # Enter message loop
-        self.root.mainloop()
 
     def new_request(self, data=None, **kwargs):
         if kwargs.get("item_id") in self.tag_list:
