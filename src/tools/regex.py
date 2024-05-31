@@ -20,23 +20,15 @@ class RegexWindow:
         regex_entry = ttk.Entry(options_frame)
         regex_entry.pack(side=tk.LEFT)
 
-        ignore_case_var = tk.BooleanVar()
-        ignore_case_checkbox = ttk.Checkbutton(
-            options_frame, text="Ignore case", variable=ignore_case_var
-        )
+        ignore_case_var = tk.BooleanVar(value=False)
+        ignore_case_checkbox = ttk.Checkbutton(options_frame, text="Ignore case", variable=ignore_case_var)
         ignore_case_checkbox.pack(side=tk.LEFT)
 
-        multi_line_var = tk.BooleanVar()
-        multi_line_checkbox = ttk.Checkbutton(
-            options_frame, text="Multiline mode", variable=multi_line_var
-        )
+        multi_line_var = tk.BooleanVar(value=False)
+        multi_line_checkbox = ttk.Checkbutton(options_frame, text="Multiline mode", variable=multi_line_var)
         multi_line_checkbox.pack(side=tk.LEFT)
         # 创建查找按钮
-        find_button = ttk.Button(
-            options_frame,
-            text="Search",
-            command=lambda: self.find_matches(ignore_case_var, multi_line_var),
-        )
+        find_button = ttk.Button(options_frame,text="Search",command=lambda: self.find_matches(ignore_case_var, multi_line_var))
         find_button.pack(side=tk.LEFT)
 
         # 创建文本输入框

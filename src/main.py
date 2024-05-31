@@ -11,7 +11,7 @@ from .col import CollectionWindow, ProjectWindow, FolderWindow
 from .env import EnvironmentWindow, VariableWindow
 from .doc.help import HelpWindow
 from .doc.about import AboutWindow
-from .tools.aes import AES_GUI
+from .tools.aes import AesGui
 from .tools.b64 import Base64GUI
 from .tools.md5 import MD5GUI
 from .tools.pwd import GenPwdWindow
@@ -147,7 +147,7 @@ class MainWindow:
             self.notebook.select(self.tag_list.index(name))
         else:
             if name == "AES":
-                gui = AES_GUI(self.notebook)
+                gui = AesGui(self.notebook)
             elif name == "Base64":
                 gui = Base64GUI(self.notebook)
             elif name == "MD5":
