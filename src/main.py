@@ -112,11 +112,11 @@ class MainWindow:
         ttk.Button(top_bar, image="close", command=self.close_request).pack(side=tk.RIGHT)
         ttk.Button(top_bar, image="file-add", command=self.new_request).pack(side=tk.RIGHT)
         ttk.Separator(top_bar, orient=tk.VERTICAL).pack(side=tk.RIGHT, fill=tk.Y)
-        ttk.Button(side_bar, image="collection", text="Col", command=lambda: self.switch_label("collection")).pack()
-        ttk.Button(side_bar, image="environment", text="Env", command=lambda: self.switch_label("history")).pack()
-        ttk.Button(side_bar, image="history", text="His", command=lambda: self.switch_label("environment")).pack()
+        ttk.Button(side_bar, image="collection", command=lambda: self.switch_label("collection")).pack()
+        ttk.Button(side_bar, image="environment", command=lambda: self.switch_label("environment")).pack()
+        ttk.Button(side_bar, image="history", command=lambda: self.switch_label("history")).pack()
         ttk.Button(state_bar, image="comment", command=self.show_console).pack(side=tk.RIGHT)
-        
+
     def show_console(self):
         if self.console_state:
             self.pw2.forget(self.console_top)
@@ -135,7 +135,7 @@ class MainWindow:
                 self.env_top.forget()
             if name == 'collection':
                 self.col_top.pack(expand=tk.YES, fill=tk.BOTH)
-            elif name ==  'history':
+            elif name == 'history':
                 self.history_top.pack(expand=tk.YES, fill=tk.BOTH)
             elif name == 'environment':
                 self.env_top.pack(expand=tk.YES, fill=tk.BOTH)
