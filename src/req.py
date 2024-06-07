@@ -14,6 +14,7 @@ from PIL import Image, ImageTk
 from . import BASE_DIR
 from .console import Console
 
+
 class ParamsFrame:
     def __init__(self, **kw) -> None:
         self.images = [
@@ -21,20 +22,20 @@ class ParamsFrame:
                 name="add",
                 file=os.path.join(BASE_DIR, *("assets", "16", "add.png")),
                 height=16,
-                width=16
+                width=16,
             ),
             tk.PhotoImage(
                 name="edit",
                 file=os.path.join(BASE_DIR, *("assets", "16", "edit.png")),
                 height=16,
-                width=16
+                width=16,
             ),
             tk.PhotoImage(
                 name="delete",
                 file=os.path.join(BASE_DIR, *("assets", "16", "delete.png")),
                 height=16,
-                width=16
-            )
+                width=16,
+            ),
         ]
         self.root = ttk.Frame(kw.get("master"))
 
@@ -48,7 +49,9 @@ class ParamsFrame:
         add_btn = ttk.Button(toolbar, image="add", command=self.on_add)
         add_btn.pack(side=tk.RIGHT)
 
-        self.treeview = ttk.Treeview(self.root, columns=("name","value"), show="headings")
+        self.treeview = ttk.Treeview(
+            self.root, columns=("name", "value"), show="headings"
+        )
         self.treeview.pack(fill=tk.BOTH, expand=True)
 
         self.treeview.heading("name", text="name", anchor=tk.CENTER)
@@ -61,7 +64,7 @@ class ParamsFrame:
         data = {}
         for child in self.treeview.get_children():
             item = self.treeview.item(child)
-            data.update({str(item['values'][0]): str(item['values'][1])})
+            data.update({str(item["values"][0]): str(item["values"][1])})
         return data
 
     def set_data(self, data: dict):
@@ -75,7 +78,7 @@ class ParamsFrame:
         if len(self.treeview.selection()) > 0:
             item_id = self.treeview.selection()[0]
             item = self.treeview.item(item_id)
-            self.editor(item_id, name=item['values'][0], value=item['values'][1])
+            self.editor(item_id, name=item["values"][0], value=item["values"][1])
 
     def on_del(self):
         if len(self.treeview.selection()) > 0:
@@ -96,7 +99,7 @@ class ParamsFrame:
 
         name_frame = ttk.Frame(win)
         name_frame.pack(fill=tk.X)
-        name_label = ttk.Label(name_frame, text='Name:')
+        name_label = ttk.Label(name_frame, text="Name:")
         name_label.pack(side=tk.LEFT)
         name_entry = ttk.Entry(name_frame)
         if name is not None:
@@ -125,22 +128,22 @@ class HeaderFrame:
                 name="add",
                 file=os.path.join(BASE_DIR, *("assets", "16", "add.png")),
                 height=16,
-                width=16
+                width=16,
             ),
             tk.PhotoImage(
                 name="edit",
                 file=os.path.join(BASE_DIR, *("assets", "16", "edit.png")),
                 height=16,
-                width=16
+                width=16,
             ),
             tk.PhotoImage(
                 name="delete",
                 file=os.path.join(BASE_DIR, *("assets", "16", "delete.png")),
                 height=16,
-                width=16
-            )
+                width=16,
+            ),
         ]
-        self.root = ttk.Frame(kw.get('master'))
+        self.root = ttk.Frame(kw.get("master"))
 
         toolbar = ttk.Frame(self.root)
         toolbar.pack(fill=tk.X)
@@ -152,9 +155,16 @@ class HeaderFrame:
         add_btn = ttk.Button(toolbar, image="add", command=self.on_add)
         add_btn.pack(side=tk.RIGHT)
 
-        self.treeview = ttk.Treeview(self.root, columns=("name", "value",), show="headings")
+        self.treeview = ttk.Treeview(
+            self.root,
+            columns=(
+                "name",
+                "value",
+            ),
+            show="headings",
+        )
         self.treeview.pack(fill=tk.BOTH, expand=True)
-        
+
         self.treeview.heading("name", text="name", anchor=tk.CENTER)
         self.treeview.heading("value", text="value", anchor=tk.CENTER)
 
@@ -165,7 +175,7 @@ class HeaderFrame:
         data = {}
         for child in self.treeview.get_children():
             item = self.treeview.item(child)
-            data.update({str(item['values'][0]): str(item['values'][1])})
+            data.update({str(item["values"][0]): str(item["values"][1])})
         return data
 
     def set_data(self, data: dict):
@@ -179,7 +189,7 @@ class HeaderFrame:
         if len(self.treeview.selection()) > 0:
             item_id = self.treeview.selection()[0]
             item = self.treeview.item(item_id)
-            self.editor(item_id, name=item['values'][0], value=item['values'][1])
+            self.editor(item_id, name=item["values"][0], value=item["values"][1])
 
     def on_del(self):
         if len(self.treeview.selection()) > 0:
@@ -200,7 +210,7 @@ class HeaderFrame:
 
         name_frame = ttk.Frame(win)
         name_frame.pack(fill=tk.X)
-        name_label = ttk.Label(name_frame, text='Name:')
+        name_label = ttk.Label(name_frame, text="Name:")
         name_label.pack(side=tk.LEFT)
         name_entry = ttk.Entry(name_frame)
         if name is not None:
@@ -222,6 +232,146 @@ class HeaderFrame:
         sub_btn.pack(side=tk.RIGHT)
 
 
+class BodyFrame:
+    current_date_type = "none"
+
+    def __init__(self, **kwargs) -> None:
+        self.root = ttk.Frame(kwargs.get("master"))
+        self.data_type = tk.StringVar()
+        self.data_type.set(self.current_date_type)
+        self.data_type.trace_add("write", self.on_data_type_change)
+        self.toolbar = ttk.Frame(self.root)
+        ttk.Radiobutton(
+            self.toolbar, text="none", variable=self.data_type, value="none"
+        ).pack(side="left")
+        ttk.Radiobutton(
+            self.toolbar,
+            text="x-www-form-urlencoded",
+            variable=self.data_type,
+            value="x-www-form-urlencoded",
+        ).pack(side="left")
+        ttk.Radiobutton(
+            self.toolbar, text="raw", variable=self.data_type, value="raw"
+        ).pack(side="left")
+        self.toolbar.pack(fill=tk.X)
+
+        self.toolbar_right = None
+        self.main_frame = ttk.Frame(self.root)
+        ttk.Label(self.main_frame, text="This request does not have a body").pack()
+        self.main_frame.pack()
+        self.treeview = None
+        self.scrolled_text = None
+        self.data = kwargs.get("data", {})
+
+    def on_data_type_change(self, *args):
+        if self.data_type.get() != self.current_date_type:
+            if self.toolbar_right:
+                self.toolbar_right.forget()
+
+            if self.main_frame:
+                self.main_frame.forget()
+
+            if self.data_type.get() == "none":
+                self.main_frame = ttk.Frame(self.root)
+                ttk.Label(
+                    self.main_frame, text="This request does not have a body"
+                ).pack()
+                self.main_frame.pack()
+                self.current_date_type = "none"
+
+            elif self.data_type.get() == "x-www-form-urlencoded":
+                self.show_x_www_form_urlencoded()
+                self.current_date_type = "x-www-form-urlencoded"
+
+            elif self.data_type.get() == "raw":
+                self.show_raw()
+                self.current_date_type = "raw"
+
+    def show_x_www_form_urlencoded(self):
+        def insert():
+            editor()
+
+        def edit():
+            pass
+
+        def delete():
+            pass
+        
+        def on_submit():
+            pass
+
+        def editor():
+            win = tk.Toplevel(self.root)
+            win.title("Edit")
+
+            name_frame = ttk.Frame(win)
+            name_label = ttk.Label(name_frame, text="Name:")
+            name_label.pack(side=tk.LEFT)
+            name_entry = ttk.Entry(name_frame)
+            name_entry.pack(side=tk.RIGHT)
+            name_frame.pack()
+            value_frame = ttk.Frame(win)
+            value_label = ttk.Label(value_frame, text="Value:")
+            value_label.pack(side=tk.LEFT)
+            value_frame.pack()
+            action_frame = ttk.Frame(win)
+            can_btn = ttk.Button(action_frame, command=win.destroy, text="Cannel")
+            can_btn.pack(side=tk.RIGHT)
+            sub_btn = ttk.Button(action_frame, command=on_submit, text="Submit")
+            sub_btn.pack(side=tk.RIGHT)
+            action_frame.pack()
+
+        self.toolbar_right = ttk.Frame(self.toolbar)
+        add_btn = ttk.Button(self.toolbar_right, image="add", command=insert)
+        add_btn.pack(side="left")
+        edit_btn = ttk.Button(self.toolbar_right, image="edit", command=edit)
+        edit_btn.pack(side="left")
+        delete_btn = ttk.Button(self.toolbar_right, image="delete", command=delete)
+        delete_btn.pack(side="left")
+        self.toolbar_right.pack(side="right")
+
+        self.main_frame = ttk.Frame(self.root)
+        self.treeview = ttk.Treeview(
+            self.main_frame,
+            columns=(
+                "name",
+                "value",
+            ),
+            show="headings",
+        )
+        self.treeview.heading("name", text="Name")
+        self.treeview.heading("value", text="Value")
+        self.treeview.column("name", width=1)
+
+        self.treeview.pack(fill=tk.BOTH, expand=True)
+        self.main_frame.pack(fill=tk.BOTH, expand=True)
+
+    def show_raw(self):
+        self.toolbar_right = ttk.Frame(self.toolbar)
+        detail_combo = ttk.Combobox(
+            self.toolbar_right,
+            values=["Text", "JSON", "XML", "HTML"],
+        )
+        detail_combo.current(0)
+        detail_combo['state'] = 'readonly'
+        detail_combo.pack(side="left")
+        self.toolbar_right.pack(side="right")
+
+        self.main_frame = ttk.Frame(self.root)
+        self.scrolled_text = ScrolledText(self.main_frame)
+        self.scrolled_text.pack(fill=tk.BOTH, expand=True)
+        self.main_frame.pack(fill=tk.BOTH, expand=True)
+
+    def insert(self, *args):
+        return None
+
+    def get(self, *args):
+        return "{}"
+
+    def delete(self, *args):
+        return None
+
+
 class RequestWindow:
     item_id = None
     method_list = ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]
@@ -230,8 +380,8 @@ class RequestWindow:
         self.callback = kwargs.get("callback")
         window = kwargs.get("window")
         self.get_script = kwargs.get("get_script")
-        self.env_variable = kwargs.get('env_variable')
-        self.local_variable = kwargs.get('local_variable')
+        self.env_variable = kwargs.get("env_variable")
+        self.local_variable = kwargs.get("local_variable")
 
         ff = ttk.Frame(window)
         ff.pack(fill=tk.X)
@@ -250,7 +400,9 @@ class RequestWindow:
         self.method_box["state"] = "readonly"
         self.method_box.pack(side=tk.LEFT)
         sub_btn = ttk.Button(north, text="Send")  # Send request button
-        sub_btn.config(command=self.send_request)  # Bind the event handler to send the request button
+        sub_btn.config(
+            command=self.send_request
+        )  # Bind the event handler to send the request button
         sub_btn.pack(side=tk.RIGHT)
         self.url_box = ttk.Entry(north)
         self.url_box.pack(fill=tk.BOTH, pady=3)
@@ -292,26 +444,19 @@ class RequestWindow:
 
         res_cookie_frame = ttk.Frame(res_note)
         self.res_cookie_table = ttk.Treeview(
-            res_cookie_frame, 
-            columns=("key", "value"), 
-            show="headings"
+            res_cookie_frame, columns=("key", "value"), show="headings"
         )
         res_cookie_scrollbar_x = ttk.Scrollbar(
-            res_cookie_frame, 
-            orient=tk.HORIZONTAL, 
-            command=self.res_cookie_table.xview
+            res_cookie_frame, orient=tk.HORIZONTAL, command=self.res_cookie_table.xview
         )
         res_cookie_scrollbar_y = ttk.Scrollbar(
-            res_cookie_frame, 
-            command=self.res_cookie_table.yview
+            res_cookie_frame, command=self.res_cookie_table.yview
         )
         self.res_cookie_table.column("key", width=1)
         self.res_cookie_table.heading("key", text="key")
         self.res_cookie_table.heading("value", text="value")
         res_cookie_scrollbar_y.pack(
-            side=tk.RIGHT, 
-            fill=tk.Y, 
-            pady=(0, res_cookie_scrollbar_x.winfo_reqheight())
+            side=tk.RIGHT, fill=tk.Y, pady=(0, res_cookie_scrollbar_x.winfo_reqheight())
         )
         res_cookie_scrollbar_x.pack(side=tk.BOTTOM, fill=tk.X)
         self.res_cookie_table.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.YES)
@@ -323,17 +468,13 @@ class RequestWindow:
 
         res_header_frame = ttk.Frame(res_note)
         self.res_header_table = ttk.Treeview(
-            res_header_frame, 
-            columns=("key", "value"), 
-            show="headings"
+            res_header_frame, columns=("key", "value"), show="headings"
         )
         self.res_header_table.column("key", width=1)
         self.res_header_table.heading("key", text="key")
         self.res_header_table.heading("value", text="value")
         res_header_scrollbar_x = ttk.Scrollbar(
-            res_header_frame, 
-            orient=tk.HORIZONTAL, 
-            command=self.res_header_table.xview
+            res_header_frame, orient=tk.HORIZONTAL, command=self.res_header_table.xview
         )
         res_header_scrollbar_y = ttk.Scrollbar(
             res_header_frame, command=self.res_header_table.yview
@@ -357,7 +498,7 @@ class RequestWindow:
         name = self.name_entry.get()
         method = self.method_box.get()
         url = self.url_box.get()
-        params = self.headers_frame.get_data()
+        params = self.params_frame.get_data()
         headers = self.headers_frame.get_data()
         body = self.body_box.get("1.0", tk.END)
         pre_request_script = self.script_box.get("1.0", tk.END)
@@ -367,7 +508,7 @@ class RequestWindow:
             body = json.loads(body)
         except json.JSONDecodeError:
             body = {}
-        
+
         pre_request_script = pre_request_script.rstrip("\n")
         tests = tests.rstrip("\n")
 
@@ -400,7 +541,9 @@ class RequestWindow:
         self.params_frame.set_data(data.get("params", {}))
         self.headers_frame.set_data(data.get("headers", {}))
         self.body_box.delete("1.0", tk.END)
-        self.body_box.insert(tk.END, json.dumps(data.get("body", {}), ensure_ascii=False, indent=4))
+        self.body_box.insert(
+            tk.END, json.dumps(data.get("body", {}), ensure_ascii=False, indent=4)
+        )
         self.script_box.delete("1.0", tk.END)
         self.script_box.insert(tk.END, data.get("pre_request_script", ""))
         self.tests_box.delete("1.0", tk.END)
@@ -488,17 +631,29 @@ class RequestWindow:
             if method == "GET":
                 response = requests.get(url, params=params, headers=headers, timeout=60)
             elif method == "POST":
-                response = requests.post(url, params=params, data=body, headers=headers, timeout=60)
+                response = requests.post(
+                    url, params=params, data=body, headers=headers, timeout=60
+                )
             elif method == "PUT":
-                response = requests.put(url, params=params, data=body, headers=headers, timeout=60)
+                response = requests.put(
+                    url, params=params, data=body, headers=headers, timeout=60
+                )
             elif method == "PATCH":
-                response = requests.patch(url, params=params, data=body, headers=headers, timeout=60)
+                response = requests.patch(
+                    url, params=params, data=body, headers=headers, timeout=60
+                )
             elif method == "DELETE":
-                response = requests.delete(url, params=params, headers=headers, timeout=60)
+                response = requests.delete(
+                    url, params=params, headers=headers, timeout=60
+                )
             elif method == "HEAD":
-                response = requests.head(url, params=params, headers=headers, timeout=60)
+                response = requests.head(
+                    url, params=params, headers=headers, timeout=60
+                )
             elif method == "OPTIONS":
-                response = requests.head(url, params=params, headers=headers, timeout=60)
+                response = requests.head(
+                    url, params=params, headers=headers, timeout=60
+                )
             else:
                 messagebox.showerror("Error", "Unsupported request type")
                 return
@@ -513,14 +668,18 @@ class RequestWindow:
         # 将响应显示在响应区域
         self.res_cookie_table.delete(*self.res_cookie_table.get_children())
         for item in response.cookies.keys():
-            self.res_cookie_table.insert("", tk.END, values=(item, response.cookies.get(item)))
+            self.res_cookie_table.insert(
+                "", tk.END, values=(item, response.cookies.get(item))
+            )
 
         self.res_header_table.delete(*self.res_header_table.get_children())
         content_type = ""
         for item in response.headers.keys():
             if item == "Content-Type":
                 content_type = response.headers.get(item)
-            self.res_header_table.insert("", tk.END, values=(item, response.headers.get(item)))
+            self.res_header_table.insert(
+                "", tk.END, values=(item, response.headers.get(item))
+            )
 
         self.res_body_box.delete("1.0", tk.END)
         if "application/json" in content_type:
@@ -544,7 +703,9 @@ class RequestWindow:
             self.res_body_box.insert(tk.END, response.text)
 
         self.res_tests_box.delete("1.0", tk.END)
-        self.res_tests_box.insert(tk.END, f"Get {url} {response.status_code} {cost_time}")
+        self.res_tests_box.insert(
+            tk.END, f"Get {url} {response.status_code} {cost_time}"
+        )
         try:
             exec(tests)
         except Exception as error:
@@ -556,15 +717,20 @@ class RequestWindow:
             except Exception as error:
                 console.error(str(error))
 
-        self.callback("cache",**{"data": {
-            "method": method,
-            "url": url,
-            "params": params,
-            "headers": headers,
-            "body": body,
-            "pre_request_script": pre_request_script,
-            "tests": tests,
-        }})
+        self.callback(
+            "cache",
+            **{
+                "data": {
+                    "method": method,
+                    "url": url,
+                    "params": params,
+                    "headers": headers,
+                    "body": body,
+                    "pre_request_script": pre_request_script,
+                    "tests": tests,
+                }
+            },
+        )
         if self.item_id is not None:
             self.save_handler()
 
