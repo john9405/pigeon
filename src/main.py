@@ -262,7 +262,6 @@ class MainWindow:
             collection=kwargs.get("collection", ""),
             data=kwargs.get("data", {}),
             set_variable=self.env_win.set_variable,
-            del_variable=self.env_win.del_variable,
         )
         self.notebook.add(gui.root, text=kwargs.get("collection"))
         self.notebook.select(self.notebook.index(tk.END) - 1)
