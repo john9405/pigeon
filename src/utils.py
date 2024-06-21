@@ -36,7 +36,7 @@ class EditorTable(ttk.Frame):
         if region == 'heading':
             column = self.treeview.identify_column(event.x)
             if column == '#1' and self.editable:
-                self.on_add()
+                self.on_add(event.x, event.y)
 
     def on_right_click(self, event):
         if self.editable:
@@ -45,43 +45,52 @@ class EditorTable(ttk.Frame):
             if item:
                 menu.add_command(label="Delete", command=self.on_del)
             else:
-                menu.add_command(label="Add", command=self.on_add)
+                menu.add_command(label="Add", command=lambda: self.on_add(event.x, event.y))
             menu.post(event.x_root, event.y_root)
 
-    def on_add(self):
+    def on_add(self, x, y):
         if self.editable:
-            self.editor()
+            self.editor(None, "", "", x, y)
 
     def on_edit(self, event):
         region = self.treeview.identify('region', event.x, event.y)
         if region != 'heading' and len(self.treeview.selection()) > 0:
             item_id = self.treeview.selection()[0]
             item = self.treeview.item(item_id)
-            self.editor(item_id, name=item["values"][0], value=item["values"][1])
+            self.editor(item_id, item["values"][0], item["values"][1], event.x, event.y)
 
     def on_del(self):
         if self.editable and len(self.treeview.selection()) > 0:
-            self.treeview.delete(self.treeview.selection())
+            self.treeview.delete(self.treeview.selection()[0])
 
-    def editor(self, item_id=None, name=None, value=None):
-        win = tk.Toplevel()
+    def editor(self, item_id=None, name=None, value=None, x=0, y=0):
+        x += self.winfo_rootx()
+        y += self.winfo_rooty()
+
+        win = tk.Toplevel(self)
         win.title("editor")
+        win.geometry(f"+{x}+{y}")
+        
         back = ttk.Frame(win)
         back.pack(fill=tk.BOTH, expand=tk.YES)
+
         frame = ttk.Frame(back)
         frame.pack(fill=tk.BOTH, expand=tk.YES, padx=10, pady=10)
+
         name_label = ttk.Label(frame, text="name")
         name_label.pack(anchor="w")
         name_entry = ttk.Entry(frame)
         if item_id:
             name_entry.insert(0, name)
         name_entry.pack()
+
         value_label = ttk.Label(frame, text="value")
         value_label.pack(anchor="w")
         value_entry = ttk.Entry(frame)
         if item_id:
             value_entry.insert(0, value)
         value_entry.pack()
+
         action_bar = ttk.Frame(frame)
         ttk.Button(
             action_bar,
