@@ -52,21 +52,21 @@ class BodyFrame:
 
     def __init__(self, **kwargs) -> None:
         self.root = ttk.Frame(kwargs.get("master"))
-        self.data_type = tk.StringVar()
-        self.data_type.set(self.current_date_type)
-        self.data_type.trace_add("write", self.on_data_type_change)
+        self.mode = tk.StringVar()
+        self.mode.set(self.current_date_type)
+        self.mode.trace_add("write", self.on_data_type_change)
         self.toolbar = ttk.Frame(self.root)
         ttk.Radiobutton(
-            self.toolbar, text="none", variable=self.data_type, value="none"
+            self.toolbar, text="none", variable=self.mode, value="none"
         ).pack(side="left")
         ttk.Radiobutton(
             self.toolbar,
-            text="x-www-form-urlencoded",
-            variable=self.data_type,
-            value="x-www-form-urlencoded",
+            text="urlencoded",
+            variable=self.mode,
+            value="urlencoded",
         ).pack(side="left")
         ttk.Radiobutton(
-            self.toolbar, text="raw", variable=self.data_type, value="raw"
+            self.toolbar, text="raw", variable=self.mode, value="raw"
         ).pack(side="left")
         self.toolbar.pack(fill=tk.X)
 
@@ -75,18 +75,18 @@ class BodyFrame:
         ttk.Label(self.main_frame, text="This request does not have a body").pack()
         self.main_frame.pack()
         self.edit_table = None
+        self.options = None
         self.scrolled_text = None
-        self.data = kwargs.get("data", {})
 
     def on_data_type_change(self, *args):
-        if self.data_type.get() != self.current_date_type:
+        if self.mode.get() != self.current_date_type:
             if self.toolbar_right:
                 self.toolbar_right.forget()
 
             if self.main_frame:
                 self.main_frame.forget()
 
-            if self.data_type.get() == "none":
+            if self.mode.get() == "none":
                 self.main_frame = ttk.Frame(self.root)
                 ttk.Label(
                     self.main_frame, text="This request does not have a body"
@@ -94,15 +94,15 @@ class BodyFrame:
                 self.main_frame.pack()
                 self.current_date_type = "none"
 
-            elif self.data_type.get() == "x-www-form-urlencoded":
-                self.show_x_www_form_urlencoded()
-                self.current_date_type = "x-www-form-urlencoded"
+            elif self.mode.get() == "urlencoded":
+                self.show_urlencoded()
+                self.current_date_type = "urlencoded"
 
-            elif self.data_type.get() == "raw":
+            elif self.mode.get() == "raw":
                 self.show_raw()
                 self.current_date_type = "raw"
 
-    def show_x_www_form_urlencoded(self):
+    def show_urlencoded(self):
         self.main_frame = ttk.Frame(self.root)
         self.edit_table = EditorTable(self.main_frame, editable=True)
         self.edit_table.pack(fill=tk.BOTH, expand=tk.YES)
@@ -110,14 +110,14 @@ class BodyFrame:
 
     def show_raw(self):
         self.toolbar_right = ttk.Frame(self.toolbar)
-        detail_combo = ttk.Combobox(
+        self.options = ttk.Combobox(
             self.toolbar_right,
             values=["Text", "JSON", "XML", "HTML"],
             width=6
         )
-        detail_combo.current(0)
-        detail_combo['state'] = 'readonly'
-        detail_combo.pack(side="left")
+        self.options.current(0)
+        self.options['state'] = 'readonly'
+        self.options.pack(side="left")
         self.toolbar_right.pack(side="left")
 
         self.main_frame = ttk.Frame(self.root)
@@ -125,14 +125,26 @@ class BodyFrame:
         self.scrolled_text.pack(fill=tk.BOTH, expand=True)
         self.main_frame.pack(fill=tk.BOTH, expand=True)
 
-    def insert(self, *args):
-        return None
+    def insert(self, kw):
+        if kw.get('mode') == 'urlencoded':
+            self.mode.set('urlencoded')
+            self.edit_table.set_data(kw.get('urlencoded'))
+        elif kw.get('mode') == 'raw':
+            self.mode.set('raw')
+            index = ["Text", "JSON", "XML", "HTML"].index(kw.get('options'))
+            self.options.current(index)
+            self.scrolled_text.delete('1.0', 'end')
+            self.scrolled_text.insert('end', kw.get("raw"))
+        else:
+            self.mode.set('none')
 
-    def get(self, *args):
-        return "{}"
-
-    def delete(self, *args):
-        return None
+    def get(self):
+        return {
+            'mode': self.mode.get(),
+            "options": self.options.get() if self.options else "",
+            'raw': self.scrolled_text.get('1.0', 'end') if self.scrolled_text else "",
+            'urlencoded': self.edit_table.get_data() if self.edit_table else {}
+        }
 
 
 class RequestWindow:
@@ -221,14 +233,9 @@ class RequestWindow:
         url = self.url.get()
         params = self.params_frame.get_data()
         headers = self.headers_frame.get_data()
-        body = self.body_box.get("1.0", tk.END)
+        body = self.body_box.get()
         pre_request_script = self.script_box.get("1.0", tk.END)
         tests = self.tests_box.get("1.0", tk.END)
-
-        try:
-            body = json.loads(body)
-        except json.JSONDecodeError:
-            body = {}
 
         pre_request_script = pre_request_script.rstrip("\n")
         tests = tests.rstrip("\n")
@@ -259,10 +266,7 @@ class RequestWindow:
         self.method_box.current(self.method_list.index(method))
         self.url.set(data.get("url", ""))
         self.headers_frame.set_data(data.get("headers", {}))
-        self.body_box.delete("1.0", tk.END)
-        self.body_box.insert(
-            tk.END, json.dumps(data.get("body", {}), ensure_ascii=False, indent=4)
-        )
+        self.body_box.insert(data.get("body", {}))
         self.script_box.delete("1.0", tk.END)
         self.script_box.insert(tk.END, data.get("pre_request_script", ""))
         self.tests_box.delete("1.0", tk.END)
@@ -298,8 +302,6 @@ class RequestWindow:
 
         # Gets query parameters, request headers, and request bodies
         headers = self.headers_frame.get_data()
-        body = self.body_box.get("1.0", tk.END)
-
         headers = json.dumps(headers)
         varlist = re.finditer(r"\{\{[^{}]*\}\}", headers)
         for m in varlist:
@@ -308,16 +310,26 @@ class RequestWindow:
                 headers = headers.replace(m.group(), value)
         headers = json.loads(headers)
 
+        req_options = self.body_box.get()
+        if req_options.get('mode') == 'raw':
+            body = req_options.get("raw")
+        elif req_options.get('mode') == 'urlencoded':
+            body = req_options.get('urlencoded')
+            body = json.dumps(body)
+        else:
+            body = ''
         varlist = re.finditer(r"\{\{[^{}]*\}\}", body)
         for m in varlist:
             value = get_variable(m.group()[2:-2])
             if value is not None:
                 body = body.replace(m.group(), value)
-
-        try:
-            body = json.loads(body)
-        except json.JSONDecodeError:
-            body = {}
+        if (req_options.get('mode') == 'urlencoded'
+                or (req_options.get('mode') == 'raw'
+                    and req_options.get('options') == 'JSON')):
+            try:
+                body = json.loads(body)
+            except json.JSONDecodeError:
+                body = {}
 
         if self.item_id is not None:
             script_list = self.get_script(self.item_id)
@@ -338,6 +350,20 @@ class RequestWindow:
             except Exception as error:
                 console.error(str(error))
         start_time = time.time()
+
+        if req_options.get('mode') == 'urlencoded':
+            headers.update({"Content-Type": "application/x-www-form-urlencoded"})
+        elif req_options.get('mode') == 'raw':
+            if req_options.get('options') == 'JSON':
+                body = json.dumps(body)
+                headers.update({"Content-Type": "application/json"})
+            elif req_options.get('options') == 'Text':
+                headers.update({'Content-Type': 'text/plain'})
+            elif req_options.get('options') == "XML":
+                headers.update({'Content-Type': 'application/xml'})
+            elif req_options.get('options') == "HTML":
+                headers.update({'Content-Type': 'text/html'})
+
         # 发送网络请求
         try:
             if method == "GET":
