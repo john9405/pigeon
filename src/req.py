@@ -6,6 +6,9 @@ import time
 import re
 import xml.dom.minidom
 from io import BytesIO
+import urllib.parse
+from typing import Optional
+
 import requests
 from bs4 import BeautifulSoup
 from PIL import Image, ImageTk
@@ -15,7 +18,33 @@ from .utils import EditorTable
 
 
 class ParamsFrame(EditorTable):
-    pass
+    def __init__(self, master=None, **kw):
+        self.cb = kw.pop('cb')
+        super().__init__(master, **kw)
+
+    def commit(
+            self,
+            item_id: Optional[str] = None,
+            win: Optional[tk.Toplevel] = None,
+            name_entry: Optional[ttk.Entry] = None,
+            value_entry: Optional[ttk.Entry] = None,
+    ):
+        name = name_entry.get()
+        value = value_entry.get()
+        if self.check_name(item_id, name):
+            if item_id is None:
+                self.treeview.insert("", tk.END, values=(name, value))
+            else:
+                self.treeview.item(item_id, values=(name, value))
+            win.destroy()
+            self.cb(str(urllib.parse.urlencode(self.get_data())))
+        else:
+            messagebox.showerror("error", "Duplicate key")
+
+    def on_del(self):
+        if self.editable and len(self.treeview.selection()) > 0:
+            self.treeview.delete(self.treeview.selection()[0])
+            self.cb(str(urllib.parse.urlencode(self.get_data())))
 
 
 class BodyFrame:
@@ -134,12 +163,12 @@ class RequestWindow:
         self.method_box["state"] = "readonly"
         self.method_box.pack(side=tk.LEFT)
         sub_btn = ttk.Button(north, text="Send")  # Send request button
-        sub_btn.config(
-            command=self.send_request
-        )  # Bind the event handler to send the request button
+        sub_btn.config(command=self.send_request)  # Bind the event handler to send the request button
         sub_btn.pack(side=tk.RIGHT)
-        self.url_box = ttk.Entry(north)
-        self.url_box.pack(fill=tk.BOTH, pady=3)
+        self.url = tk.StringVar()
+        self.url.trace('w', self.change_url)
+        url_box = ttk.Entry(north, textvariable=self.url)
+        url_box.pack(fill=tk.BOTH, pady=3)
 
         # Create a PanedWindow
         paned_window = ttk.PanedWindow(window, orient=tk.VERTICAL)
@@ -150,7 +179,7 @@ class RequestWindow:
         paned_window.add(notebook, weight=1)
 
         # Create a query parameter page
-        self.params_frame = ParamsFrame(master=notebook, editable=True)
+        self.params_frame = ParamsFrame(master=notebook, editable=True, cb=self.update_url)
         notebook.add(self.params_frame, text="Params")
 
         # Create the request header page
@@ -158,8 +187,6 @@ class RequestWindow:
         notebook.add(self.headers_frame, text="Headers")
 
         # Create the request body page
-        # self.body_box = ScrolledText(notebook)
-        # notebook.add(self.body_box, text="Body")
         self.body_box = BodyFrame(master=notebook)
         notebook.add(self.body_box.root, text="Body")
 
@@ -191,7 +218,7 @@ class RequestWindow:
         """Save test script"""
         name = self.name_entry.get()
         method = self.method_box.get()
-        url = self.url_box.get()
+        url = self.url.get()
         params = self.params_frame.get_data()
         headers = self.headers_frame.get_data()
         body = self.body_box.get("1.0", tk.END)
@@ -230,9 +257,7 @@ class RequestWindow:
     def fill_blank(self, data):
         method = data.get("method", "GET")
         self.method_box.current(self.method_list.index(method))
-        self.url_box.delete(0, tk.END)
-        self.url_box.insert(tk.END, data.get("url", ""))
-        self.params_frame.set_data(data.get("params", {}))
+        self.url.set(data.get("url", ""))
         self.headers_frame.set_data(data.get("headers", {}))
         self.body_box.delete("1.0", tk.END)
         self.body_box.insert(
@@ -260,27 +285,20 @@ class RequestWindow:
         environment = self.env_variable
         # Gets the request method and URL
         method = self.method_box.get()
-        url = self.url_box.get()
+        url = self.url.get()
         if url is None or url == "":
             messagebox.showerror("Error", "Please enter the request address")
             return
+
         varlist = re.finditer(r"\{\{[^{}]*\}\}", url)
         for m in varlist:
             value = get_variable(m.group()[2:-2])
             if value is not None:
                 url = url.replace(m.group(), value)
+
         # Gets query parameters, request headers, and request bodies
-        params = self.params_frame.get_data()
         headers = self.headers_frame.get_data()
         body = self.body_box.get("1.0", tk.END)
-
-        params = json.dumps(params)
-        varlist = re.finditer(r"\{\{[^{}]*\}\}", params)
-        for m in varlist:
-            value = get_variable(m.group()[2:-2])
-            if value is not None:
-                params = params.replace(m.group(), value)
-        params = json.loads(params)
 
         headers = json.dumps(headers)
         varlist = re.finditer(r"\{\{[^{}]*\}\}", headers)
@@ -323,31 +341,19 @@ class RequestWindow:
         # 发送网络请求
         try:
             if method == "GET":
-                response = requests.get(url, params=params, headers=headers, timeout=60)
+                response = requests.get(url, headers=headers)
             elif method == "POST":
-                response = requests.post(
-                    url, params=params, data=body, headers=headers, timeout=60
-                )
+                response = requests.post(url, data=body, headers=headers)
             elif method == "PUT":
-                response = requests.put(
-                    url, params=params, data=body, headers=headers, timeout=60
-                )
+                response = requests.put(url, data=body, headers=headers)
             elif method == "PATCH":
-                response = requests.patch(
-                    url, params=params, data=body, headers=headers, timeout=60
-                )
+                response = requests.patch(url, data=body, headers=headers)
             elif method == "DELETE":
-                response = requests.delete(
-                    url, params=params, headers=headers, timeout=60
-                )
+                response = requests.delete(url, headers=headers)
             elif method == "HEAD":
-                response = requests.head(
-                    url, params=params, headers=headers, timeout=60
-                )
+                response = requests.head(url, headers=headers)
             elif method == "OPTIONS":
-                response = requests.head(
-                    url, params=params, headers=headers, timeout=60
-                )
+                response = requests.head(url, headers=headers)
             else:
                 messagebox.showerror("Error", "Unsupported request type")
                 return
@@ -361,9 +367,9 @@ class RequestWindow:
             cost_time = f"{round(cost_time)}s"
         # 将响应显示在响应区域
         self.res_cookie_table.clear_data()
-        self.res_cookie_table.set_data(response.cookies)
+        self.res_cookie_table.set_data(dict(response.cookies))
         self.res_header_table.clear_data()
-        self.res_header_table.set_data(response.headers)
+        self.res_header_table.set_data(dict(response.headers))
         content_type = response.headers.get("Content-Type")
 
         self.res_body_box.delete("1.0", tk.END)
@@ -374,10 +380,12 @@ class RequestWindow:
         elif "text/html" in content_type:
             response.encoding = "utf-8"
             soup = BeautifulSoup(response.text, "html.parser")
-            chunk_size=1000
+            chunk_size = 1000
+
             def insert_chunk(offset):
                 self.res_body_box.insert(tk.END, soup.prettify()[offset:offset + chunk_size])
                 self.res_body_box.after(1, insert_chunk, offset + chunk_size)
+
             insert_chunk(0)
         elif "text/xml" in content_type or "application/xml" in content_type:
             response.encoding = "utf-8"
@@ -412,7 +420,7 @@ class RequestWindow:
                 "data": {
                     "method": method,
                     "url": url,
-                    "params": params,
+                    "params": self.get_params(),
                     "headers": headers,
                     "body": body,
                     "pre_request_script": pre_request_script,
@@ -425,3 +433,27 @@ class RequestWindow:
 
     def console(self, data):
         self.callback("console", **data)
+
+    def get_params(self):
+        x = urllib.parse.urlparse(self.url.get())
+        y = urllib.parse.parse_qs(x.query)
+        data = {}
+        for item in y.keys():
+            if len(y[item]) == 1:
+                data.update({item: y[item][0]})
+            else:
+                data.update({item: json.dumps(y[item])})
+        return data
+
+    def change_url(self, *args):
+        self.params_frame.clear_data()
+        self.params_frame.set_data(self.get_params())
+
+    def update_url(self, query: str):
+        x = urllib.parse.urlparse(self.url.get())
+        scheme = x.scheme
+        netloc = x.netloc
+        path = x.path
+        params = x.params
+        fragment = x.fragment
+        self.url.set(urllib.parse.urlunparse((scheme, netloc, path, params, query, fragment)))
