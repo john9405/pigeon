@@ -448,7 +448,7 @@ class RequestWindow:
                     "url": url,
                     "params": self.get_params(),
                     "headers": headers,
-                    "body": body,
+                    "body": req_options,
                     "pre_request_script": pre_request_script,
                     "tests": tests,
                 }

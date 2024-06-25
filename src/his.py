@@ -47,7 +47,6 @@ class HistoryWindow:
     def on_delete(self):
         selection = self.history_box.curselection()
         if selection:
-            print(selection)
             self.history_box.delete(selection)
             i = len(self.history_list) - selection[0] - 1
             self.history_list.pop(i)
