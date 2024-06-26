@@ -1,6 +1,7 @@
 import json
 import tkinter as tk
 from tkinter import messagebox, ttk
+from tkinter import filedialog
 from tkinter.scrolledtext import ScrolledText
 import time
 import re
@@ -10,24 +11,40 @@ import urllib.parse
 from typing import Optional
 
 import requests
+from requests.auth import HTTPBasicAuth
+from requests.auth import HTTPDigestAuth
+from requests_oauthlib import OAuth1
+from oauthlib.oauth1 import (
+    SIGNATURE_HMAC_SHA1,
+    SIGNATURE_HMAC_SHA256,
+    SIGNATURE_HMAC_SHA512,
+    SIGNATURE_RSA_SHA1,
+    SIGNATURE_RSA_SHA256,
+    SIGNATURE_RSA_SHA512,
+    SIGNATURE_PLAINTEXT,
+    SIGNATURE_TYPE_AUTH_HEADER,
+    SIGNATURE_TYPE_QUERY,
+    SIGNATURE_TYPE_BODY,
+)
 from bs4 import BeautifulSoup
 from PIL import Image, ImageTk
 
+from . import USER_DIR
 from .console import Console
 from .utils import EditorTable
 
 
 class ParamsFrame(EditorTable):
     def __init__(self, master=None, **kw):
-        self.cb = kw.pop('cb')
+        self.cb = kw.pop("cb")
         super().__init__(master, **kw)
 
     def commit(
-            self,
-            item_id: Optional[str] = None,
-            win: Optional[tk.Toplevel] = None,
-            name_entry: Optional[ttk.Entry] = None,
-            value_entry: Optional[ttk.Entry] = None,
+        self,
+        item_id: Optional[str] = None,
+        win: Optional[tk.Toplevel] = None,
+        name_entry: Optional[ttk.Entry] = None,
+        value_entry: Optional[ttk.Entry] = None,
     ):
         name = name_entry.get()
         value = value_entry.get()
@@ -45,6 +62,256 @@ class ParamsFrame(EditorTable):
         if self.editable and len(self.treeview.selection()) > 0:
             self.treeview.delete(self.treeview.selection()[0])
             self.cb(str(urllib.parse.urlencode(self.get_data())))
+
+
+class OauthFrame(ttk.Frame):
+    main_frame = None
+    rsa_key_text = None
+
+    def __init__(self, master=None, **kw):
+        super().__init__(master, **kw)
+
+        self.client_key = tk.StringVar(self)
+        self.client_secret = tk.StringVar(self)
+        self.resource_owner_key = tk.StringVar(self)
+        self.resource_owner_secret = tk.StringVar(self)
+        self.signature_type = tk.StringVar(self, value=SIGNATURE_TYPE_AUTH_HEADER)
+        self.signature_method = tk.StringVar(self, value=SIGNATURE_HMAC_SHA1)
+        self.signature_method.trace_add("write", self.change_page)
+        self.cpage = "hmac_page"
+        frame = ttk.Frame(self)
+        ttk.Label(frame, text="Add authorization data to").grid(row=0, column=0)
+        ttk.Combobox(
+            frame,
+            values=(
+                SIGNATURE_TYPE_AUTH_HEADER,
+                SIGNATURE_TYPE_QUERY,
+                SIGNATURE_TYPE_BODY,
+            ),
+            textvariable=self.signature_type,
+            state="readonly",
+        ).grid(row=0, column=1)
+        ttk.Label(frame, text="Signature Method").grid(row=1, column=0)
+        ttk.Combobox(
+            frame,
+            values=(
+                SIGNATURE_HMAC_SHA1,
+                SIGNATURE_HMAC_SHA256,
+                SIGNATURE_HMAC_SHA512,
+                SIGNATURE_RSA_SHA1,
+                SIGNATURE_RSA_SHA256,
+                SIGNATURE_RSA_SHA512,
+                SIGNATURE_PLAINTEXT,
+            ),
+            textvariable=self.signature_method,
+            state="readonly",
+        ).grid(row=1, column=1)
+        frame.pack(fill="x")
+        self.hmac_page()
+
+    def change_page(self, *args):
+        if self.signature_method.get() in (
+            SIGNATURE_HMAC_SHA1,
+            SIGNATURE_HMAC_SHA256,
+            SIGNATURE_HMAC_SHA512,
+            SIGNATURE_PLAINTEXT,
+        ):
+            new_page = "hmac_page"
+        else:
+            new_page = "rsa_page"
+        if self.cpage != new_page:
+            self.main_frame.forget()
+            if new_page == "hmac_page":
+                self.hmac_page()
+            else:
+                self.rsa_page()
+            self.cpage = new_page
+
+    def hmac_page(self):
+        self.main_frame = ttk.Frame(self)
+        ttk.Label(self.main_frame, text="Consumer Key").grid(row=0, column=0)
+        ttk.Entry(self.main_frame, textvariable=self.client_key).grid(row=0, column=1)
+        ttk.Label(self.main_frame, text="Consumer Secret").grid(row=1, column=0)
+        ttk.Entry(self.main_frame, textvariable=self.client_secret).grid(
+            row=1, column=1
+        )
+        ttk.Label(self.main_frame, text="Access Token").grid(row=2, column=0)
+        ttk.Entry(self.main_frame, textvariable=self.resource_owner_key).grid(
+            row=2, column=1
+        )
+        ttk.Label(self.main_frame, text="Token Secret").grid(row=3, column=0)
+        ttk.Entry(self.main_frame, textvariable=self.resource_owner_secret).grid(
+            row=3, column=1
+        )
+        self.main_frame.pack(fill="both", expand=True)
+
+    def rsa_page(self):
+        self.main_frame = ttk.Frame(self)
+        ttk.Label(self.main_frame, text="Consumer Key").grid(row=0, column=0)
+        ttk.Entry(self.main_frame, textvariable=self.client_key).grid(
+            row=0, column=1, sticky="w"
+        )
+        ttk.Label(self.main_frame, text="Access Token").grid(row=1, column=0)
+        ttk.Entry(self.main_frame, textvariable=self.resource_owner_key).grid(
+            row=1, column=1, sticky="w"
+        )
+        ttk.Label(self.main_frame, text="Private key").grid(row=2, column=0)
+        ttk.Button(self.main_frame, text="Select File", command=self.on_open).grid(
+            row=2, column=1, sticky="w"
+        )
+        self.rsa_key_text = ScrolledText(self.main_frame, width=40)
+        self.rsa_key_text.grid(row=3, column=1, sticky="w")
+        self.main_frame.pack(fill="both", expand=True)
+
+    def on_open(self):
+        filepath = filedialog.askopenfilename(initialdir=USER_DIR)
+        if filepath:
+            with open(filepath, "r", encoding="utf-8") as f:
+                self.rsa_key_text.delete("1.0", "end")
+                self.rsa_key_text.insert(tk.END, f.read())
+
+    def set(self, data: dict):
+        self.main_frame.forget()
+        if data.get("signature_method", SIGNATURE_HMAC_SHA1) in (
+            SIGNATURE_HMAC_SHA1,
+            SIGNATURE_HMAC_SHA256,
+            SIGNATURE_HMAC_SHA512,
+            SIGNATURE_PLAINTEXT,
+        ):
+            self.hmac_page()
+            self.client_key.set(data.get("client_key", ""))
+            self.client_secret.set(data.get("client_secret", ""))
+            self.resource_owner_key.set(data.get("resource_owner_key", ""))
+            self.resource_owner_secret.set(data.get("resource_owner_secret", ""))
+            self.signature_type.set(
+                data.get("signature_type", SIGNATURE_TYPE_AUTH_HEADER)
+            )
+            self.signature_method.set(data.get("signature_method", SIGNATURE_HMAC_SHA1))
+        else:
+            self.rsa_page()
+            self.client_key.set(data.get("client_key", ""))
+            self.resource_owner_key.set(data.get("resource_owner_key", ""))
+            self.rsa_key_text.delete("1.0", "end")
+            self.rsa_key_text.insert("1.0", data.get("rsa_key", ""))
+            self.signature_type.set(
+                data.get("signature_type", SIGNATURE_TYPE_AUTH_HEADER)
+            )
+            self.signature_method.set(data.get("signature_method", SIGNATURE_RSA_SHA1))
+
+    def get(self):
+        if self.signature_method.get() in (
+            SIGNATURE_HMAC_SHA1,
+            SIGNATURE_HMAC_SHA256,
+            SIGNATURE_HMAC_SHA512,
+            SIGNATURE_PLAINTEXT,
+        ):
+            data = {
+                "client_key": self.client_key.get(),
+                "client_secret": self.client_secret.get(),
+                "resource_owner_key": self.resource_owner_key.get(),
+                "resource_owner_secret": self.resource_owner_secret.get(),
+                "signature_type": self.signature_type.get(),
+                "signature_method": self.signature_method.get(),
+            }
+        else:
+            data = {
+                "signature_type": self.signature_type.get(),
+                "signature_method": self.signature_method.get(),
+                "client_key": self.client_key.get(),
+                "resource_owner_key": self.resource_owner_key.get(),
+                "rsa_key": self.rsa_key_text.get("1.0", "end-1c"),
+            }
+        return data
+
+
+class AuthFrame(ttk.Frame):
+    def __init__(self, master=None, **kw):
+        super().__init__(master, **kw)
+        self.cpage = "noauth"
+        self.auth_type = tk.StringVar(self, value="noauth")
+        self.auth_type.trace_add("write", self.change_page)
+        ttk.Combobox(
+            self,
+            values=("noauth", "base", "digest", "oauth1"),
+            textvariable=self.auth_type,
+            state="readonly",
+        ).pack(anchor="w")
+        self.main_frame = ttk.Frame(self)
+        ttk.Label(
+            self.main_frame, text="This request does not use any authorization."
+        ).pack()
+        self.main_frame.pack()
+        self.username = tk.StringVar(self)
+        self.password = tk.StringVar(self)
+        self.oauth_frame = None
+
+    def change_page(self, *args):
+        if self.cpage != self.auth_type.get():
+            self.main_frame.forget()
+            if self.auth_type.get() == "oauth1":
+                self.oauth1_page()
+            elif self.auth_type.get() == "base" or self.auth_type.get() == "digest":
+                self.base_digest_page()
+            else:
+                self.no_auth_page()
+            self.cpage = self.auth_type.get()
+
+    def no_auth_page(self):
+        self.main_frame = ttk.Frame(self)
+        ttk.Label(
+            self.main_frame, text="This request does not use any authorization."
+        ).pack()
+        self.main_frame.pack()
+
+    def base_digest_page(self):
+        self.main_frame = ttk.Frame(self)
+        ttk.Label(self.main_frame, text="username:").grid(row=0, column=0)
+        ttk.Entry(self.main_frame, textvariable=self.username).grid(row=0, column=1)
+        ttk.Label(self.main_frame, text="password:").grid(row=1, column=0)
+        ttk.Entry(self.main_frame, textvariable=self.password).grid(row=1, column=1)
+        self.main_frame.pack()
+
+    def oauth1_page(self):
+        self.main_frame = ttk.Frame(self)
+        self.oauth_frame = OauthFrame(self.main_frame)
+        self.oauth_frame.pack(fill="both", expand=True)
+        self.main_frame.pack()
+
+    def get(self) -> dict:
+        res = {"type": self.auth_type.get()}
+        if res["type"] == "oauth1":
+            res.update({"oauth1": self.oauth_frame.get()})
+        elif res["type"] == "base":
+            res.update(
+                {
+                    "base": {
+                        "username": self.username.get(),
+                        "password": self.password.get(),
+                    }
+                }
+            )
+        elif res["type"] == "digest":
+            res.update(
+                {
+                    "digest": {
+                        "username": self.username.get(),
+                        "password": self.password.get(),
+                    }
+                }
+            )
+        return res
+
+    def set(self, data: dict):
+        print(data)
+        self.auth_type.set(data.get("type", "noauth"))
+        if self.auth_type.get() == "oauth1":
+            self.oauth_frame.set(data.get("oauth1", {}))
+        elif self.auth_type.get() == "base":
+            self.username.set(data.get("base", {}).get("username", ""))
+            self.password.set(data.get("base", {}).get("password", ""))
+        elif self.auth_type.get() == "digest":
+            self.username.set(data.get("digest", {}).get("username", ""))
+            self.password.set(data.get("digest", {}).get("password", ""))
 
 
 class BodyFrame:
@@ -65,9 +332,9 @@ class BodyFrame:
             variable=self.mode,
             value="urlencoded",
         ).pack(side="left")
-        ttk.Radiobutton(
-            self.toolbar, text="raw", variable=self.mode, value="raw"
-        ).pack(side="left")
+        ttk.Radiobutton(self.toolbar, text="raw", variable=self.mode, value="raw").pack(
+            side="left"
+        )
         self.toolbar.pack(fill=tk.X)
 
         self.toolbar_right = None
@@ -111,12 +378,10 @@ class BodyFrame:
     def show_raw(self):
         self.toolbar_right = ttk.Frame(self.toolbar)
         self.options = ttk.Combobox(
-            self.toolbar_right,
-            values=["Text", "JSON", "XML", "HTML"],
-            width=6
+            self.toolbar_right, values=["Text", "JSON", "XML", "HTML"], width=6
         )
         self.options.current(0)
-        self.options['state'] = 'readonly'
+        self.options["state"] = "readonly"
         self.options.pack(side="left")
         self.toolbar_right.pack(side="left")
 
@@ -126,24 +391,24 @@ class BodyFrame:
         self.main_frame.pack(fill=tk.BOTH, expand=True)
 
     def insert(self, kw):
-        if kw.get('mode') == 'urlencoded':
-            self.mode.set('urlencoded')
-            self.edit_table.set_data(kw.get('urlencoded'))
-        elif kw.get('mode') == 'raw':
-            self.mode.set('raw')
-            index = ["Text", "JSON", "XML", "HTML"].index(kw.get('options'))
+        if kw.get("mode") == "urlencoded":
+            self.mode.set("urlencoded")
+            self.edit_table.set_data(kw.get("urlencoded"))
+        elif kw.get("mode") == "raw":
+            self.mode.set("raw")
+            index = ["Text", "JSON", "XML", "HTML"].index(kw.get("options"))
             self.options.current(index)
-            self.scrolled_text.delete('1.0', 'end')
-            self.scrolled_text.insert('end', kw.get("raw"))
+            self.scrolled_text.delete("1.0", "end")
+            self.scrolled_text.insert("end", kw.get("raw"))
         else:
-            self.mode.set('none')
+            self.mode.set("none")
 
     def get(self):
         return {
-            'mode': self.mode.get(),
+            "mode": self.mode.get(),
             "options": self.options.get() if self.options else "",
-            'raw': self.scrolled_text.get('1.0', 'end') if self.scrolled_text else "",
-            'urlencoded': self.edit_table.get_data() if self.edit_table else {}
+            "raw": self.scrolled_text.get("1.0", "end") if self.scrolled_text else "",
+            "urlencoded": self.edit_table.get_data() if self.edit_table else {},
         }
 
 
@@ -175,10 +440,12 @@ class RequestWindow:
         self.method_box["state"] = "readonly"
         self.method_box.pack(side=tk.LEFT)
         sub_btn = ttk.Button(north, text="Send")  # Send request button
-        sub_btn.config(command=self.send_request)  # Bind the event handler to send the request button
+        sub_btn.config(
+            command=self.send_request
+        )  # Bind the event handler to send the request button
         sub_btn.pack(side=tk.RIGHT)
         self.url = tk.StringVar()
-        self.url.trace('w', self.change_url)
+        self.url.trace("w", self.change_url)
         url_box = ttk.Entry(north, textvariable=self.url)
         url_box.pack(fill=tk.BOTH, pady=3)
 
@@ -191,9 +458,12 @@ class RequestWindow:
         paned_window.add(notebook, weight=1)
 
         # Create a query parameter page
-        self.params_frame = ParamsFrame(master=notebook, editable=True, cb=self.update_url)
+        self.params_frame = ParamsFrame(
+            master=notebook, editable=True, cb=self.update_url
+        )
         notebook.add(self.params_frame, text="Params")
-
+        self.auth_frame = AuthFrame(master=notebook)
+        notebook.add(self.auth_frame, text="Authorization")
         # Create the request header page
         self.headers_frame = EditorTable(master=notebook, editable=True)
         notebook.add(self.headers_frame, text="Headers")
@@ -236,7 +506,7 @@ class RequestWindow:
         body = self.body_box.get()
         pre_request_script = self.script_box.get("1.0", tk.END)
         tests = self.tests_box.get("1.0", tk.END)
-
+        opt_auth = self.auth_frame.get()
         pre_request_script = pre_request_script.rstrip("\n")
         tests = tests.rstrip("\n")
 
@@ -257,6 +527,7 @@ class RequestWindow:
                 "pre_request_script": pre_request_script,
                 "tests": tests,
                 "name": name,
+                "auth": opt_auth,
             },
         )
         self.item_id = x
@@ -273,6 +544,7 @@ class RequestWindow:
         self.tests_box.insert(tk.END, data.get("tests", ""))
         self.name_entry.delete(0, tk.END)
         self.name_entry.insert(tk.END, data.get("name", "New Request"))
+        self.auth_frame.set(data.get("auth", {}))
 
     def get_variable(self, name):
         var = self.local_variable(self.item_id, name)
@@ -311,21 +583,21 @@ class RequestWindow:
         headers = json.loads(headers)
 
         req_options = self.body_box.get()
-        if req_options.get('mode') == 'raw':
+        if req_options.get("mode") == "raw":
             body = req_options.get("raw")
-        elif req_options.get('mode') == 'urlencoded':
-            body = req_options.get('urlencoded')
+        elif req_options.get("mode") == "urlencoded":
+            body = req_options.get("urlencoded")
             body = json.dumps(body)
         else:
-            body = ''
+            body = ""
         varlist = re.finditer(r"\{\{[^{}]*\}\}", body)
         for m in varlist:
             value = get_variable(m.group()[2:-2])
             if value is not None:
                 body = body.replace(m.group(), value)
-        if (req_options.get('mode') == 'urlencoded'
-                or (req_options.get('mode') == 'raw'
-                    and req_options.get('options') == 'JSON')):
+        if req_options.get("mode") == "urlencoded" or (
+            req_options.get("mode") == "raw" and req_options.get("options") == "JSON"
+        ):
             try:
                 body = json.loads(body)
             except json.JSONDecodeError:
@@ -338,6 +610,49 @@ class RequestWindow:
 
         pre_request_script = self.script_box.get("1.0", tk.END)
         tests = self.tests_box.get("1.0", tk.END)
+        opt_auth = self.auth_frame.get()
+        for item in opt_auth.keys():
+            if isinstance(opt_auth[item], dict):
+                for citem in opt_auth[item]:
+                    temp = opt_auth[item][citem]
+                    varlist = re.finditer(r"\{\{[^{}]*\}\}", temp)
+                    for m in varlist:
+                        value = get_variable(m.group()[2:-2])
+                        if value is not None:
+                            temp = temp.replace(m.group(), value)
+                    opt_auth[item][citem] = temp
+        auth = None
+        if opt_auth["type"] == "base":
+            auth = HTTPBasicAuth(
+                opt_auth["base"]["username"], opt_auth["base"]["password"]
+            )
+        elif opt_auth["type"] == "digest":
+            auth = HTTPDigestAuth(
+                opt_auth["digest"]["username"], opt_auth["digest"]["password"]
+            )
+        elif opt_auth["type"] == "oauth1":
+            if opt_auth["oauth1"]["signature_method"] in (
+                SIGNATURE_HMAC_SHA1,
+                SIGNATURE_HMAC_SHA256,
+                SIGNATURE_HMAC_SHA512,
+                SIGNATURE_PLAINTEXT,
+            ):
+                auth = OAuth1(
+                    opt_auth["oauth1"]["client_key"],
+                    opt_auth["oauth1"]["client_secret"],
+                    opt_auth["oauth1"]["resource_owner_key"],
+                    opt_auth["oauth1"]["resource_owner_secret"],
+                    signature_method=opt_auth["oauth1"]["signature_method"],
+                    signature_type=opt_auth["oauth1"]["signature_type"],
+                )
+            else:
+                auth = OAuth1(
+                    opt_auth["oauth1"]["client_key"],
+                    resource_owner_key=opt_auth["oauth1"]["resource_owner_key"],
+                    rsa_key=opt_auth["oauth1"]["rsa_key"],
+                    signature_method=opt_auth["oauth1"]["signature_method"],
+                    signature_type=opt_auth["oauth1"]["signature_type"],
+                )
 
         try:
             exec(pre_request_script)
@@ -351,35 +666,35 @@ class RequestWindow:
                 console.error(str(error))
         start_time = time.time()
 
-        if req_options.get('mode') == 'urlencoded':
+        if req_options.get("mode") == "urlencoded":
             headers.update({"Content-Type": "application/x-www-form-urlencoded"})
-        elif req_options.get('mode') == 'raw':
-            if req_options.get('options') == 'JSON':
+        elif req_options.get("mode") == "raw":
+            if req_options.get("options") == "JSON":
                 body = json.dumps(body)
                 headers.update({"Content-Type": "application/json"})
-            elif req_options.get('options') == 'Text':
-                headers.update({'Content-Type': 'text/plain'})
-            elif req_options.get('options') == "XML":
-                headers.update({'Content-Type': 'application/xml'})
-            elif req_options.get('options') == "HTML":
-                headers.update({'Content-Type': 'text/html'})
+            elif req_options.get("options") == "Text":
+                headers.update({"Content-Type": "text/plain"})
+            elif req_options.get("options") == "XML":
+                headers.update({"Content-Type": "application/xml"})
+            elif req_options.get("options") == "HTML":
+                headers.update({"Content-Type": "text/html"})
 
         # 发送网络请求
         try:
             if method == "GET":
-                response = requests.get(url, headers=headers)
+                response = requests.get(url, headers=headers, auth=auth)
             elif method == "POST":
-                response = requests.post(url, data=body, headers=headers)
+                response = requests.post(url, data=body, headers=headers, auth=auth)
             elif method == "PUT":
-                response = requests.put(url, data=body, headers=headers)
+                response = requests.put(url, data=body, headers=headers, auth=auth)
             elif method == "PATCH":
-                response = requests.patch(url, data=body, headers=headers)
+                response = requests.patch(url, data=body, headers=headers, auth=auth)
             elif method == "DELETE":
-                response = requests.delete(url, headers=headers)
+                response = requests.delete(url, headers=headers, auth=auth)
             elif method == "HEAD":
-                response = requests.head(url, headers=headers)
+                response = requests.head(url, headers=headers, auth=auth)
             elif method == "OPTIONS":
-                response = requests.head(url, headers=headers)
+                response = requests.options(url, headers=headers, auth=auth)
             else:
                 messagebox.showerror("Error", "Unsupported request type")
                 return
@@ -409,7 +724,9 @@ class RequestWindow:
             chunk_size = 1000
 
             def insert_chunk(offset):
-                self.res_body_box.insert(tk.END, soup.prettify()[offset:offset + chunk_size])
+                self.res_body_box.insert(
+                    tk.END, soup.prettify()[offset : offset + chunk_size]
+                )
                 self.res_body_box.after(1, insert_chunk, offset + chunk_size)
 
             insert_chunk(0)
@@ -451,6 +768,7 @@ class RequestWindow:
                     "body": req_options,
                     "pre_request_script": pre_request_script,
                     "tests": tests,
+                    "auth": opt_auth,
                 }
             },
         )
@@ -482,4 +800,6 @@ class RequestWindow:
         path = x.path
         params = x.params
         fragment = x.fragment
-        self.url.set(urllib.parse.urlunparse((scheme, netloc, path, params, query, fragment)))
+        self.url.set(
+            urllib.parse.urlunparse((scheme, netloc, path, params, query, fragment))
+        )
