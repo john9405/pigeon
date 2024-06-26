@@ -230,12 +230,15 @@ class AuthFrame(ttk.Frame):
         self.cpage = "noauth"
         self.auth_type = tk.StringVar(self, value="noauth")
         self.auth_type.trace_add("write", self.change_page)
+        frame = ttk.Frame(self)
+        ttk.Label(frame, text="Type:").grid(row=0, column=0)
         ttk.Combobox(
-            self,
+            frame,
             values=("noauth", "base", "digest", "oauth1"),
             textvariable=self.auth_type,
             state="readonly",
-        ).pack(anchor="w")
+        ).grid(row=0, column=1)
+        frame.pack(fill="x", padx=5, pady=5)
         self.main_frame = ttk.Frame(self)
         ttk.Label(
             self.main_frame, text="This request does not use any authorization."
