@@ -3,3 +3,6 @@ pillow
 pycryptodome
 pyinstaller
 requests
+requests-oauthlib
+requests_kerberos
+requests_ntlm
