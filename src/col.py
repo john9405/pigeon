@@ -7,10 +7,9 @@ from tkinter import ttk, filedialog, messagebox, simpledialog
 from tkinter.scrolledtext import ScrolledText
 
 from . import WORK_DIR, USER_DIR, BASE_DIR
-
+from .utils import EditorTable
 
 class CollectionWindow:
-    cmenu = None
 
     def __init__(self, window, callback=None):
         self.window = window
@@ -42,33 +41,11 @@ class CollectionWindow:
         self.tree = ttk.Treeview(window, show="tree")
         self.tree.pack(fill="both", expand=True)
         self.tree.bind("<Double-1>", self.on_select)
-        self.tree.bind("<Button-1>", self.hide_context_menu)
         if platform.system() == "Darwin":
             self.tree.bind("<Control-Button-1>",self.on_right_click)
             self.tree.bind("<Button-2>", self.on_right_click)
         else:
             self.tree.bind("<Button-3>", self.on_right_click)
-
-
-        self.context_nenu = tk.Menu(window, tearoff=0)
-        self.context_nenu.add_command(label="new Project", command=self.new_proj)
-        # project
-        self.proj_menu = tk.Menu(window, tearoff=0)
-        self.proj_menu.add_command(label="Open in tab", command=self.on_open)
-        self.proj_menu.add_command(label="new folder", command=self.new_col)
-        self.proj_menu.add_command(label="new request", command=self.new_req)
-        self.proj_menu.add_command(label="Export", command=self.export_proj)
-        self.proj_menu.add_command(label="Delete", command=self.delete_item)
-        # folder
-        self.folder_menu = tk.Menu(window, tearoff=0)
-        self.folder_menu.add_command(label="Open in tab", command=self.on_open)
-        self.folder_menu.add_command(label="new folder", command=self.new_col)
-        self.folder_menu.add_command(label="new request", command=self.new_req)
-        self.folder_menu.add_command(label="Delete", command=self.delete_item)
-        # request
-        self.req_menu = tk.Menu(window, tearoff=0)
-        self.req_menu.add_command(label="Open in tab", command=self.on_open)
-        self.req_menu.add_command(label="Delete", command=self.delete_item)
 
     def open_proj(self):
         """open a program"""
@@ -173,26 +150,26 @@ class CollectionWindow:
 
     def on_right_click(self, event):
         item = self.tree.identify_row(event.y)
+
         if item:
             self.tree.selection_set(item)
             tag = self.tree.item(item)["tags"][0]
+            menu = tk.Menu(self.window, tearoff=0)
             if tag == "project":
-                self.proj_menu.post(event.x_root, event.y_root)
-                self.cmenu = self.proj_menu
+                menu.add_command(label="Open in tab", command=self.on_open)
+                menu.add_command(label="Add folder", command=self.new_col)
+                menu.add_command(label="Add request", command=self.new_req)
+                menu.add_command(label="Export", command=self.export_proj)
+                menu.add_command(label="Delete", command=self.delete_item)
             elif tag == "folder":
-                self.folder_menu.post(event.x_root, event.y_root)
-                self.cmenu = self.folder_menu
+                menu.add_command(label="Open in tab", command=self.on_open)
+                menu.add_command(label="Add folder", command=self.new_col)
+                menu.add_command(label="Add request", command=self.new_req)
+                menu.add_command(label="Delete", command=self.delete_item)
             elif tag == "request":
-                self.req_menu.post(event.x_root, event.y_root)
-                self.cmenu = self.req_menu
-        else:
-            self.context_nenu.post(event.x_root, event.y_root)
-            self.cmenu = self.context_nenu
-
-    def hide_context_menu(self, event):
-        if self.cmenu:
-            self.cmenu.unpost()
-            self.cmenu = None
+                menu.add_command(label="Open in tab", command=self.on_open)
+                menu.add_command(label="Delete", command=self.delete_item)
+            menu.post(event.x_root, event.y_root)
 
     def new_proj(self):
         name = simpledialog.askstring("ask", "Name:")
@@ -368,90 +345,13 @@ class ProjectWindow:
         self.tests_box.insert(tk.END, data.get("tests", ""))
         notebook.add(self.tests_box, text="Tests")
 
-        variable_frame = ttk.Frame(notebook)
-        self.images = [
-            tk.PhotoImage(
-                name="add",
-                file=os.path.join(BASE_DIR, *("assets", "16", "add.png")),
-                height=16,
-                width=16
-            ),
-            tk.PhotoImage(
-                name="edit",
-                file=os.path.join(BASE_DIR, *("assets", "16", "edit.png")),
-                height=16,
-                width=16
-            ),
-            tk.PhotoImage(
-                name="delete",
-                file=os.path.join(BASE_DIR, *("assets", "16", "delete.png")),
-                height=16,
-                width=16
-            )
-        ]
-        toolbar = ttk.Frame(variable_frame)
-        toolbar.pack(fill=tk.X)
-        ttk.Button(toolbar, image='delete', command=self.on_delete).pack(side=tk.RIGHT)
-        ttk.Button(toolbar, image="edit", command=self.on_edit).pack(side=tk.RIGHT)
-        ttk.Button(toolbar, image="add", command=self.on_add).pack(side=tk.RIGHT)
-        self.treeview = ttk.Treeview(variable_frame, columns=("name", "value"), show="headings")
-        self.treeview.pack(fill=tk.BOTH, expand=tk.YES)
-        self.treeview.heading("name", text="name", anchor=tk.CENTER)
-        self.treeview.heading("value", text="value", anchor=tk.CENTER)
-        self.treeview.column("name", width=100, anchor=tk.CENTER)
-        self.treeview.column("value", width=100, anchor=tk.CENTER)
-        for item in data.get("variable", []):
-            self.treeview.insert("", tk.END, values=(item['name'], item['value']))
-        notebook.add(variable_frame, text="Variable")
+        self.variable_frame = EditorTable(notebook, editable=True)
+        temp = {}
+        for i in data.get("variable", []):
+            temp[i["name"]] = i["value"]
+        self.variable_frame.set_data(temp)
+        notebook.add(self.variable_frame, text="Variable")
         notebook.pack(expand=tk.YES, fill=tk.BOTH)
-
-    def on_add(self):
-        self.editor()
-
-    def on_edit(self):
-        if len(self.treeview.selection()) > 0:
-            item_id = self.treeview.selection()[0]
-            item = self.treeview.item(item_id)
-            self.editor(item_id, name=item['values'][0], value=item['values'][1])
-    
-    def on_delete(self):
-        self.treeview.delete(self.treeview.selection())
-    
-    def editor(self, item_id=None, name=None, value=None):
-        def on_submit():
-            name = name_entry.get()
-            value = value_entry.get()
-            if item_id is None:
-                self.treeview.insert("", tk.END, values=(name, value))
-            else:
-                self.treeview.item(item_id, values=(name, value))
-            win.destroy()
-
-        win = tk.Toplevel()
-        win.title("Edit")
-
-        name_frame = ttk.Frame(win)
-        name_frame.pack(fill=tk.X)
-        name_label = ttk.Label(name_frame, text='Name:')
-        name_label.pack(side=tk.LEFT)
-        name_entry = ttk.Entry(name_frame)
-        if name is not None:
-            name_entry.insert(0, name)
-        name_entry.pack(side=tk.RIGHT)
-        value_frame = ttk.Frame(win)
-        value_frame.pack(fill=tk.X)
-        value_label = ttk.Label(value_frame, text="Value:")
-        value_label.pack(side=tk.LEFT)
-        value_entry = ttk.Entry(value_frame)
-        if value is not None:
-            value_entry.insert(0, value)
-        value_entry.pack(side=tk.RIGHT)
-        action_frame = ttk.Frame(win)
-        action_frame.pack()
-        can_btn = ttk.Button(action_frame, command=win.destroy, text="Cannel")
-        can_btn.pack(side=tk.RIGHT)
-        sub_btn = ttk.Button(action_frame, command=on_submit, text="Submit")
-        sub_btn.pack(side=tk.RIGHT)
 
     def on_save(self):
         name = self.name_entry.get()
@@ -462,9 +362,9 @@ class ProjectWindow:
         pre_request_script = pre_request_script.rstrip("\n")
         tests = tests.rstrip("\n")
 
-        for child in self.treeview.get_children():
-            item = self.treeview.item(child)
-            variable.append({'name': item['values'][0], 'value': item['values'][1]})
+        temp = self.variable_frame.get_data()
+        for item in temp.items():
+            variable.append({'name': item[0], 'value': item[1]})
 
         if self.item_id is None:
             messagebox.showerror("Failed", "Save failed, item id missing.")

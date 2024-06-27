@@ -305,7 +305,6 @@ class AuthFrame(ttk.Frame):
         return res
 
     def set(self, data: dict):
-        print(data)
         self.auth_type.set(data.get("type", "noauth"))
         if self.auth_type.get() == "oauth1":
             self.oauth_frame.set(data.get("oauth1", {}))

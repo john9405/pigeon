@@ -1,10 +1,8 @@
 import json
-import os
 import tkinter as tk
 from tkinter import ttk
 from tkinter.scrolledtext import ScrolledText
 
-from . import BASE_DIR
 
 class Console:
     def __init__(self, callback):
@@ -39,18 +37,10 @@ class ConsoleWindow:
 
     def __init__(self, window):
         self.window = window
-        self.images = [
-            tk.PhotoImage(
-                name="clear",
-                file=os.path.join(BASE_DIR, *('assets', "16", 'clear-f.png')),
-                height=16,
-                width=16
-            )
-        ]
         ff = ttk.Frame(window)
         ff.pack(fill=tk.X)
         ttk.Label(ff, text="Console").pack(side=tk.LEFT)
-        ttk.Button(ff, image="clear", command=self.clear).pack(side="right")
+        ttk.Button(ff, text="Clear", command=self.clear).pack(side="right")
 
         self.text_box = ScrolledText(window, height=12)
         self.text_box.pack(fill=tk.BOTH, expand=tk.YES)

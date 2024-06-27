@@ -1,9 +1,10 @@
 import json
 import os
+import platform
 import tkinter as tk
 from tkinter import ttk, simpledialog, messagebox
 
-from . import WORK_DIR, BASE_DIR
+from . import WORK_DIR
 from .utils import EditorTable
 
 
@@ -14,30 +15,18 @@ class EnvironmentWindow:
     def __init__(self, master=None, **kwargs):
         self.callback = kwargs.get("callback")
         self.root = ttk.Frame(master)
-        self.images = [
-            tk.PhotoImage(
-                name="add",
-                file=os.path.join(BASE_DIR, *("assets", "16", "add.png")),
-                height=16,
-                width=16,
-            ),
-            tk.PhotoImage(
-                name="delete",
-                file=os.path.join(BASE_DIR, *("assets", "16", "delete.png")),
-                height=16,
-                width=16,
-            ),
-        ]
         action_frame = ttk.Frame(self.root)
         action_frame.pack(fill=tk.X)
         ttk.Label(action_frame, text="Environment").pack(side=tk.LEFT)
-        ttk.Button(action_frame, image="delete", command=self.on_delete).pack(
-            side=tk.RIGHT
-        )
-        ttk.Button(action_frame, image="add", command=self.on_add).pack(side=tk.RIGHT)
+        ttk.Button(action_frame, text="Add", command=self.on_add).pack(side=tk.RIGHT)
         self.treeview = ttk.Treeview(self.root, show="tree")
         self.treeview.pack(fill=tk.BOTH, expand=tk.YES)
         self.treeview.bind("<Double-1>", self.on_select)
+        if platform.system() == "Darwin":
+            self.treeview.bind("<Control-Button-1>",self.on_right_click)
+            self.treeview.bind("<Button-2>", self.on_right_click)
+        else:
+            self.treeview.bind("<Button-3>", self.on_right_click)
 
     def on_start(self):
         if os.path.exists(self.cache_file):
@@ -72,6 +61,16 @@ class EnvironmentWindow:
                 data=self.data.get(item["text"], {}),
                 item_id=item_id,
             )
+
+    def on_right_click(self, event):
+        item_id = self.treeview.identify_row(event.y)
+        if item_id:
+            self.treeview.selection_set(item_id)
+            item = self.treeview.item(item_id)
+            if item["text"] != "Globals":
+                menu = tk.Menu(self.root, tearoff=0)
+                menu.add_command(label="Delete", command=self.on_delete)
+                menu.post(event.x_root, event.y_root)
 
     def on_add(self):
         name = simpledialog.askstring(

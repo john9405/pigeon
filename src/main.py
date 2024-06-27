@@ -9,8 +9,8 @@ from .req import RequestWindow
 from .console import ConsoleWindow
 from .col import CollectionWindow, ProjectWindow, FolderWindow
 from .env import EnvironmentWindow, VariableWindow
-from .doc.help import HelpWindow
-from .doc.about import AboutWindow
+from .help import HelpWindow
+from .about import AboutWindow
 from .tools.aes import AesGui
 from .tools.b64 import Base64GUI
 from .tools.md5 import MD5GUI
@@ -81,26 +81,9 @@ class MainWindow:
                 file=os.path.join(BASE_DIR, *("assets", "32", "history.png")),
                 height=32,
                 width=32,
-            ),
-            tk.PhotoImage(
-                name="close",
-                file=os.path.join(BASE_DIR, *("assets", "16", "close.png")),
-                height=16,
-                width=16
-            ),
-            tk.PhotoImage(
-                name="file-add",
-                file=os.path.join(BASE_DIR, *("assets", "16", "file-add.png")),
-                height=16,
-                width=16
-            ),
-            tk.PhotoImage(
-                name="comment",
-                file=os.path.join(BASE_DIR, *("assets", "16", "comment.png")),
-                height=16,
-                width=16
             )
         ]
+        ttk.Button(top_bar, text="Request", command=self.new_request).pack(side=tk.LEFT)
         ttk.Button(top_bar, text="AES", command=lambda: self.show_label("AES")).pack(side=tk.LEFT)
         ttk.Button(top_bar, text="Base64", command=lambda: self.show_label("Base64")).pack(side=tk.LEFT)
         ttk.Button(top_bar, text="MD5", command=lambda: self.show_label("MD5")).pack(side=tk.LEFT)
@@ -109,13 +92,14 @@ class MainWindow:
         ttk.Button(top_bar, text="Regex", command=lambda: self.show_label("Regex")).pack(side=tk.LEFT)
         ttk.Button(top_bar, text="Help", command=lambda: self.show_label("Help")).pack(side=tk.LEFT)
         ttk.Button(top_bar, text="About", command=lambda: self.show_label("About")).pack(side=tk.LEFT)
-        ttk.Button(top_bar, image="close", command=self.close_request).pack(side=tk.RIGHT)
-        ttk.Button(top_bar, image="file-add", command=self.new_request).pack(side=tk.RIGHT)
-        ttk.Separator(top_bar, orient=tk.VERTICAL).pack(side=tk.RIGHT, fill=tk.Y)
+        ttk.Button(top_bar, text="close", command=self.close_request).pack(side=tk.LEFT)
+
         ttk.Button(side_bar, image="collection", command=lambda: self.switch_label("collection")).pack()
         ttk.Button(side_bar, image="environment", command=lambda: self.switch_label("environment")).pack()
         ttk.Button(side_bar, image="history", command=lambda: self.switch_label("history")).pack()
-        ttk.Button(state_bar, image="comment", command=self.show_console).pack(side=tk.RIGHT)
+
+        ttk.Sizegrip(state_bar).pack(side="right", anchor="se")
+        ttk.Button(state_bar, text="Console", command=self.show_console).pack(side=tk.RIGHT, padx=15)
 
     def show_console(self):
         if self.console_state:
@@ -268,5 +252,7 @@ class MainWindow:
         self.tag_list.append("env_" + kwargs.get("item_id", ""))
 
     def close_request(self):
-        self.tag_list.pop(self.notebook.index(self.notebook.select()))
-        self.notebook.forget(self.notebook.select())
+        page = self.notebook.select()
+        if page:
+            self.tag_list.pop(self.notebook.index(page))
+            self.notebook.forget(page)
