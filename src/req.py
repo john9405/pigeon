@@ -1,4 +1,5 @@
 import json
+import threading
 import tkinter as tk
 from tkinter import messagebox, ttk
 from tkinter import filedialog
@@ -442,9 +443,7 @@ class RequestWindow:
         self.method_box["state"] = "readonly"
         self.method_box.pack(side=tk.LEFT)
         sub_btn = ttk.Button(north, text="Send")  # Send request button
-        sub_btn.config(
-            command=self.send_request
-        )  # Bind the event handler to send the request button
+        sub_btn.config(command=self.send_request)  # Bind the event handler to send the request button
         sub_btn.pack(side=tk.RIGHT)
         self.url = tk.StringVar()
         self.url.trace("w", self.change_url)
@@ -555,12 +554,25 @@ class RequestWindow:
         var = self.env_variable("Globals", name)
         return var
 
+    def get_globals(self, name):
+        var = self.env_variable("Globals", name)
+        return var
+
     def send_request(self):
+        thread = threading.Thread(target=self.http_handle)
+        thread.start()
+
+    def fill_var(self, data):
+        varlist = re.finditer(r"\{\{[^{}]*\}\}", data)
+        for var in varlist:
+            val = self.get_variable(var.group()[2:-2])
+            if val is not None:
+                data = data.replace(var.group(), val)
+        return data
+
+    def http_handle(self):
         """Define the function that sends the request"""
         console = Console(self.console)
-        get_variable = self.get_variable
-        collectionVariables = self.local_variable
-        environment = self.env_variable
         # Gets the request method and URL
         method = self.method_box.get()
         url = self.url.get()
@@ -568,20 +580,12 @@ class RequestWindow:
             messagebox.showerror("Error", "Please enter the request address")
             return
 
-        varlist = re.finditer(r"\{\{[^{}]*\}\}", url)
-        for m in varlist:
-            value = get_variable(m.group()[2:-2])
-            if value is not None:
-                url = url.replace(m.group(), value)
+        url = self.fill_var(url)
 
         # Gets query parameters, request headers, and request bodies
         headers = self.headers_frame.get_data()
         headers = json.dumps(headers)
-        varlist = re.finditer(r"\{\{[^{}]*\}\}", headers)
-        for m in varlist:
-            value = get_variable(m.group()[2:-2])
-            if value is not None:
-                headers = headers.replace(m.group(), value)
+        headers = self.fill_var(headers)
         headers = json.loads(headers)
 
         req_options = self.body_box.get()
@@ -592,14 +596,11 @@ class RequestWindow:
             body = json.dumps(body)
         else:
             body = ""
-        varlist = re.finditer(r"\{\{[^{}]*\}\}", body)
-        for m in varlist:
-            value = get_variable(m.group()[2:-2])
-            if value is not None:
-                body = body.replace(m.group(), value)
-        if req_options.get("mode") == "urlencoded" or (
-            req_options.get("mode") == "raw" and req_options.get("options") == "JSON"
-        ):
+        body = self.fill_var(body)
+
+        if (req_options.get("mode") == "urlencoded"
+                or (req_options.get("mode") == "raw"
+                    and req_options.get("options") == "JSON")):
             try:
                 body = json.loads(body)
             except json.JSONDecodeError:
@@ -617,11 +618,7 @@ class RequestWindow:
             if isinstance(opt_auth[item], dict):
                 for citem in opt_auth[item]:
                     temp = opt_auth[item][citem]
-                    varlist = re.finditer(r"\{\{[^{}]*\}\}", temp)
-                    for m in varlist:
-                        value = get_variable(m.group()[2:-2])
-                        if value is not None:
-                            temp = temp.replace(m.group(), value)
+                    temp = self.fill_var(temp)
                     opt_auth[item][citem] = temp
         auth = None
         if opt_auth["type"] == "base":
@@ -657,13 +654,25 @@ class RequestWindow:
                 )
 
         try:
-            exec(pre_request_script)
+            exec(pre_request_script, {
+                "req": {"body": body, "headers": headers, "url": url},
+                "globals": self.get_globals,
+                "collectionVariables": self.local_variable,
+                "environment": self.env_variable,
+                "console": console
+            })
         except Exception as error:
             console.error(str(error))
 
         for script in script_list:
             try:
-                exec(script["pre_request_script"])
+                exec(script["pre_request_script"], {
+                    "req": {"body": body, "headers": headers, "url": url},
+                    "globals": self.get_globals,
+                    "collectionVariables": self.local_variable,
+                    "environment": self.env_variable,
+                    "console": console
+                })
             except Exception as error:
                 console.error(str(error))
         start_time = time.time()
@@ -726,9 +735,7 @@ class RequestWindow:
             chunk_size = 1000
 
             def insert_chunk(offset):
-                self.res_body_box.insert(
-                    tk.END, soup.prettify()[offset : offset + chunk_size]
-                )
+                self.res_body_box.insert(tk.END, soup.prettify()[offset: offset + chunk_size])
                 self.res_body_box.after(1, insert_chunk, offset + chunk_size)
 
             insert_chunk(0)
@@ -745,17 +752,27 @@ class RequestWindow:
             self.res_body_box.insert(tk.END, response.text)
 
         self.res_tests_box.delete("1.0", tk.END)
-        self.res_tests_box.insert(
-            tk.END, f"Get {url} {response.status_code} {cost_time}"
-        )
+        self.res_tests_box.insert(tk.END, f"Get {url} {response.status_code} {cost_time}")
         try:
-            exec(tests)
+            exec(tests, {
+                "res": response,
+                "globals": self.get_globals,
+                "collectionVariables": self.local_variable,
+                "environment": self.env_variable,
+                "console": console
+            })
         except Exception as error:
             console.error(str(error))
 
         for script in script_list:
             try:
-                exec(script["tests"])
+                exec(script["tests"], {
+                    "res": response,
+                    "globals": self.get_globals,
+                    "collectionVariables": self.local_variable,
+                    "environment": self.env_variable,
+                    "console": console
+                })
             except Exception as error:
                 console.error(str(error))
 
@@ -802,6 +819,4 @@ class RequestWindow:
         path = x.path
         params = x.params
         fragment = x.fragment
-        self.url.set(
-            urllib.parse.urlunparse((scheme, netloc, path, params, query, fragment))
-        )
+        self.url.set(urllib.parse.urlunparse((scheme, netloc, path, params, query, fragment)))
