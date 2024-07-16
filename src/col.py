@@ -14,28 +14,9 @@ class CollectionWindow:
     def __init__(self, window, callback=None):
         self.window = window
         self.callback = callback
-        self.images = [
-            tk.PhotoImage(
-                name="add",
-                file=os.path.join(BASE_DIR, *("assets", "16", "add.png")),
-                height=16,
-                width=16
-            ),
-            tk.PhotoImage(
-                name="import",
-                file=os.path.join(BASE_DIR, *("assets", "16", "import.png")),
-                height=16,
-                width=16
-            )
-        ]
         frame = ttk.Frame(window)
-        ttk.Label(frame, text='Collection').pack(side=tk.LEFT)
-        ttk.Button(frame, image="import", command=self.open_proj).pack(
-            side=tk.RIGHT
-        )
-        ttk.Button(frame, image="add", command=self.new_proj).pack(
-            side=tk.RIGHT
-        )
+        ttk.Button(frame, text="import", command=self.open_proj).pack(side=tk.RIGHT)
+        ttk.Button(frame, text="add", command=self.new_proj).pack(side=tk.RIGHT)
         
         frame.pack(fill=tk.X)
         self.tree = ttk.Treeview(window, show="tree")
@@ -49,9 +30,7 @@ class CollectionWindow:
 
     def open_proj(self):
         """open a program"""
-        filepath = filedialog.askopenfilename(
-            filetypes=(("Json files", "*.json"),), initialdir=USER_DIR
-        )
+        filepath = filedialog.askopenfilename(filetypes=(("Json files", "*.json"),), initialdir=USER_DIR)
         if filepath:
             with open(filepath, "r", encoding="utf-8") as f:
                 try:

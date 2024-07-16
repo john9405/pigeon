@@ -95,10 +95,10 @@ class EditorTable(ttk.Frame):
         if self.editable:
             ttk.Button(
                 action_bar,
-                text="save",
+                text="Submit",
                 command=lambda: self.commit(item_id, win, name_entry, value_entry),
             ).pack(side="left")
-        ttk.Button(action_bar, text="cancel", command=win.destroy).pack(side="left")
+        ttk.Button(action_bar, text="Cancel", command=win.destroy).pack(side="left")
         action_bar.pack(pady=(10, 0))
 
     def commit(

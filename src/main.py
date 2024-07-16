@@ -33,56 +33,36 @@ class MainWindow:
 
         top_bar = ttk.Frame(self.root)
         top_bar.pack(fill=tk.X)
-        ttk.Separator(self.root).pack(fill=tk.X)
         state_bar = ttk.Frame(self.root)
         state_bar.pack(side=tk.BOTTOM, fill=tk.X)
-        ttk.Separator(self.root).pack(side=tk.BOTTOM, fill=tk.X)
         side_bar = ttk.Frame(self.root)
         side_bar.pack(side=tk.LEFT, fill=tk.Y)
-        ttk.Separator(self.root, orient=tk.VERTICAL).pack(side=tk.LEFT, fill=tk.Y)
 
-        pw1 = ttk.PanedWindow(self.root, orient=tk.HORIZONTAL)
-        self.main_sidebar = ttk.Frame(pw1)
-        pw1.add(self.main_sidebar)
-        self.pw2 = ttk.PanedWindow(pw1)
-        self.notebook = ttk.Notebook(self.pw2)
-        self.pw2.add(self.notebook, weight=11)
-        self.console_top = ttk.Frame(self.pw2)
-        pw1.add(self.pw2)
-        pw1.pack(fill="both", expand=True)
+        pwa = ttk.PanedWindow(self.root, orient=tk.HORIZONTAL)
+        pwa.pack(fill="both", expand=True)
+        self.notebook = ttk.Notebook(pwa)
+        pwa.add(self.notebook, weight=3)
+        pwb = ttk.PanedWindow(pwa)
+        pwa.add(pwb, weight=1)
+        nba = ttk.Notebook(pwb)
+        pwb.add(nba, weight=5)
+        nbb = ttk.Notebook(pwb)
+        pwb.add(nbb, weight=5)
 
-        self.col_top = ttk.Frame(self.main_sidebar)
-        self.col_win = CollectionWindow(self.col_top, **{"callback": self.collection})
-        self.history_top = ttk.Frame(self.main_sidebar)
-        self.history_window = HistoryWindow(self.history_top, self.history)
-        self.env_win = EnvironmentWindow(master=self.main_sidebar, callback=self.environment)
-        self.env_top = self.env_win.root
-        self.col_top.pack(expand=True, fill=tk.BOTH)
-        self.sidebar = "collection"
+        col_top = ttk.Frame(nba)
+        self.col_win = CollectionWindow(col_top, **{"callback": self.collection})
+        nba.add(col_top, text='collection')
+        self.env_win = EnvironmentWindow(master=nba, callback=self.environment)
+        nba.add(self.env_win.root, text='environment')
+        history_top = ttk.Frame(nbb)
+        self.history_window = HistoryWindow(history_top, self.history)
+        nbb.add(history_top, text='history')
+        console_top = ttk.Frame(nbb)
+        self.console_window = ConsoleWindow(console_top)
+        nbb.add(console_top, text='console')
 
-        self.console_window = ConsoleWindow(self.console_top)
         self.new_request()
 
-        self.images = [
-            tk.PhotoImage(
-                name="collection",
-                file=os.path.join(BASE_DIR, *("assets", "32", "work.png")),
-                height=32,
-                width=32,
-            ),
-            tk.PhotoImage(
-                name="environment",
-                file=os.path.join(BASE_DIR, *("assets", "32", "training.png")),
-                height=32,
-                width=32,
-            ),
-            tk.PhotoImage(
-                name="history",
-                file=os.path.join(BASE_DIR, *("assets", "32", "history.png")),
-                height=32,
-                width=32,
-            )
-        ]
         ttk.Button(top_bar, text="Request", command=self.new_request).pack(side=tk.LEFT)
         ttk.Button(top_bar, text="AES", command=lambda: self.show_label("AES")).pack(side=tk.LEFT)
         ttk.Button(top_bar, text="Base64", command=lambda: self.show_label("Base64")).pack(side=tk.LEFT)
@@ -94,36 +74,7 @@ class MainWindow:
         ttk.Button(top_bar, text="About", command=lambda: self.show_label("About")).pack(side=tk.LEFT)
         ttk.Button(top_bar, text="close", command=self.close_request).pack(side=tk.LEFT)
 
-        ttk.Button(side_bar, image="collection", command=lambda: self.switch_label("collection")).pack()
-        ttk.Button(side_bar, image="environment", command=lambda: self.switch_label("environment")).pack()
-        ttk.Button(side_bar, image="history", command=lambda: self.switch_label("history")).pack()
-
         ttk.Sizegrip(state_bar).pack(side="right", anchor="se")
-        ttk.Button(state_bar, text="Console", command=self.show_console).pack(side=tk.RIGHT, padx=15)
-
-    def show_console(self):
-        if self.console_state:
-            self.pw2.forget(self.console_top)
-            self.console_state =False
-        else:
-            self.pw2.add(self.console_top, weight=1)
-            self.console_state = True
-
-    def switch_label(self, name):
-        if self.sidebar != name:
-            if self.sidebar == 'collection':
-                self.col_top.forget()
-            elif self.sidebar == 'history':
-                self.history_top.forget()
-            elif self.sidebar == 'environment':
-                self.env_top.forget()
-            if name == 'collection':
-                self.col_top.pack(expand=tk.YES, fill=tk.BOTH)
-            elif name == 'history':
-                self.history_top.pack(expand=tk.YES, fill=tk.BOTH)
-            elif name == 'environment':
-                self.env_top.pack(expand=tk.YES, fill=tk.BOTH)
-            self.sidebar = name
 
     def show_label(self, name):
         if name in self.tag_list:
@@ -145,6 +96,8 @@ class MainWindow:
                 gui = HelpWindow(self.notebook)
             elif name == "About":
                 gui = AboutWindow(self.notebook)
+            else:
+                gui = None
             self.notebook.add(gui.root, text=name)
             self.notebook.select(self.notebook.index(tk.END) - 1)
             self.tag_list.append(name)

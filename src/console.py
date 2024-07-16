@@ -39,10 +39,9 @@ class ConsoleWindow:
         self.window = window
         ff = ttk.Frame(window)
         ff.pack(fill=tk.X)
-        ttk.Label(ff, text="Console").pack(side=tk.LEFT)
         ttk.Button(ff, text="Clear", command=self.clear).pack(side="right")
 
-        self.text_box = ScrolledText(window, height=12)
+        self.text_box = ScrolledText(window, height=12, width=12)
         self.text_box.pack(fill=tk.BOTH, expand=tk.YES)
 
     def log(self, data):

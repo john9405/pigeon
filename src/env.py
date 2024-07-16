@@ -17,7 +17,6 @@ class EnvironmentWindow:
         self.root = ttk.Frame(master)
         action_frame = ttk.Frame(self.root)
         action_frame.pack(fill=tk.X)
-        ttk.Label(action_frame, text="Environment").pack(side=tk.LEFT)
         ttk.Button(action_frame, text="Add", command=self.on_add).pack(side=tk.RIGHT)
         self.treeview = ttk.Treeview(self.root, show="tree")
         self.treeview.pack(fill=tk.BOTH, expand=tk.YES)
