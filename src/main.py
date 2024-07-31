@@ -30,6 +30,7 @@ class MainWindow:
         self.root.title("HTTP Client")
         self.root.after(0, self.on_start)
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
+        self.root.geometry("800x600")
 
         top_bar = ttk.Frame(self.root)
         top_bar.pack(fill=tk.X)
@@ -38,76 +39,46 @@ class MainWindow:
         side_bar = ttk.Frame(self.root)
         side_bar.pack(side=tk.LEFT, fill=tk.Y)
 
-        pwa = ttk.PanedWindow(self.root, orient=tk.HORIZONTAL)
-        pwa.pack(fill="both", expand=True)
-        self.notebook = ttk.Notebook(pwa)
-        pwa.add(self.notebook, weight=3)
-        pwb = ttk.PanedWindow(pwa)
-        pwa.add(pwb, weight=1)
-        nba = ttk.Notebook(pwb)
-        pwb.add(nba, weight=5)
-        nbb = ttk.Notebook(pwb)
-        pwb.add(nbb, weight=5)
-
+        nba = ttk.Notebook(self.root)
         col_top = ttk.Frame(nba)
         self.col_win = CollectionWindow(col_top, **{"callback": self.collection})
         nba.add(col_top, text='collection')
         self.env_win = EnvironmentWindow(master=nba, callback=self.environment)
         nba.add(self.env_win.root, text='environment')
-        history_top = ttk.Frame(nbb)
+        history_top = ttk.Frame(nba)
         self.history_window = HistoryWindow(history_top, self.history)
-        nbb.add(history_top, text='history')
-        console_top = ttk.Frame(nbb)
+        nba.add(history_top, text='history')
+        console_top = ttk.Frame(nba)
         self.console_window = ConsoleWindow(console_top)
-        nbb.add(console_top, text='console')
+        nba.add(console_top, text='console')
+        nba.pack(fill='both', expand=True)
 
-        self.new_request()
+        menu = tk.Menu(self.root)
+        file_menu = tk.Menu(menu, tearoff=False)
+        file_menu.add_command(label="New request", command=self.new_request)
+        file_menu.add_command(label="New collection", command=self.col_win.new_col)
+        file_menu.add_command(label="Import", command=self.col_win.open_proj)
+        file_menu.add_command(label="Export", command=self.col_win.export_proj)
+        file_menu.add_command(label="Exit", command=self.on_closing)
+        menu.add_cascade(label="File", menu=file_menu)
+        tool_menu = tk.Menu(menu, tearoff=False)
+        tool_menu.add_command(label="AES", command=AesGui)
+        tool_menu.add_command(label="Base64", command=Base64GUI)
+        tool_menu.add_command(label="MD5", command=MD5GUI)
+        tool_menu.add_command(label="PWD", command=GenPwdWindow)
+        tool_menu.add_command(label="Timestamp", command=TimestampWindow)
+        tool_menu.add_command(label="Regex", command=RegexWindow)
+        menu.add_cascade(label="Tools", menu=tool_menu)
+        help_menu = tk.Menu(menu, tearoff=False)
+        help_menu.add_command(label="Help", command=HelpWindow)
+        help_menu.add_command(label="About", command=AboutWindow)
+        menu.add_cascade(label="Help", menu=help_menu)
+        self.root.config(menu=menu)
 
-        ttk.Button(top_bar, text="Request", command=self.new_request).pack(side=tk.LEFT)
-        ttk.Button(top_bar, text="AES", command=lambda: self.show_label("AES")).pack(side=tk.LEFT)
-        ttk.Button(top_bar, text="Base64", command=lambda: self.show_label("Base64")).pack(side=tk.LEFT)
-        ttk.Button(top_bar, text="MD5", command=lambda: self.show_label("MD5")).pack(side=tk.LEFT)
-        ttk.Button(top_bar, text="PWD", command=lambda: self.show_label("Password")).pack(side=tk.LEFT)
-        ttk.Button(top_bar, text="Timestamp", command=lambda: self.show_label("Timestamp")).pack(side=tk.LEFT)
-        ttk.Button(top_bar, text="Regex", command=lambda: self.show_label("Regex")).pack(side=tk.LEFT)
-        ttk.Button(top_bar, text="Help", command=lambda: self.show_label("Help")).pack(side=tk.LEFT)
-        ttk.Button(top_bar, text="About", command=lambda: self.show_label("About")).pack(side=tk.LEFT)
-        ttk.Button(top_bar, text="close", command=self.close_request).pack(side=tk.LEFT)
-
-        ttk.Sizegrip(state_bar).pack(side="right", anchor="se")
-
-    def show_label(self, name):
-        if name in self.tag_list:
-            self.notebook.select(self.tag_list.index(name))
-        else:
-            if name == "AES":
-                gui = AesGui(self.notebook)
-            elif name == "Base64":
-                gui = Base64GUI(self.notebook)
-            elif name == "MD5":
-                gui = MD5GUI(self.notebook)
-            elif name == "Password":
-                gui = GenPwdWindow(self.notebook)
-            elif name == "Timestamp":
-                gui = TimestampWindow(self.notebook)
-            elif name == "Regex":
-                gui = RegexWindow(self.notebook)
-            elif name == "Help":
-                gui = HelpWindow(self.notebook)
-            elif name == "About":
-                gui = AboutWindow(self.notebook)
-            else:
-                gui = None
-            self.notebook.add(gui.root, text=name)
-            self.notebook.select(self.notebook.index(tk.END) - 1)
-            self.tag_list.append(name)
+        ttk.Sizegrip(self.root).pack(side="bottom", anchor="se")
 
     def new_request(self, data=None, **kwargs):
-        if kwargs.get("item_id") in self.tag_list:
-            self.notebook.select(self.tag_list.index(kwargs["item_id"]))
-            return
-
-        tl = ttk.Frame(self.notebook)
+        tl = tk.Toplevel(self.root)
         req_win = RequestWindow(
             window=tl, 
             callback=self.request, 
@@ -118,9 +89,6 @@ class MainWindow:
         req_win.item_id = kwargs.get("item_id")
         if data is not None:
             req_win.fill_blank(data)
-        self.notebook.add(tl, text="Request")
-        self.notebook.select(self.notebook.index(tk.END) - 1)
-        self.tag_list.append(kwargs.get("item_id", ""))
 
     def on_start(self):
         t1 = threading.Thread(target=self.col_win.on_start)
@@ -137,32 +105,20 @@ class MainWindow:
         self.root.destroy()
 
     def collection(self, **kwargs):
-        if kwargs["item_id"] in self.tag_list:
-            self.notebook.select(self.tag_list.index(kwargs["item_id"]))
-            return
-
         if kwargs["tag"] == "project":
-            win = ProjectWindow(
-                master=self.notebook,
+            ProjectWindow(
+                master=self.root,
                 item_id=kwargs["item_id"],
                 callback=self.col_win.save_item,
                 data=kwargs["data"],
             )
-            self.notebook.add(win.root, text=kwargs["tag"])
-            self.notebook.select(self.notebook.index(tk.END) - 1)
-            self.tag_list.append(kwargs["item_id"])
-
-        if kwargs["tag"] == "folder":
-            folder_window = FolderWindow(
-                master=self.notebook,
+        elif kwargs["tag"] == "folder":
+            FolderWindow(
+                master=self.root,
                 item_id=kwargs["item_id"],
                 callback=self.col_win.save_item,
                 data=kwargs["data"],
             )
-            self.notebook.add(folder_window.root, text=kwargs["tag"])
-            self.notebook.select(self.notebook.index(tk.END) - 1)
-            self.tag_list.append(kwargs["item_id"])
-
         else:
             self.new_request(kwargs["data"], item_id=kwargs["item_id"])
 
@@ -191,21 +147,9 @@ class MainWindow:
         self.new_request(kwargs.get("data"))
 
     def environment(self, **kwargs):
-        if "env_" + kwargs.get("item_id") in self.tag_list:
-            self.notebook.select(self.tag_list.index("env_" + kwargs["item_id"]))
-            return
-        gui = VariableWindow(
-            self.notebook,
+        VariableWindow(
+            self.root,
             collection=kwargs.get("collection", ""),
             data=kwargs.get("data", {}),
             set_variable=self.env_win.set_variable,
         )
-        self.notebook.add(gui.root, text=kwargs.get("collection"))
-        self.notebook.select(self.notebook.index(tk.END) - 1)
-        self.tag_list.append("env_" + kwargs.get("item_id", ""))
-
-    def close_request(self):
-        page = self.notebook.select()
-        if page:
-            self.tag_list.pop(self.notebook.index(page))
-            self.notebook.forget(page)

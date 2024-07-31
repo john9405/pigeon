@@ -7,7 +7,7 @@ import re
 class GenPwdWindow:
     """ 随即密码生成器 """
     def __init__(self, master=None) -> None:
-        self.root = ttk.Frame(master)
+        self.root = tk.Toplevel(master)
         self.dcb = tk.BooleanVar(value=True)  # 数字
         self.lccb = tk.BooleanVar(value=True)  # 小写字母
         self.uccb = tk.BooleanVar(value=True)  # 大写字母

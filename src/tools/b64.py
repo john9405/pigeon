@@ -6,7 +6,7 @@ from tkinter import messagebox, ttk
 class Base64GUI:
     """ base64 Window """
     def __init__(self, master=None) -> None:
-        self.root = ttk.Frame(master)
+        self.root = tk.Toplevel(master)
 
         input_frame = ttk.LabelFrame(self.root, text="Input")
         input_frame.pack()

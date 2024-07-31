@@ -16,7 +16,7 @@ class EnvironmentWindow:
         self.callback = kwargs.get("callback")
         self.root = ttk.Frame(master)
         action_frame = ttk.Frame(self.root)
-        action_frame.pack(fill=tk.X)
+        # action_frame.pack(fill=tk.X)
         ttk.Button(action_frame, text="Add", command=self.on_add).pack(side=tk.RIGHT)
         self.treeview = ttk.Treeview(self.root, show="tree")
         self.treeview.pack(fill=tk.BOTH, expand=tk.YES)
@@ -105,7 +105,8 @@ class EnvironmentWindow:
 class VariableWindow:
 
     def __init__(self, master=None, **kwargs):
-        self.root = ttk.Frame(master)
+        self.root = tk.Toplevel(master)
+        self.root.geometry("800x600")
         edit_table = EditorTable(self.root, editable=True)
         save_btn = ttk.Button(
             self.root,

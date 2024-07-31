@@ -1,3 +1,4 @@
+import tkinter as tk
 from tkinter import *
 from tkinter import ttk, messagebox
 from tkinter.scrolledtext import ScrolledText
@@ -10,7 +11,7 @@ from Crypto.Util.Padding import pad, unpad
 class AesGui:
     """ aes Window """
     def __init__(self, master=None):
-        self.root = ttk.Frame(master)
+        self.root = tk.Toplevel(master)
 
         label2 = ttk.Label(self.root, text="Key:")
         label2.grid(row=0, column=0, sticky=E)

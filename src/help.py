@@ -1,3 +1,4 @@
+import tkinter as tk
 from tkinter import ttk
 from tkinter.scrolledtext import ScrolledText
 
@@ -6,7 +7,7 @@ class HelpWindow:
     """帮助窗口"""
 
     def __init__(self, master=None):
-        root = ttk.Frame(master)
+        root = tk.Toplevel(master)
         self.root = root
         label = ScrolledText(root)
         label.insert('1.0', """

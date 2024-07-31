@@ -421,7 +421,9 @@ class RequestWindow:
 
     def __init__(self, **kwargs):
         self.callback = kwargs.get("callback")
-        window = kwargs.get("window")
+        self.root = kwargs.get("window")
+        window = ttk.Frame(self.root)
+        window.pack(fill='both', expand=tk.YES, padx=5, pady=5)
         self.get_script = kwargs.get("get_script")
         self.env_variable = kwargs.get("env_variable")
         self.local_variable = kwargs.get("local_variable")

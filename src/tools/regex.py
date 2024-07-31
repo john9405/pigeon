@@ -8,7 +8,7 @@ from .. import BASE_DIR
 class RegexWindow:
     def __init__(self, master=None) -> None:
         # 创建主窗口
-        root = ttk.Frame(master)
+        root = tk.Toplevel(master)
 
         # 创建选项
         options_frame = ttk.Frame(root)
