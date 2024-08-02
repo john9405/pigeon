@@ -801,7 +801,7 @@ class RequestWindow:
 
     def get_params(self):
         x = urllib.parse.urlparse(self.url.get())
-        y = urllib.parse.parse_qs(x.query)
+        y = urllib.parse.parse_qs(x.query, keep_blank_values=True)
         data = {}
         for item in y.keys():
             if len(y[item]) == 1:

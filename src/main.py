@@ -30,7 +30,7 @@ class MainWindow:
         self.root.title("HTTP Client")
         self.root.after(0, self.on_start)
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
-        self.root.geometry("800x600")
+        self.root.geometry("400x300")
 
         top_bar = ttk.Frame(self.root)
         top_bar.pack(fill=tk.X)
@@ -51,7 +51,7 @@ class MainWindow:
         console_top = ttk.Frame(nba)
         self.console_window = ConsoleWindow(console_top)
         nba.add(console_top, text='console')
-        nba.pack(fill='both', expand=True)
+        nba.pack(fill='both', expand=True, padx=5)
 
         menu = tk.Menu(self.root)
         file_menu = tk.Menu(menu, tearoff=False)

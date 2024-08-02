@@ -11,54 +11,56 @@ from Crypto.Util.Padding import pad, unpad
 class AesGui:
     """ aes Window """
     def __init__(self, master=None):
-        self.root = tk.Toplevel(master)
+        toplevel = tk.Toplevel(master)
+        self.root = ttk.Frame(toplevel)
+        self.root.pack(fill='both', expand=True, padx=5, pady=5)
 
-        label2 = ttk.Label(self.root, text="Key:")
+        frame1 = ttk.Frame(self.root)
+        label2 = ttk.Label(frame1, text="Key:")
         label2.grid(row=0, column=0, sticky=E)
-        self.entry2 = ttk.Entry(self.root)
+        self.entry2 = ttk.Entry(frame1)
         self.entry2.grid(row=0, column=1, sticky=W)
 
-        label7 = ttk.Label(self.root, text="IV:")
+        label7 = ttk.Label(frame1, text="IV:")
         label7.grid(row=1, column=0, sticky=E)
-        self.entry3 = ttk.Entry(self.root)
+        self.entry3 = ttk.Entry(frame1)
         self.entry3.grid(row=1, column=1, sticky=W)
 
-        label3 = ttk.Label(self.root, text="Encryption mode:")
+        label3 = ttk.Label(frame1, text="Encryption mode:")
         label3.grid(row=2, column=0, sticky=E)
-        self.mode_box = ttk.Combobox(self.root, values=("ECB", "CBC"))
+        self.mode_box = ttk.Combobox(frame1, values=("ECB", "CBC"))
         self.mode_box.current(0)
         self.mode_box.grid(row=2, column=1, sticky=W)
 
-        label4 = ttk.Label(self.root, text="Padding mode:")
+        label4 = ttk.Label(frame1, text="Padding mode:")
         label4.grid(row=3, column=0, sticky=E)
-        self.padding_box = ttk.Combobox(self.root, values=("nopadding", "pkcs7", "iso7816", "x923"))
+        self.padding_box = ttk.Combobox(frame1, values=("nopadding", "pkcs7", "iso7816", "x923"))
         self.padding_box.current(0)
         self.padding_box.grid(row=3, column=1, sticky=W)
 
-        label5 = ttk.Label(self.root, text="Block length:")
+        label5 = ttk.Label(frame1, text="Block length:")
         label5.grid(row=4, column=0, sticky=E)
-        self.blocksize_box = ttk.Combobox(self.root, values=("128", "192", "256"))
+        self.blocksize_box = ttk.Combobox(frame1, values=("128", "192", "256"))
         self.blocksize_box.current(0)
         self.blocksize_box.grid(row=4, column=1, sticky=W)
-
+        frame1.pack()
         # 创建输入框和标签
         label1 = ttk.LabelFrame(self.root, text="Input:")
-        label1.grid(row=5, column=0, columnspan=2)
         self.entry1 = ScrolledText(label1, width=50, height=10)
-        self.entry1.pack()
-        
+        self.entry1.pack(fill='both', expand=True)
+        label1.pack(fill='both', expand=True)
         # 创建加密和解密按钮
-        encrypt_button = ttk.Button(self.root, text="Encrypt", command=self.encrypt)
+        frame2 = ttk.Frame(self.root)
+        encrypt_button = ttk.Button(frame2, text="Encrypt", command=self.encrypt)
         encrypt_button.grid(row=6, column=0)
-
-        decrypt_button = ttk.Button(self.root, text="Decrypt", command=self.decrypt)
+        decrypt_button = ttk.Button(frame2, text="Decrypt", command=self.decrypt)
         decrypt_button.grid(row=6, column=1)
-
+        frame2.pack()
         # 创建输出框和标签
         label6 = ttk.LabelFrame(self.root, text="Output:")
-        label6.grid(row=7, column=0, columnspan=2)
         self.text = ScrolledText(label6, width=50, height=10)
-        self.text.pack()
+        self.text.pack(fill='both', expand=True)
+        label6.pack(fill='both', expand=True)
 
     # 加密函数
     def encrypt(self):

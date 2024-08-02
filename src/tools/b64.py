@@ -1,27 +1,31 @@
 import base64
 import tkinter as tk
 from tkinter import messagebox, ttk
+from tkinter.scrolledtext import ScrolledText
 
 
 class Base64GUI:
     """ base64 Window """
     def __init__(self, master=None) -> None:
-        self.root = tk.Toplevel(master)
-
+        toplevel = tk.Toplevel(master)
+        self.root = ttk.Frame(toplevel)
+        self.root.pack(fill='both', expand=True, padx=5, pady=5)
         input_frame = ttk.LabelFrame(self.root, text="Input")
-        input_frame.pack()
-        self.input_box = tk.Text(input_frame, height=10)
-        self.input_box.pack()
+        self.input_box = ScrolledText(input_frame, height=10)
+        self.input_box.pack(fill="both", expand=True)
+        input_frame.pack(fill="both", expand=True)
+
         bframe = tk.Frame(self.root)
-        bframe.pack()
         ebtn = ttk.Button(bframe, text="Encrypt", command=self.encrypto)
         ebtn.pack(side=tk.LEFT)
         dbtn = ttk.Button(bframe, text="Decrypt", command=self.decrypto)
         dbtn.pack(side=tk.LEFT)
+        bframe.pack()
+
         output_frame = ttk.LabelFrame(self.root, text="Output")
-        output_frame.pack()
-        self.output_box = tk.Text(output_frame, height=10)
-        self.output_box.pack()
+        self.output_box = ScrolledText(output_frame, height=10)
+        self.output_box.pack(fill="both", expand=True)
+        output_frame.pack(fill="both", expand=True)
 
     def encrypto(self):
         input_text = self.input_box.get(1.0, tk.END)

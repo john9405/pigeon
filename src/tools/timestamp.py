@@ -8,7 +8,9 @@ class TimestampWindow:
     """时间戳转换工具"""
 
     def __init__(self, master=None):
-        self.root = tk.Toplevel(master)
+        toplevel = tk.Toplevel(master)
+        self.root = ttk.Frame(toplevel)
+        self.root.pack(fill='both', expand=True, padx=5, pady=5)
         # 时间戳转日期时间
         ttk.Label(self.root, text="Timestamp:").grid(row=0, column=0)
         self.timestamp_entry = ttk.Entry(self.root)
