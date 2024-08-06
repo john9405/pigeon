@@ -1,12 +1,9 @@
-import os
 import threading
 import tkinter as tk
 from tkinter import ttk
 
-from . import BASE_DIR
 from .his import HistoryWindow
 from .req import RequestWindow
-from .console import ConsoleWindow
 from .col import CollectionWindow, ProjectWindow, FolderWindow
 from .env import EnvironmentWindow, VariableWindow
 from .help import HelpWindow
@@ -48,9 +45,6 @@ class MainWindow:
         history_top = ttk.Frame(nba)
         self.history_window = HistoryWindow(history_top, self.history)
         nba.add(history_top, text='history')
-        console_top = ttk.Frame(nba)
-        self.console_window = ConsoleWindow(console_top)
-        nba.add(console_top, text='console')
         nba.pack(fill='both', expand=True, padx=5)
 
         menu = tk.Menu(self.root)
@@ -127,17 +121,6 @@ class MainWindow:
         if action == "cache":
             # Cache history
             self.history_window.on_cache(kwargs.get("data"))
-        elif action == "console":
-            # Write console
-            level = kwargs.get("level")
-            if level == "log":
-                self.console_window.log(kwargs.get("content"))
-            elif level == "info":
-                self.console_window.info(kwargs.get("content"))
-            elif level == "error":
-                self.console_window.error(kwargs.get("content"))
-            elif level == "warning":
-                self.console_window.warning(kwargs.get("content"))
         elif action == "save":
             return self.col_win.save_item(kwargs["item_id"], kwargs["data"])
         return None

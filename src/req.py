@@ -31,7 +31,6 @@ from bs4 import BeautifulSoup
 from PIL import Image, ImageTk
 
 from . import USER_DIR
-from .console import Console
 from .utils import EditorTable
 
 
@@ -497,7 +496,7 @@ class RequestWindow:
         res_note.add(self.res_header_table, text="Headers")
 
         self.res_tests_box = ScrolledText(res_note)
-        res_note.add(self.res_tests_box, text="Test Results")
+        res_note.add(self.res_tests_box, text="Console")
 
     def save_handler(self):
         """Save test script"""
@@ -574,7 +573,7 @@ class RequestWindow:
 
     def http_handle(self):
         """Define the function that sends the request"""
-        console = Console(self.console)
+        console = Console(self.res_tests_box)
         # Gets the request method and URL
         method = self.method_box.get()
         url = self.url.get()
@@ -753,8 +752,7 @@ class RequestWindow:
         else:
             self.res_body_box.insert(tk.END, response.text)
 
-        self.res_tests_box.delete("1.0", tk.END)
-        self.res_tests_box.insert(tk.END, f"Get {url} {response.status_code} {cost_time}")
+        console.info(f"Get {url} {response.status_code} {cost_time}")
         try:
             exec(tests, {
                 "res": response,
@@ -796,9 +794,6 @@ class RequestWindow:
         if self.item_id is not None:
             self.save_handler()
 
-    def console(self, data):
-        self.callback("console", **data)
-
     def get_params(self):
         x = urllib.parse.urlparse(self.url.get())
         y = urllib.parse.parse_qs(x.query, keep_blank_values=True)
@@ -822,3 +817,47 @@ class RequestWindow:
         params = x.params
         fragment = x.fragment
         self.url.set(urllib.parse.urlunparse((scheme, netloc, path, params, query, fragment)))
+
+
+class Console:
+    def __init__(self, text: ScrolledText):
+        self.text = text
+
+    def to_string(self, *args) -> str:
+        temp = ""
+        for item in args:
+            if isinstance(item, (str, int, float)):
+                temp += f"{item} "
+            elif isinstance(item, (dict, list)):
+                temp += f"{json.dumps(item, indent=4, ensure_ascii=False)}"
+            else:
+                temp += str(temp)
+        return temp
+
+    def log(self, *args):
+        self.text.insert(tk.END, self.to_string(*args))
+        self.text.insert(tk.END, "\n")
+
+    def info(self, *args):
+        self.text.insert(tk.END, self.to_string(*args))
+        line_start = self.text.index("insert linestart")
+        line_end = self.text.index("insert lineend")
+        self.text.tag_config("error", foreground="blue")
+        self.text.tag_add("error", line_start, line_end)
+        self.text.insert(tk.END, "\n")
+
+    def error(self, *args):
+        self.text.insert(tk.END, self.to_string(*args))
+        line_start = self.text.index("insert linestart")
+        line_end = self.text.index("insert lineend")
+        self.text.tag_config("error", foreground="red")
+        self.text.tag_add("error", line_start, line_end)
+        self.text.insert(tk.END, "\n")
+
+    def warning(self, *args):
+        self.text.insert(tk.END, self.to_string(*args))
+        line_start = self.text.index("insert linestart")
+        line_end = self.text.index("insert lineend")
+        self.text.tag_config("warning", foreground="orange")
+        self.text.tag_add("warning", line_start, line_end)
+        self.text.insert(tk.END, "\n")

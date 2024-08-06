@@ -1,6 +1,7 @@
 import platform
 import tkinter as tk
 from tkinter import ttk, messagebox
+from tkinter.scrolledtext import ScrolledText
 from typing import Optional
 
 
@@ -81,14 +82,14 @@ class EditorTable(ttk.Frame):
         name_label.pack(anchor="w")
         name_entry = ttk.Entry(frame)
         if item_id:
-            name_entry.insert(0, name)
-        name_entry.pack()
+            name_entry.insert('end', name)
+        name_entry.pack(fill='x')
 
         value_label = ttk.Label(frame, text="value")
         value_label.pack(anchor="w")
-        value_entry = ttk.Entry(frame)
+        value_entry = ScrolledText(frame)
         if item_id:
-            value_entry.insert(0, value)
+            value_entry.insert('end', value)
         value_entry.pack()
 
         action_bar = ttk.Frame(frame)
@@ -106,10 +107,10 @@ class EditorTable(ttk.Frame):
         item_id: Optional[str] = None,
         win: Optional[tk.Toplevel] = None,
         name_entry: Optional[ttk.Entry] = None,
-        value_entry: Optional[ttk.Entry] = None,
+        value_entry: Optional[ScrolledText] = None,
     ):
         name = name_entry.get()
-        value = value_entry.get()
+        value = value_entry.get('1.0', "end")[:-1]
         if self.check_name(item_id, name):
             if item_id is None:
                 self.treeview.insert("", tk.END, values=(name, value))
