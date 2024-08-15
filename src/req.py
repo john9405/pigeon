@@ -419,7 +419,6 @@ class RequestWindow:
     method_list = ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]
 
     def __init__(self, **kwargs):
-        self.callback = kwargs.get("callback")
         self.root = kwargs.get("window")
         window = ttk.Frame(self.root)
         window.pack(fill='both', expand=tk.YES, padx=5, pady=5)
@@ -427,6 +426,8 @@ class RequestWindow:
         self.env_variable = kwargs.get("env_variable")
         self.glb_variable = kwargs.get('glb_variable')
         self.local_variable = kwargs.get("local_variable")
+        self.cache_history = kwargs.get('cache_history')
+        self.save_item = kwargs.get('save_item')
 
         ff = ttk.Frame(window)
         ff.pack(fill=tk.X)
@@ -518,22 +519,17 @@ class RequestWindow:
         elif name == "":
             name = "New Request"
 
-        x = self.callback(
-            "save",
-            item_id=self.item_id,
-            data={
-                "method": method,
-                "url": url,
-                "params": params,
-                "headers": headers,
-                "body": body,
-                "pre_request_script": pre_request_script,
-                "tests": tests,
-                "name": name,
-                "auth": opt_auth,
-            },
-        )
-        self.item_id = x
+        self.item_id = self.save_item(self.item_id, {
+            "method": method,
+            "url": url,
+            "params": params,
+            "headers": headers,
+            "body": body,
+            "pre_request_script": pre_request_script,
+            "tests": tests,
+            "name": name,
+            "auth": opt_auth,
+        })
 
     def fill_blank(self, data):
         method = data.get("method", "GET")
@@ -768,10 +764,7 @@ class RequestWindow:
             except Exception as error:
                 console.error(str(error))
 
-        self.callback(
-            "cache",
-            **{
-                "data": {
+        self.cache_history({
                     "method": method,
                     "url": url,
                     "params": self.get_params(),
@@ -780,9 +773,7 @@ class RequestWindow:
                     "pre_request_script": pre_request_script,
                     "tests": tests,
                     "auth": opt_auth,
-                }
-            },
-        )
+        })
         if self.item_id is not None:
             self.save_handler()
 

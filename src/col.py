@@ -322,7 +322,7 @@ class ProjectWindow:
         # tests
         self.tests_box = ScrolledText(notebook)
         self.tests_box.insert(tk.END, data.get("tests", ""))
-        notebook.add(self.tests_box, text="Tests")
+        notebook.add(self.tests_box, text="Post-response Script")
 
         self.variable_frame = EditorTable(notebook, editable=True)
         temp = {}
@@ -388,7 +388,7 @@ class FolderWindow:
         # tests
         self.tests_box = ScrolledText(notebook)
         self.tests_box.insert(tk.END, data.get("tests", ""))
-        notebook.add(self.tests_box, text="Tests")
+        notebook.add(self.tests_box, text="Post-response Script")
 
         notebook.pack(expand=tk.YES, fill=tk.BOTH)
 

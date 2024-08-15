@@ -82,12 +82,13 @@ class MainWindow:
     def new_request(self, data=None, **kwargs):
         tl = ttk.Frame(self.nbb)
         req_win = RequestWindow(
-            window=tl, 
-            callback=self.request, 
+            window=tl,
             get_script=self.col_win.get_script,
             env_variable=self.env_win.get_variable,
             glb_variable=self.env_win.get_globals,
-            local_variable=self.col_win.get_variable
+            local_variable=self.col_win.get_variable,
+            cache_history=self.history_window.on_cache,
+            save_item=self.col_win.save_item
         )
         req_win.item_id = kwargs.get("item_id")
         name = "New Request"
@@ -129,7 +130,7 @@ class MainWindow:
         elif kwargs["tag"] == "folder":
             frame = ttk.Frame(self.nbb)
             FolderWindow(
-                master=self.root,
+                master=frame,
                 item_id=kwargs["item_id"],
                 callback=self.col_win.save_item,
                 data=kwargs["data"],
@@ -139,15 +140,6 @@ class MainWindow:
         else:
             self.new_request(kwargs["data"], item_id=kwargs["item_id"])
         self.tag_list.append(f"col_{kwargs['item_id']}")
-
-    def request(self, action, **kwargs):
-        """Request window callback"""
-        if action == "cache":
-            # Cache history
-            self.history_window.on_cache(kwargs.get("data"))
-        elif action == "save":
-            return self.col_win.save_item(kwargs["item_id"], kwargs["data"])
-        return None
 
     def history(self, **kwargs):
         """History callback"""
