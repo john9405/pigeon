@@ -552,7 +552,7 @@ class RequestWindow:
     def fill_var(self, data):
         varlist = re.finditer(r"\{\{[^{}]*\}\}", data)
         for var in varlist:
-            val = self.local_variable(var.group()[2:-2])
+            val = self.local_variable(self.item_id, var.group()[2:-2])
             if val is None:
                 val = self.glb_variable(var.group()[2:-2])
             if val is not None:
