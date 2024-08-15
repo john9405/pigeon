@@ -13,5 +13,6 @@ python __main__.py
 Package into an application
 ```
 pip install pyinstaller
+pip install cryptojwt  # JWE
 pyinstaller __main__.py -n ApiTest -w -y --hidden-import cryptojwt --clean --onefile
 ```
