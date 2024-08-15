@@ -1,9 +1,10 @@
 import os
 import json
+import uuid
 import tkinter as tk
 from tkinter import ttk
 
-from . import WORK_DIR, BASE_DIR
+from . import WORK_DIR
 
 
 class HistoryWindow:
@@ -66,5 +67,6 @@ class HistoryWindow:
             file.write(json.dumps(self.history_list))
 
     def on_cache(self, data):
+        data.update({"uuid": str(uuid.uuid1())})
         self.history_list.append(data)
         self.history_box.insert(0, f"{data.get('method' '')} {data.get('url', '')}")

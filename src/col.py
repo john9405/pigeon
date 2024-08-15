@@ -299,7 +299,7 @@ class CollectionWindow:
 
 class ProjectWindow:
     def __init__(self, **kwargs) -> None:
-        self.root = tk.Toplevel(kwargs.get("master"))
+        self.root = kwargs.get("master")
         self.callback = kwargs.get("callback")
         self.item_id = kwargs.get("item_id")
         data = kwargs.get('data')
@@ -365,7 +365,7 @@ class FolderWindow:
     item_id = None
 
     def __init__(self, **kwargs) -> None:
-        self.root = tk.Toplevel(kwargs.get("master"))
+        self.root = kwargs.get("master")
         self.callback = kwargs.get("callback")
         self.item_id = kwargs.get("item_id")
         data = kwargs.get('data')

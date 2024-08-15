@@ -27,25 +27,29 @@ class MainWindow:
         self.root.title("HTTP Client")
         self.root.after(0, self.on_start)
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
-        self.root.geometry("400x300")
+        self.root.geometry("800x600")
 
-        top_bar = ttk.Frame(self.root)
-        top_bar.pack(fill=tk.X)
         state_bar = ttk.Frame(self.root)
         state_bar.pack(side=tk.BOTTOM, fill=tk.X)
-        side_bar = ttk.Frame(self.root)
-        side_bar.pack(side=tk.LEFT, fill=tk.Y)
-
-        nba = ttk.Notebook(self.root)
+        panel_window = ttk.PanedWindow(self.root, orient="horizontal")
+        side_bar = ttk.Frame(panel_window)
+        nba = ttk.Notebook(side_bar)
         col_top = ttk.Frame(nba)
         self.col_win = CollectionWindow(col_top, **{"callback": self.collection})
-        nba.add(col_top, text='collection')
+        nba.add(col_top, text='coll')
         self.env_win = EnvironmentWindow(master=nba, callback=self.environment)
-        nba.add(self.env_win.root, text='environment')
+        nba.add(self.env_win.root, text='var')
         history_top = ttk.Frame(nba)
         self.history_window = HistoryWindow(history_top, self.history)
-        nba.add(history_top, text='history')
-        nba.pack(fill='both', expand=True, padx=5)
+        nba.add(history_top, text='hist')
+        nba.pack(fill='both', expand=True)
+        panel_window.add(side_bar, weight=1)
+        main_frame = ttk.Frame(panel_window)
+        nbb = ttk.Notebook(main_frame)
+        nbb.pack(fill='both', expand=True)
+        self.nbb = nbb
+        panel_window.add(main_frame, weight=10)
+        panel_window.pack(fill='both', expand=True)
 
         menu = tk.Menu(self.root)
         file_menu = tk.Menu(menu, tearoff=False)
@@ -56,33 +60,42 @@ class MainWindow:
         file_menu.add_command(label="Exit", command=self.on_closing)
         menu.add_cascade(label="File", menu=file_menu)
         tool_menu = tk.Menu(menu, tearoff=False)
-        tool_menu.add_command(label="AES", command=AesGui)
-        tool_menu.add_command(label="Base64", command=Base64GUI)
-        tool_menu.add_command(label="MD5", command=MD5GUI)
-        tool_menu.add_command(label="PWD", command=GenPwdWindow)
-        tool_menu.add_command(label="Timestamp", command=TimestampWindow)
-        tool_menu.add_command(label="Regex", command=RegexWindow)
+        tool_menu.add_command(label="AES", command=lambda: self.new_tab(AesGui, "AES"))
+        tool_menu.add_command(label="Base64", command=lambda: self.new_tab(Base64GUI, "Base64"))
+        tool_menu.add_command(label="MD5", command=lambda: self.new_tab(MD5GUI, "MD5"))
+        tool_menu.add_command(label="PWD", command=lambda: self.new_tab(GenPwdWindow, "Password"))
+        tool_menu.add_command(label="Timestamp", command=lambda: self.new_tab(TimestampWindow, "Timestamp"))
+        tool_menu.add_command(label="Regex", command=lambda: self.new_tab(RegexWindow, "Regex"))
         menu.add_cascade(label="Tools", menu=tool_menu)
         help_menu = tk.Menu(menu, tearoff=False)
-        help_menu.add_command(label="Help", command=HelpWindow)
-        help_menu.add_command(label="About", command=AboutWindow)
+        help_menu.add_command(label="Help", command=lambda: self.new_tab(HelpWindow, "Help"))
+        help_menu.add_command(label="About", command=lambda: self.new_tab(AboutWindow, "About"))
         menu.add_cascade(label="Help", menu=help_menu)
         self.root.config(menu=menu)
 
-        ttk.Sizegrip(self.root).pack(side="bottom", anchor="se")
+        ttk.Sizegrip(state_bar).pack(side="right", anchor="se")
+        ttk.Button(state_bar, text="-", width=3, command=self.close_tab).pack(side="right")
+        ttk.Button(state_bar, text="+", width=3, command=self.new_request).pack(side="right")
+        ttk.Button(state_bar, text=">", width=3, command=self.next_tab).pack(side="right")
+        ttk.Button(state_bar, text="<", width=3, command=self.previous_tab).pack(side="right")
 
     def new_request(self, data=None, **kwargs):
-        tl = tk.Toplevel(self.root)
+        tl = ttk.Frame(self.nbb)
         req_win = RequestWindow(
             window=tl, 
             callback=self.request, 
             get_script=self.col_win.get_script,
             env_variable=self.env_win.get_variable,
+            glb_variable=self.env_win.get_globals,
             local_variable=self.col_win.get_variable
         )
         req_win.item_id = kwargs.get("item_id")
+        name = "New Request"
         if data is not None:
             req_win.fill_blank(data)
+            name = data.get("name", "New Request")
+        self.nbb.add(tl, text=name)
+        self.nbb.select(tl)
 
     def on_start(self):
         t1 = threading.Thread(target=self.col_win.on_start)
@@ -99,22 +112,33 @@ class MainWindow:
         self.root.destroy()
 
     def collection(self, **kwargs):
+        if f"col_{kwargs['item_id']}" in self.tag_list:
+            self.nbb.select(self.tag_list.index(f"col_{kwargs['item_id']}"))
+            return
+
         if kwargs["tag"] == "project":
+            frame = ttk.Frame(self.nbb)
             ProjectWindow(
-                master=self.root,
+                master=frame,
                 item_id=kwargs["item_id"],
                 callback=self.col_win.save_item,
                 data=kwargs["data"],
             )
+            self.nbb.add(frame, text=kwargs["data"]['name'])
+            self.nbb.select(frame)
         elif kwargs["tag"] == "folder":
+            frame = ttk.Frame(self.nbb)
             FolderWindow(
                 master=self.root,
                 item_id=kwargs["item_id"],
                 callback=self.col_win.save_item,
                 data=kwargs["data"],
             )
+            self.nbb.add(frame, text=kwargs["data"]['name'])
+            self.nbb.select(frame)
         else:
             self.new_request(kwargs["data"], item_id=kwargs["item_id"])
+        self.tag_list.append(f"col_{kwargs['item_id']}")
 
     def request(self, action, **kwargs):
         """Request window callback"""
@@ -127,12 +151,64 @@ class MainWindow:
 
     def history(self, **kwargs):
         """History callback"""
+        if 'uuid' in kwargs.get("data"):
+            if kwargs['data']['uuid'] in self.tag_list:
+                self.nbb.select(self.tag_list.index(kwargs['data']['uuid']))
+                return
         self.new_request(kwargs.get("data"))
+        if 'uuid' in kwargs.get('data'):
+            self.tag_list.append(kwargs['data']['uuid'])
 
     def environment(self, **kwargs):
+        if f'env_{kwargs.get("item_id")}' in self.tag_list:
+            self.nbb.select(self.tag_list.index(f'env_{kwargs.get("item_id")}'))
+            return
+        frame = ttk.Frame(self.nbb)
         VariableWindow(
-            self.root,
+            frame,
+            item_id=kwargs.get('item_id'),
+            index=kwargs.get('index'),
             collection=kwargs.get("collection", ""),
             data=kwargs.get("data", {}),
             set_variable=self.env_win.set_variable,
+            set_active=self.env_win.set_active,
         )
+        self.tag_list.append(f'env_{kwargs.get("item_id")}')
+        self.nbb.add(frame, text=kwargs.get("collection", "Var"))
+        self.nbb.select(frame)
+
+    def previous_tab(self):
+        try:
+            # 获取当前选中的选项卡的索引
+            current_tab_index = self.nbb.index("current")
+            # 计算上一个选项卡的索引
+            previous_tab_index = (current_tab_index - 1) % self.nbb.index("end")
+            # 选中上一个选项卡
+            self.nbb.select(previous_tab_index)
+        except tk.TclError:
+            pass
+
+    def next_tab(self):
+        try:
+            # 获取当前选中的选项卡的索引
+            current_tab_index = self.nbb.index("current")
+            # 计算下一个选项卡的索引
+            next_tab_index = (current_tab_index + 1) % self.nbb.index("end")
+            # 选中下一个选项卡
+            self.nbb.select(next_tab_index)
+        except tk.TclError:
+            pass
+
+    def new_tab(self, ui, text):
+        if text in self.tag_list:
+            self.nbb.select(self.tag_list.index(text))
+            return
+        frame = ttk.Frame(self.nbb)
+        ui(master=frame)
+        self.tag_list.append(text)
+        self.nbb.add(frame, text=text)
+        self.nbb.select(frame)
+
+    def close_tab(self):
+        self.tag_list.pop(self.nbb.index('current'))
+        self.nbb.forget(self.nbb.index('current'))

@@ -11,8 +11,7 @@ from Crypto.Util.Padding import pad, unpad
 class AesGui:
     """ aes Window """
     def __init__(self, master=None):
-        toplevel = tk.Toplevel(master)
-        self.root = ttk.Frame(toplevel)
+        self.root = ttk.Frame(master)
         self.root.pack(fill='both', expand=True, padx=5, pady=5)
 
         frame1 = ttk.Frame(self.root)

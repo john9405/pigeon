@@ -7,8 +7,7 @@ from tkinter.scrolledtext import ScrolledText
 class Base64GUI:
     """ base64 Window """
     def __init__(self, master=None) -> None:
-        toplevel = tk.Toplevel(master)
-        self.root = ttk.Frame(toplevel)
+        self.root = ttk.Frame(master)
         self.root.pack(fill='both', expand=True, padx=5, pady=5)
         input_frame = ttk.LabelFrame(self.root, text="Input")
         self.input_box = ScrolledText(input_frame, height=10)

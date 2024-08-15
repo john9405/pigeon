@@ -425,6 +425,7 @@ class RequestWindow:
         window.pack(fill='both', expand=tk.YES, padx=5, pady=5)
         self.get_script = kwargs.get("get_script")
         self.env_variable = kwargs.get("env_variable")
+        self.glb_variable = kwargs.get('glb_variable')
         self.local_variable = kwargs.get("local_variable")
 
         ff = ttk.Frame(window)
@@ -480,7 +481,7 @@ class RequestWindow:
 
         # tests
         self.tests_box = ScrolledText(notebook)
-        notebook.add(self.tests_box, text="Tests")
+        notebook.add(self.tests_box, text="Post-response Script")
 
         # Create response area
         res_note = ttk.Notebook(paned_window)
@@ -548,17 +549,6 @@ class RequestWindow:
         self.name_entry.insert(tk.END, data.get("name", "New Request"))
         self.auth_frame.set(data.get("auth", {}))
 
-    def get_variable(self, name):
-        var = self.local_variable(self.item_id, name)
-        if var is not None:
-            return var
-        var = self.env_variable("Globals", name)
-        return var
-
-    def get_globals(self, name):
-        var = self.env_variable("Globals", name)
-        return var
-
     def send_request(self):
         thread = threading.Thread(target=self.http_handle)
         thread.start()
@@ -566,7 +556,9 @@ class RequestWindow:
     def fill_var(self, data):
         varlist = re.finditer(r"\{\{[^{}]*\}\}", data)
         for var in varlist:
-            val = self.get_variable(var.group()[2:-2])
+            val = self.local_variable(var.group()[2:-2])
+            if val is None:
+                val = self.glb_variable(var.group()[2:-2])
             if val is not None:
                 data = data.replace(var.group(), val)
         return data
@@ -657,8 +649,8 @@ class RequestWindow:
         try:
             exec(pre_request_script, {
                 "req": {"body": body, "headers": headers, "url": url},
-                "globals": self.get_globals,
-                "collectionVariables": self.local_variable,
+                "globals": self.glb_variable,
+                "collectionVariables": lambda x: self.local_variable(self.item_id, x),
                 "environment": self.env_variable,
                 "console": console
             })
@@ -669,8 +661,8 @@ class RequestWindow:
             try:
                 exec(script["pre_request_script"], {
                     "req": {"body": body, "headers": headers, "url": url},
-                    "globals": self.get_globals,
-                    "collectionVariables": self.local_variable,
+                    "globals": self.glb_variable,
+                    "collectionVariables": lambda x: self.local_variable(self.item_id, x),
                     "environment": self.env_variable,
                     "console": console
                 })
@@ -756,8 +748,8 @@ class RequestWindow:
         try:
             exec(tests, {
                 "res": response,
-                "globals": self.get_globals,
-                "collectionVariables": self.local_variable,
+                "globals": self.glb_variable,
+                "collectionVariables": lambda x: self.local_variable(self.item_id, x),
                 "environment": self.env_variable,
                 "console": console
             })
@@ -768,8 +760,8 @@ class RequestWindow:
             try:
                 exec(script["tests"], {
                     "res": response,
-                    "globals": self.get_globals,
-                    "collectionVariables": self.local_variable,
+                    "globals": self.glb_variable,
+                    "collectionVariables": lambda x: self.local_variable(self.item_id, x),
                     "environment": self.env_variable,
                     "console": console
                 })
@@ -830,6 +822,8 @@ class Console:
                 temp += f"{item} "
             elif isinstance(item, (dict, list)):
                 temp += f"{json.dumps(item, indent=4, ensure_ascii=False)}"
+            elif isinstance(item, bytes):
+                temp += f"{item.decode('utf-8')}"
             else:
                 temp += str(temp)
         return temp

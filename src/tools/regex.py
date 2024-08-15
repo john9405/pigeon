@@ -8,11 +8,10 @@ from .. import BASE_DIR
 class RegexWindow:
     def __init__(self, master=None) -> None:
         # 创建主窗口
-        toplevel = tk.Toplevel(master)
-        root = ttk.Frame(toplevel)
-        root.pack(fill='both', expand=True, padx=5, pady=5)
+        self.root = ttk.Frame(master)
+        self.root.pack(fill='both', expand=True, padx=5, pady=5)
         # 创建选项
-        options_frame = ttk.Frame(root)
+        options_frame = ttk.Frame(self.root)
         options_frame.pack()
 
         # 创建正则表达式输入框
@@ -33,18 +32,18 @@ class RegexWindow:
         find_button.pack(side=tk.LEFT)
 
         # 创建文本输入框
-        text_label = ttk.LabelFrame(root, text="Input:")
+        text_label = ttk.LabelFrame(self.root, text="Input:")
         text_label.pack(fill='both', expand=True)
         text_entry = ScrolledText(text_label, height=10)
         text_entry.pack(fill='both', expand=True)
 
         # 创建结果显示区域
-        result_label = ttk.LabelFrame(root, text="Output:")
+        result_label = ttk.LabelFrame(self.root, text="Output:")
         result_label.pack(fill='both', expand=True)
         result_text = ScrolledText(result_label, height=10)
         result_text.pack(fill='both', expand=True)
 
-        frame4 = ttk.LabelFrame(root, text="常用正则表达式")
+        frame4 = ttk.LabelFrame(self.root, text="常用正则表达式")
         st = ScrolledText(frame4, spacing3=5, height=10)
         st.insert("1.0", """一、校验数字的表达式
 数字：^[0-9]*$
@@ -116,7 +115,6 @@ IPv4地址：((2(5[0-5]|[0-4]\d))|[0-1]?\d{1,2})(\.((2(5[0-5]|[0-4]\d))|[0-1]?\d
         st.configure(state='disabled')
         st.pack(fill='both', expand=True)
         frame4.pack(fill='both', expand=True)
-        self.root = root
         self.regex_entry = regex_entry
         self.text_entry = text_entry
         self.result_text = result_text

@@ -7,8 +7,7 @@ import hashlib
 class MD5GUI:
     """ MD5 Window """
     def __init__(self, master=None):
-        toplevel = tk.Toplevel(master)
-        self.root = ttk.Frame(toplevel)
+        self.root = ttk.Frame(master)
         self.root.pack(fill='both', expand=True, padx=5, pady=5)
         init_data_label = ttk.LabelFrame(self.root, text="Input")
         self.init_data_text = ScrolledText(init_data_label, height=10)  # Raw data entry box
