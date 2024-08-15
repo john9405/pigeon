@@ -1,7 +1,6 @@
 beautifulsoup4
 pillow
 pycryptodome
-pyinstaller
 requests
 requests-oauthlib
 requests_kerberos

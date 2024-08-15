@@ -2,8 +2,16 @@
 
 A simple api testing tool
 
-Under continuous development
+Develop on Windows 10(Python 3.8)  
 
+How to run the program
 ```
+pip install -r requirements.txt
+python __main__.py
+```
+
+Package into an application
+```
+pip install pyinstaller
 pyinstaller __main__.py -n ApiTest -w -y --hidden-import cryptojwt --clean --onefile
 ```
