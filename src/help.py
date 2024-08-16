@@ -27,7 +27,7 @@ Pre-request Script
 Retrieve request data
 req["body"]    ::dict  'Request Body'
 req["headers"] ::dict  'Request header'
-req["params"]  ::dict  'Request query'
+req["url"]     ::dict  'Request url'
 
 Example of Assignment Usage: req['body']['username'] = 'x'
 ```
@@ -39,6 +39,7 @@ res ::<class 'requests.models.Response'>
 
 Using the '{{name}}' structure in URLs, params, headers, and body can retrieve variables with corresponding names, 
 whose values come from collections and Globals.
+The URL needs to include "http" or "https".
 The Request created by clicking "New Request" will be saved to the currently selected folder.
 Where there is a "Save" button, click the Save button, otherwise the program will not save the data.
 """)

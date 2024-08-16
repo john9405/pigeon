@@ -1,5 +1,6 @@
 import threading
 import tkinter as tk
+import uuid
 from tkinter import ttk
 
 from .his import HistoryWindow
@@ -88,7 +89,9 @@ class MainWindow:
             glb_variable=self.env_win.get_globals,
             local_variable=self.col_win.get_variable,
             cache_history=self.history_window.on_cache,
-            save_item=self.col_win.save_item
+            save_item=self.col_win.save_item,
+            path=kwargs.get('path', "Name:"),
+            callback=self.request,
         )
         req_win.item_id = kwargs.get("item_id")
         name = "New Request"
@@ -97,6 +100,8 @@ class MainWindow:
             name = data.get("name", "New Request")
         self.nbb.add(tl, text=name)
         self.nbb.select(tl)
+        if data is None:
+            self.tag_list.append(str(uuid.uuid1()))  # new request
 
     def on_start(self):
         t1 = threading.Thread(target=self.col_win.on_start)
@@ -111,6 +116,15 @@ class MainWindow:
         self.env_win.on_end()
         self.history_window.on_end()
         self.root.destroy()
+
+    def request(self, **kwargs):
+        name = kwargs.get('name')
+        if name is not None:
+            self.nbb.tab(self.nbb.index("current"), text=name)
+        item_id = kwargs.get('item_id')
+        if item_id is not None:
+            index = self.nbb.index("current")
+            self.tag_list[index] = f"col_{kwargs['item_id']}"
 
     def collection(self, **kwargs):
         if f"col_{kwargs['item_id']}" in self.tag_list:
@@ -134,22 +148,21 @@ class MainWindow:
                 item_id=kwargs["item_id"],
                 callback=self.col_win.save_item,
                 data=kwargs["data"],
+                path=kwargs['path'],
             )
             self.nbb.add(frame, text=kwargs["data"]['name'])
             self.nbb.select(frame)
         else:
-            self.new_request(kwargs["data"], item_id=kwargs["item_id"])
+            self.new_request(kwargs["data"], item_id=kwargs["item_id"], path=kwargs['path'],)
         self.tag_list.append(f"col_{kwargs['item_id']}")
 
     def history(self, **kwargs):
         """History callback"""
-        if 'uuid' in kwargs.get("data"):
-            if kwargs['data']['uuid'] in self.tag_list:
-                self.nbb.select(self.tag_list.index(kwargs['data']['uuid']))
-                return
+        if kwargs['data']['uuid'] in self.tag_list:
+            self.nbb.select(self.tag_list.index(kwargs['data']['uuid']))
+            return
         self.new_request(kwargs.get("data"))
-        if 'uuid' in kwargs.get('data'):
-            self.tag_list.append(kwargs['data']['uuid'])
+        self.tag_list.append(kwargs['data']['uuid'])
 
     def environment(self, **kwargs):
         if f'env_{kwargs.get("item_id")}' in self.tag_list:
@@ -202,5 +215,6 @@ class MainWindow:
         self.nbb.select(frame)
 
     def close_tab(self):
-        self.tag_list.pop(self.nbb.index('current'))
-        self.nbb.forget(self.nbb.index('current'))
+        index = self.nbb.index('current')
+        self.tag_list.pop(index)
+        self.nbb.forget(index)

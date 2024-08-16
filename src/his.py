@@ -46,8 +46,9 @@ class HistoryWindow:
         if selection:
             index = selection[0]
             i = len(self.history_list) - index - 1
-            data = self.history_list[i]
-            self.callback(data=data)
+            if 'uuid' not in self.history_list[i]:
+                self.history_list[i].update({"uuid": str(uuid.uuid1())})
+            self.callback(data=self.history_list[i])
 
     def on_start(self):
         if os.path.exists(self.cache_file):

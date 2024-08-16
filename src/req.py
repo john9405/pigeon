@@ -428,15 +428,16 @@ class RequestWindow:
         self.local_variable = kwargs.get("local_variable")
         self.cache_history = kwargs.get('cache_history')
         self.save_item = kwargs.get('save_item')
+        self.callback = kwargs.get("callback")
 
         ff = ttk.Frame(window)
         ff.pack(fill=tk.X)
-        ttk.Label(ff, text="Name:").pack(side=tk.LEFT)
-        self.name_entry = ttk.Entry(ff)
-        self.name_entry.insert(0, "New Request")
-        self.name_entry.pack(side=tk.LEFT)
+        ttk.Label(ff, text=kwargs.get('path', 'Name:')).pack(side=tk.LEFT)
         save_btn = ttk.Button(ff, text="Save", command=self.save_handler)
         save_btn.pack(side=tk.RIGHT)
+        self.name_entry = ttk.Entry(ff)
+        self.name_entry.insert(0, "New Request")
+        self.name_entry.pack(fill='both', pady=3)
 
         north = ttk.Frame(window)
         north.pack(fill=tk.X)
@@ -530,6 +531,7 @@ class RequestWindow:
             "name": name,
             "auth": opt_auth,
         })
+        self.callback(name=name, item_id=self.item_id)
 
     def fill_blank(self, data):
         method = data.get("method", "GET")

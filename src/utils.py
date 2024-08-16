@@ -42,8 +42,10 @@ class EditorTable(ttk.Frame):
     def on_right_click(self, event):
         if self.editable:
             item = self.treeview.identify_row(event.y)
+            self.treeview.selection_set(item)
             menu = tk.Menu(self, tearoff=False)
             if item:
+                menu.add_command(label="Edit", command=lambda: self.on_edit(event))
                 menu.add_command(label="Delete", command=self.on_del)
             else:
                 menu.add_command(label="Add", command=lambda: self.on_add(event.x, event.y))

@@ -114,18 +114,33 @@ class CollectionWindow:
             item = self.tree.item(item_id)
             ctag = item["tags"][0]
             values = json.loads(item["values"][0])
+            if ctag != 'project':
+                path = self.get_path(item_id)
+            else:
+                path = ''
             self.callback(
                 data=values,
                 tag=ctag,
                 request_id=item["tags"][1],
                 active="newitem",
                 item_id=item_id,
+                path=path,
             )
         except IndexError:
             pass
 
     def on_open(self):
         self.on_select(None)
+
+    def get_path(self, item_id):
+        path = ""
+        parent_id = self.tree.parent(item_id)
+        parent = self.tree.item(parent_id)
+        if parent['tags'][0] == 'project':
+            return parent['text'] + '/'
+        elif parent['tags'][0] == 'folder':
+            return self.get_path(parent_id) + parent['text'] + '/'
+        return ''
 
     def on_right_click(self, event):
         item = self.tree.identify_row(event.y)
@@ -157,7 +172,7 @@ class CollectionWindow:
         self.tree.insert(
             "",
             tk.END,
-            text= name if name > "" else "New Collection",
+            text=name if name > "" else "New Collection",
             tags=["project", str(uuid.uuid1())],
             values=[json.dumps({"name": name if name > "" else "New Collection"})],
         )
@@ -372,7 +387,7 @@ class FolderWindow:
 
         frame = ttk.Frame(self.root)
         frame.pack(fill=tk.X)
-        ttk.Label(frame, text="Name:").pack(side=tk.LEFT)
+        ttk.Label(frame, text=kwargs.get("path", "Name:")).pack(side=tk.LEFT)
         self.name_entry = ttk.Entry(frame)
         self.name_entry.insert(tk.END, data.get("name", "New Folder"))
         self.name_entry.pack(side=tk.LEFT)
