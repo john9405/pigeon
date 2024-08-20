@@ -6,31 +6,33 @@ import platform
 from tkinter import ttk, filedialog, messagebox, simpledialog
 from tkinter.scrolledtext import ScrolledText
 
-from . import WORK_DIR, USER_DIR, BASE_DIR
+from . import WORK_DIR, USER_DIR
 from .utils import EditorTable
+
 
 class CollectionWindow:
 
     def __init__(self, window, callback=None):
         self.window = window
         self.callback = callback
-        frame = ttk.Frame(window)
-        ttk.Button(frame, text="import", command=self.open_proj).pack(side=tk.RIGHT)
-        ttk.Button(frame, text="add", command=self.new_proj).pack(side=tk.RIGHT)
-        
-        frame.pack(fill=tk.X)
-        self.tree = ttk.Treeview(window, show="tree")
+
+        self.tree = ttk.Treeview(window)
+        self.tree.heading("#0", text="(+)", anchor='e')
         self.tree.pack(fill="both", expand=True)
+        self.tree.bind("<Button-1>", self.on_click)
         self.tree.bind("<Double-1>", self.on_select)
         if platform.system() == "Darwin":
-            self.tree.bind("<Control-Button-1>",self.on_right_click)
+            self.tree.bind("<Control-Button-1>", self.on_right_click)
             self.tree.bind("<Button-2>", self.on_right_click)
         else:
             self.tree.bind("<Button-3>", self.on_right_click)
 
     def open_proj(self):
         """open a program"""
-        filepath = filedialog.askopenfilename(filetypes=(("Json files", "*.json"),), initialdir=USER_DIR)
+        filepath = filedialog.askopenfilename(
+            filetypes=(("Json files", "*.json"),),
+            initialdir=USER_DIR,
+            parent=self.window)
         if filepath:
             with open(filepath, "r", encoding="utf-8") as f:
                 try:
@@ -89,6 +91,7 @@ class CollectionWindow:
             filetypes=[("json files", "*.json")],
             initialdir=USER_DIR,
             initialfile=bean["name"] + ".json",
+            parent=self.window
         )
         if filepath:
             with open(filepath, "w", encoding="utf-8") as file:
@@ -108,7 +111,16 @@ class CollectionWindow:
             long_bean.append(value)
         return long_bean
 
+    def on_click(self, event):
+        region = self.tree.identify('region', event.x, event.y)
+        if region == 'heading':
+            self.new_proj()
+
     def on_select(self, event):
+        region = self.tree.identify('region', event.x, event.y)
+        if region == 'heading':
+            return
+
         try:
             item_id = self.tree.selection()[0]
             item = self.tree.item(item_id)
@@ -166,7 +178,7 @@ class CollectionWindow:
             menu.post(event.x_root, event.y_root)
 
     def new_proj(self):
-        name = simpledialog.askstring("ask", "Name:")
+        name = simpledialog.askstring("ask", "Name:", initialvalue='New Collection', parent=self.window)
         if name is None:
             return
         self.tree.insert(
@@ -178,7 +190,7 @@ class CollectionWindow:
         )
 
     def new_col(self):
-        name = simpledialog.askstring("ask", "Name:")
+        name = simpledialog.askstring("ask", "Name:", initialvalue='New Folder', parent=self.window)
         if name is None:
             return
         try:
@@ -205,7 +217,7 @@ class CollectionWindow:
 
     def new_req(self, data=None):
         if data is None:
-            name = simpledialog.askstring("ask", "Name:")
+            name = simpledialog.askstring("ask", "Name:", initialvalue='New Request', parent=self.window)
             if name is None:
                 return
             data = {

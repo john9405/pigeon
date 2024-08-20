@@ -15,15 +15,14 @@ class EnvironmentWindow:
     def __init__(self, master=None, **kwargs):
         self.callback = kwargs.get("callback")
         self.root = ttk.Frame(master)
-        action_frame = ttk.Frame(self.root)
-        action_frame.pack(fill=tk.X)
-        ttk.Button(action_frame, text="Add", command=self.on_add).pack(side=tk.RIGHT)
+
         self.treeview = ttk.Treeview(self.root, show='headings', columns=("name", "status"))
         self.treeview.column("#1", anchor="w", width=10)
         self.treeview.column("#2", anchor="center", width=2)
-        self.treeview.heading("#1", text="Name", anchor="center")
+        self.treeview.heading("#1", text="Name (+)", anchor="center")
         self.treeview.heading("#2", text="Status", anchor="center")
         self.treeview.pack(fill=tk.BOTH, expand=tk.YES)
+        self.treeview.bind("<Button-1>", self.on_click)
         self.treeview.bind("<Double-1>", self.on_select)
         if platform.system() == "Darwin":
             self.treeview.bind("<Control-Button-1>", self.on_right_click)
@@ -54,6 +53,13 @@ class EnvironmentWindow:
         with open(self.cache_file, "w", encoding="utf-8") as f:
             f.write(json.dumps(self.data))
 
+    def on_click(self, event):
+        region = self.treeview.identify('region', event.x, event.y)
+        if region == 'heading':
+            column = self.treeview.identify_column(event.x)
+            if column == '#1':
+                self.on_add()
+
     def on_select(self, event):
         item_id = self.treeview.identify_row(event.y)
         if item_id:
@@ -79,7 +85,7 @@ class EnvironmentWindow:
             menu.post(event.x_root, event.y_root)
 
     def on_add(self):
-        name = simpledialog.askstring("Add", prompt="Name", initialvalue="New Environment")
+        name = simpledialog.askstring("Add", prompt="Name", initialvalue="New Environment", parent=self.root)
         if name is not None:
             if name == "Globals":
                 messagebox.showwarning("Warning", "Reserved words")

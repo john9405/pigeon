@@ -6,7 +6,8 @@ from typing import Optional
 
 
 class EditorTable(ttk.Frame):
-    editable = False
+    """ A table with editable data """
+    editable = False  # Open Editing
 
     def __init__(self, master=None, **kw):
         self.editable = kw.pop("editable") if "editable" in kw else False
@@ -148,3 +149,8 @@ class EditorTable(ttk.Frame):
 
     def clear_data(self):
         self.treeview.delete(*self.treeview.get_children())
+
+
+class Editor(ScrolledText):
+    """ A Python code editor """
+    pass

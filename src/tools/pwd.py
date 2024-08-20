@@ -4,11 +4,12 @@ import secrets
 import string
 import re
 
+
 class GenPwdWindow:
     """ 随即密码生成器 """
     def __init__(self, master=None) -> None:
         self.root = ttk.Frame(master)
-        self.root.pack(fill='both', expand=True, padx=5, pady=5)
+        self.root.pack(padx=5, pady=5)
         self.dcb = tk.BooleanVar(value=True)  # 数字
         self.lccb = tk.BooleanVar(value=True)  # 小写字母
         self.uccb = tk.BooleanVar(value=True)  # 大写字母
@@ -16,26 +17,26 @@ class GenPwdWindow:
         self.l = tk.IntVar(value=8)
 
         vcmd = (self.root.register(lambda x: re.search(r"^\d+$", x) is not None), '%P')
-        ivcmd = (self.root.register(lambda :messagebox.showerror("Error", "The password length must be an integer")), )
+        ivcmd = (self.root.register(lambda: messagebox.showerror("Error", "The password length must be an integer")), )
         # 密码长度标签和输入框
-        length_label = ttk.Label(self.root, text="Password Length:")
-        length_label.grid(row=0, column=0)
-        ttk.Entry(self.root, textvariable=self.l, validate='key', validatecommand=vcmd, invalidcommand=ivcmd).grid(row=0, column=1, columnspan=4, sticky='w')
-
+        length_label = ttk.Label(self.root, text="Length:")
+        length_label.grid(row=0, column=0, sticky='w')
+        le = ttk.Entry(self.root, textvariable=self.l, validate='key', validatecommand=vcmd, invalidcommand=ivcmd)
+        le.grid(row=0, column=1, columnspan=4, sticky='w')
         # 密码复杂程度选择
-        complexity_label = ttk.Label(self.root, text="Password Complexity:")
-        complexity_label.grid(row=1, column=0)
+        complexity_label = ttk.Label(self.root, text="Complexity:")
+        complexity_label.grid(row=1, column=0, sticky='w')
         ttk.Checkbutton(self.root, text="0-9", variable=self.dcb).grid(row=1, column=1)
         ttk.Checkbutton(self.root, text="a-z", variable=self.lccb).grid(row=1, column=2)
         ttk.Checkbutton(self.root, text="A-z", variable=self.uccb).grid(row=1, column=3)
         ttk.Checkbutton(self.root, text="other", variable=self.pcb).grid(row=1, column=4)
 
         # 生成密码按钮
-        generate_button = ttk.Button(self.root, text="Generate Password", command=self.generate_password)
-        generate_button.grid(row=2, column=0, columnspan=5)
+        generate_button = ttk.Button(self.root, text="Generate", command=self.generate_password)
+        generate_button.grid(row=2, column=1, columnspan=4, sticky='w')
 
         # 生成密码的标签
-        password_label = ttk.Label(self.root, text="Generated Password:")
+        password_label = ttk.Label(self.root, text="Generated:")
         password_label.grid(row=3, column=0)
 
         self.pwd_entry = ttk.Entry(self.root)
