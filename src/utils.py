@@ -90,7 +90,7 @@ class EditorTable(ttk.Frame):
 
         value_label = ttk.Label(frame, text="value")
         value_label.pack(anchor="w")
-        value_entry = ScrolledText(frame)
+        value_entry = ScrolledText(frame, width=40, height=10)
         if item_id:
             value_entry.insert('end', value)
         value_entry.pack()

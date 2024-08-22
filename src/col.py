@@ -117,9 +117,10 @@ class CollectionWindow:
             self.new_proj()
 
     def on_select(self, event):
-        region = self.tree.identify('region', event.x, event.y)
-        if region == 'heading':
-            return
+        if event is not None:
+            region = self.tree.identify('region', event.x, event.y)
+            if region == 'heading':
+                return
 
         try:
             item_id = self.tree.selection()[0]
