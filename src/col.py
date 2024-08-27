@@ -11,6 +11,7 @@ from .utils import EditorTable
 
 
 class CollectionWindow:
+    cut_board = None
 
     def __init__(self, window, callback=None):
         self.window = window
@@ -146,7 +147,6 @@ class CollectionWindow:
         self.on_select(None)
 
     def get_path(self, item_id):
-        path = ""
         parent_id = self.tree.parent(item_id)
         parent = self.tree.item(parent_id)
         if parent['tags'][0] == 'project':
@@ -164,17 +164,23 @@ class CollectionWindow:
             menu = tk.Menu(self.window, tearoff=0)
             if tag == "project":
                 menu.add_command(label="Open in tab", command=self.on_open)
+                menu.add_command(label="Paste", command=self.on_paste)
                 menu.add_command(label="Add folder", command=self.new_col)
                 menu.add_command(label="Add request", command=self.new_req)
                 menu.add_command(label="Export", command=self.export_proj)
                 menu.add_command(label="Delete", command=self.delete_item)
             elif tag == "folder":
                 menu.add_command(label="Open in tab", command=self.on_open)
+                menu.add_command(label="Copy", command=self.on_copy)
+                menu.add_command(label="Cut", command=self.on_cut)
+                menu.add_command(label="Paste", command=self.on_paste)
                 menu.add_command(label="Add folder", command=self.new_col)
                 menu.add_command(label="Add request", command=self.new_req)
                 menu.add_command(label="Delete", command=self.delete_item)
             elif tag == "request":
                 menu.add_command(label="Open in tab", command=self.on_open)
+                menu.add_command(label="Copy", command=self.on_copy)
+                menu.add_command(label="Cut", command=self.on_cut)
                 menu.add_command(label="Delete", command=self.delete_item)
             menu.post(event.x_root, event.y_root)
 
@@ -269,7 +275,45 @@ class CollectionWindow:
     def delete_item(self):
         selected_node = self.tree.selection()
         if selected_node:
-            self.tree.delete(selected_node)
+            self.tree.delete(selected_node[0])
+
+    def on_copy(self):
+        selected_node = self.tree.selection()
+        if selected_node:
+            item = self.tree.item(selected_node[0])
+            self.cut_board = {
+                'action': 'copy',
+                'item_id': selected_node[0],
+                "text": item['text'],
+                'tags': item['tags'],
+                'values': item['values'],
+            }
+
+    def on_cut(self):
+        selected_node = self.tree.selection()
+        if selected_node:
+            item = self.tree.item(selected_node[0])
+            self.cut_board = {
+                'action': 'cut',
+                'item_id': selected_node[0],
+                "text": item['text'],
+                'tags': item['tags'],
+                'values': item['values'],
+            }
+
+    def on_paste(self):
+        selected_node = self.tree.selection()
+        if selected_node and self.cut_board is not None:
+            self.tree.insert(
+                selected_node[0],
+                tk.END,
+                text=self.cut_board['text'],
+                tags=self.cut_board['tags'],
+                values=self.cut_board['values'],
+                open=False,
+            )
+            if self.cut_board['action'] == 'cut':
+                self.tree.delete(self.cut_board['item_id'])
 
     def on_start(self):
         """Read data from the workspace"""
