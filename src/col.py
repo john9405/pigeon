@@ -164,7 +164,7 @@ class CollectionWindow:
             menu = tk.Menu(self.window, tearoff=0)
             if tag == "project":
                 menu.add_command(label="Open in tab", command=self.on_open)
-                menu.add_command(label="Paste", command=self.on_paste)
+                menu.add_command(label="Paste", command=self.on_paste, state='disabled' if self.cut_board is None else 'normal')
                 menu.add_command(label="Add folder", command=self.new_col)
                 menu.add_command(label="Add request", command=self.new_req)
                 menu.add_command(label="Export", command=self.export_proj)
@@ -173,7 +173,7 @@ class CollectionWindow:
                 menu.add_command(label="Open in tab", command=self.on_open)
                 menu.add_command(label="Copy", command=self.on_copy)
                 menu.add_command(label="Cut", command=self.on_cut)
-                menu.add_command(label="Paste", command=self.on_paste)
+                menu.add_command(label="Paste", command=self.on_paste, state='disabled' if self.cut_board is None else 'normal')
                 menu.add_command(label="Add folder", command=self.new_col)
                 menu.add_command(label="Add request", command=self.new_req)
                 menu.add_command(label="Delete", command=self.delete_item)
