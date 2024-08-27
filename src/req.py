@@ -717,19 +717,11 @@ class RequestWindow:
 
         self.res_body_box.delete("1.0", tk.END)
         if "application/json" in content_type:
-            self.res_body_box.insert(
-                tk.END, json.dumps(response.json(), indent=4, ensure_ascii=False)
-            )
+            self.res_body_box.insert(tk.END, json.dumps(response.json(), indent=4, ensure_ascii=False))
         elif "text/html" in content_type:
             response.encoding = "utf-8"
             soup = BeautifulSoup(response.text, "html.parser")
-            chunk_size = 1000
-
-            def insert_chunk(offset):
-                self.res_body_box.insert(tk.END, soup.prettify()[offset: offset + chunk_size])
-                self.res_body_box.after(1, insert_chunk, offset + chunk_size)
-
-            insert_chunk(0)
+            self.res_body_box.insert(tk.END, soup.prettify())
         elif "text/xml" in content_type or "application/xml" in content_type:
             response.encoding = "utf-8"
             dom = xml.dom.minidom.parseString(response.text)
