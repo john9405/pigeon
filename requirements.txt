@@ -1,7 +1,8 @@
-beautifulsoup4
-pillow
+beautifulsoup4~=4.12.3
+pillow~=10.4.0
 pycryptodome
-requests
+requests~=2.32.3
 requests-oauthlib
 requests_kerberos
 requests_ntlm
+oauthlib~=3.2.2
