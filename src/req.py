@@ -1,4 +1,5 @@
 import json
+import platform
 import threading
 import tkinter as tk
 from tkinter import messagebox, ttk
@@ -498,7 +499,7 @@ class RequestWindow:
         self.res_header_table = EditorTable(res_note)
         res_note.add(self.res_header_table, text="Headers")
 
-        self.res_tests_box = ScrolledText(res_note)
+        self.res_tests_box = ConsoleText(res_note)
         res_note.add(self.res_tests_box, text="Console")
 
     def save_handler(self):
@@ -796,11 +797,31 @@ class RequestWindow:
         self.url.set(urllib.parse.urlunparse((scheme, netloc, path, params, query, fragment)))
 
 
+class ConsoleText(ScrolledText):
+    def __init__(self, master=None, **kw):
+        super().__init__(master, **kw)
+
+        if platform.system() == "Darwin":
+            self.bind("<Control-Button-1>", self.on_right_click)
+            self.bind("<Button-2>", self.on_right_click)
+        else:
+            self.bind("<Button-3>", self.on_right_click)
+
+    def on_right_click(self, event):
+        menu = tk.Menu(self, tearoff=0)
+        menu.add_command(label="Clear", command=self.on_clear)
+        menu.post(event.x_root, event.y_root)
+
+    def on_clear(self):
+        self.delete("1.0", tk.END)
+
+
 class Console:
     def __init__(self, text: ScrolledText):
         self.text = text
 
-    def to_string(self, *args) -> str:
+    @staticmethod
+    def to_string(*args) -> str:
         temp = ""
         for item in args:
             if isinstance(item, (str, int, float)):
