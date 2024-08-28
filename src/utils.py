@@ -14,8 +14,8 @@ class EditorTable(ttk.Frame):
         super().__init__(master, **kw)
 
         self.treeview = ttk.Treeview(self, columns=("name", "value"), show="headings")        
-        self.treeview.heading("name", text="name (+)" if self.editable else "name", anchor=tk.CENTER)
-        self.treeview.heading("value", text="value", anchor=tk.CENTER)
+        self.treeview.heading("name", text="Name (+)" if self.editable else "Name", anchor=tk.CENTER)
+        self.treeview.heading("value", text="Value", anchor=tk.CENTER)
         self.treeview.column("name", width=1)
         self.treeview.column("value")
         self.treeview.bind("<Button-1>", self.on_click)
@@ -25,13 +25,11 @@ class EditorTable(ttk.Frame):
             self.treeview.bind("<Button-2>", self.on_right_click)
         else:
             self.treeview.bind("<Button-3>", self.on_right_click)
-        scroll_x = ttk.Scrollbar(
-            self, orient=tk.HORIZONTAL, command=self.treeview.xview
-        )
+
         scroll_y = ttk.Scrollbar(self, command=self.treeview.yview)
-        scroll_y.pack(side=tk.RIGHT, fill=tk.Y, pady=(0, scroll_x.winfo_reqheight()))
-        scroll_x.pack(side=tk.BOTTOM, fill=tk.X)
+        scroll_y.pack(side=tk.RIGHT, fill=tk.Y)
         self.treeview.pack(fill=tk.BOTH, expand=tk.YES)
+        self.treeview.config(yscrollcommand=scroll_y.set)
 
     def on_click(self, event):
         region = self.treeview.identify('region', event.x, event.y)
@@ -72,7 +70,7 @@ class EditorTable(ttk.Frame):
         y += self.winfo_rooty()
 
         win = tk.Toplevel(self)
-        win.title("editor")
+        win.title("New Value")
         win.geometry(f"+{x}+{y}")
         
         back = ttk.Frame(win)
@@ -81,14 +79,14 @@ class EditorTable(ttk.Frame):
         frame = ttk.Frame(back)
         frame.pack(fill=tk.BOTH, expand=tk.YES, padx=10, pady=10)
 
-        name_label = ttk.Label(frame, text="name")
+        name_label = ttk.Label(frame, text="Name")
         name_label.pack(anchor="w")
         name_entry = ttk.Entry(frame)
         if item_id:
             name_entry.insert('end', name)
         name_entry.pack(fill='x')
 
-        value_label = ttk.Label(frame, text="value")
+        value_label = ttk.Label(frame, text="Value")
         value_label.pack(anchor="w")
         value_entry = ScrolledText(frame, width=40, height=10)
         if item_id:

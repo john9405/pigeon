@@ -81,32 +81,22 @@ class OauthFrame(ttk.Frame):
         self.signature_method.trace_add("write", self.change_page)
         self.cpage = "hmac_page"
         frame = ttk.Frame(self)
-        ttk.Label(frame, text="Add authorization data to").grid(row=0, column=0)
-        ttk.Combobox(
-            frame,
-            values=(
-                SIGNATURE_TYPE_AUTH_HEADER,
-                SIGNATURE_TYPE_QUERY,
-                SIGNATURE_TYPE_BODY,
-            ),
-            textvariable=self.signature_type,
-            state="readonly",
-        ).grid(row=0, column=1)
-        ttk.Label(frame, text="Signature Method").grid(row=1, column=0)
-        ttk.Combobox(
-            frame,
-            values=(
-                SIGNATURE_HMAC_SHA1,
-                SIGNATURE_HMAC_SHA256,
-                SIGNATURE_HMAC_SHA512,
-                SIGNATURE_RSA_SHA1,
-                SIGNATURE_RSA_SHA256,
-                SIGNATURE_RSA_SHA512,
-                SIGNATURE_PLAINTEXT,
-            ),
-            textvariable=self.signature_method,
-            state="readonly",
-        ).grid(row=1, column=1)
+        ttk.Label(frame, text="Add authorization data to", width=22).grid(row=0, column=0, sticky='w')
+        ttk.Combobox(frame, values=(
+            SIGNATURE_TYPE_AUTH_HEADER,
+            SIGNATURE_TYPE_QUERY,
+            SIGNATURE_TYPE_BODY,
+        ), textvariable=self.signature_type, state="readonly").grid(row=0, column=1)
+        ttk.Label(frame, text="Signature Method").grid(row=1, column=0, sticky='w', pady=3)
+        ttk.Combobox(frame, values=(
+            SIGNATURE_HMAC_SHA1,
+            SIGNATURE_HMAC_SHA256,
+            SIGNATURE_HMAC_SHA512,
+            SIGNATURE_RSA_SHA1,
+            SIGNATURE_RSA_SHA256,
+            SIGNATURE_RSA_SHA512,
+            SIGNATURE_PLAINTEXT,
+        ), textvariable=self.signature_method, state="readonly").grid(row=1, column=1)
         frame.pack(fill="x")
         self.hmac_page()
 
@@ -130,39 +120,27 @@ class OauthFrame(ttk.Frame):
 
     def hmac_page(self):
         self.main_frame = ttk.Frame(self)
-        ttk.Label(self.main_frame, text="Consumer Key").grid(row=0, column=0)
+        ttk.Label(self.main_frame, text="Consumer Key", width=22).grid(row=0, column=0, sticky='w')
         ttk.Entry(self.main_frame, textvariable=self.client_key).grid(row=0, column=1)
-        ttk.Label(self.main_frame, text="Consumer Secret").grid(row=1, column=0)
-        ttk.Entry(self.main_frame, textvariable=self.client_secret).grid(
-            row=1, column=1
-        )
-        ttk.Label(self.main_frame, text="Access Token").grid(row=2, column=0)
-        ttk.Entry(self.main_frame, textvariable=self.resource_owner_key).grid(
-            row=2, column=1
-        )
-        ttk.Label(self.main_frame, text="Token Secret").grid(row=3, column=0)
-        ttk.Entry(self.main_frame, textvariable=self.resource_owner_secret).grid(
-            row=3, column=1
-        )
-        self.main_frame.pack(fill="both", expand=True)
+        ttk.Label(self.main_frame, text="Consumer Secret").grid(row=1, column=0, sticky='w', pady=3)
+        ttk.Entry(self.main_frame, textvariable=self.client_secret).grid(row=1, column=1)
+        ttk.Label(self.main_frame, text="Access Token").grid(row=2, column=0, sticky='w')
+        ttk.Entry(self.main_frame, textvariable=self.resource_owner_key).grid(row=2, column=1)
+        ttk.Label(self.main_frame, text="Token Secret").grid(row=3, column=0, sticky='w', pady=3)
+        ttk.Entry(self.main_frame, textvariable=self.resource_owner_secret).grid(row=3, column=1)
+        self.main_frame.pack(fill="x")
 
     def rsa_page(self):
         self.main_frame = ttk.Frame(self)
-        ttk.Label(self.main_frame, text="Consumer Key").grid(row=0, column=0)
-        ttk.Entry(self.main_frame, textvariable=self.client_key).grid(
-            row=0, column=1, sticky="w"
-        )
-        ttk.Label(self.main_frame, text="Access Token").grid(row=1, column=0)
-        ttk.Entry(self.main_frame, textvariable=self.resource_owner_key).grid(
-            row=1, column=1, sticky="w"
-        )
-        ttk.Label(self.main_frame, text="Private key").grid(row=2, column=0)
-        ttk.Button(self.main_frame, text="Select File", command=self.on_open).grid(
-            row=2, column=1, sticky="w"
-        )
-        self.rsa_key_text = ScrolledText(self.main_frame, width=40)
+        ttk.Label(self.main_frame, text="Consumer Key", width=22).grid(row=0, column=0, sticky='w')
+        ttk.Entry(self.main_frame, textvariable=self.client_key).grid(row=0, column=1, sticky="w")
+        ttk.Label(self.main_frame, text="Access Token").grid(row=1, column=0, sticky='w', pady=3)
+        ttk.Entry(self.main_frame, textvariable=self.resource_owner_key).grid(row=1, column=1, sticky="w")
+        ttk.Label(self.main_frame, text="Private key").grid(row=2, column=0, sticky='w')
+        ttk.Button(self.main_frame, text="Select File", command=self.on_open).grid(row=2, column=1, sticky="w")
+        self.rsa_key_text = ScrolledText(self.main_frame, width=40, height=4)
         self.rsa_key_text.grid(row=3, column=1, sticky="w")
-        self.main_frame.pack(fill="both", expand=True)
+        self.main_frame.pack(fill="x")
 
     def on_open(self):
         filepath = filedialog.askopenfilename(initialdir=USER_DIR)
@@ -184,9 +162,7 @@ class OauthFrame(ttk.Frame):
             self.client_secret.set(data.get("client_secret", ""))
             self.resource_owner_key.set(data.get("resource_owner_key", ""))
             self.resource_owner_secret.set(data.get("resource_owner_secret", ""))
-            self.signature_type.set(
-                data.get("signature_type", SIGNATURE_TYPE_AUTH_HEADER)
-            )
+            self.signature_type.set(data.get("signature_type", SIGNATURE_TYPE_AUTH_HEADER))
             self.signature_method.set(data.get("signature_method", SIGNATURE_HMAC_SHA1))
         else:
             self.rsa_page()
@@ -194,9 +170,7 @@ class OauthFrame(ttk.Frame):
             self.resource_owner_key.set(data.get("resource_owner_key", ""))
             self.rsa_key_text.delete("1.0", "end")
             self.rsa_key_text.insert("1.0", data.get("rsa_key", ""))
-            self.signature_type.set(
-                data.get("signature_type", SIGNATURE_TYPE_AUTH_HEADER)
-            )
+            self.signature_type.set(data.get("signature_type", SIGNATURE_TYPE_AUTH_HEADER))
             self.signature_method.set(data.get("signature_method", SIGNATURE_RSA_SHA1))
 
     def get(self):
@@ -241,9 +215,7 @@ class AuthFrame(ttk.Frame):
         ).grid(row=0, column=1)
         frame.pack(fill="x", padx=5, pady=5)
         self.main_frame = ttk.Frame(self)
-        ttk.Label(
-            self.main_frame, text="This request does not use any authorization."
-        ).pack()
+        ttk.Label(self.main_frame, text="This request does not use any authorization.").pack()
         self.main_frame.pack()
         self.username = tk.StringVar(self)
         self.password = tk.StringVar(self)
@@ -262,16 +234,14 @@ class AuthFrame(ttk.Frame):
 
     def no_auth_page(self):
         self.main_frame = ttk.Frame(self)
-        ttk.Label(
-            self.main_frame, text="This request does not use any authorization."
-        ).pack()
+        ttk.Label(self.main_frame, text="This request does not use any authorization.").pack()
         self.main_frame.pack()
 
     def base_digest_page(self):
         self.main_frame = ttk.Frame(self)
         ttk.Label(self.main_frame, text="username:").grid(row=0, column=0)
         ttk.Entry(self.main_frame, textvariable=self.username).grid(row=0, column=1)
-        ttk.Label(self.main_frame, text="password:").grid(row=1, column=0)
+        ttk.Label(self.main_frame, text="password:").grid(row=1, column=0, pady=3)
         ttk.Entry(self.main_frame, textvariable=self.password).grid(row=1, column=1)
         self.main_frame.pack()
 
@@ -358,9 +328,7 @@ class BodyFrame:
 
             if self.mode.get() == "none":
                 self.main_frame = ttk.Frame(self.root)
-                ttk.Label(
-                    self.main_frame, text="This request does not have a body"
-                ).pack()
+                ttk.Label(self.main_frame, text="This request does not have a body").pack()
                 self.main_frame.pack()
                 self.current_date_type = "none"
 

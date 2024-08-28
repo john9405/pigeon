@@ -18,7 +18,9 @@ class CollectionWindow:
         self.callback = callback
 
         self.tree = ttk.Treeview(window)
+        scroll_y = ttk.Scrollbar(window, command=self.tree.yview)
         self.tree.heading("#0", text="(+)", anchor='e')
+        scroll_y.pack(side="right", fill="y")
         self.tree.pack(fill="both", expand=True)
         self.tree.bind("<Button-1>", self.on_click)
         self.tree.bind("<Double-1>", self.on_select)
@@ -27,6 +29,7 @@ class CollectionWindow:
             self.tree.bind("<Button-2>", self.on_right_click)
         else:
             self.tree.bind("<Button-3>", self.on_right_click)
+        self.tree.config(yscrollcommand=scroll_y.set)
 
     def open_proj(self):
         """open a program"""
@@ -185,7 +188,7 @@ class CollectionWindow:
             menu.post(event.x_root, event.y_root)
 
     def new_proj(self):
-        name = simpledialog.askstring("ask", "Name:", initialvalue='New Collection', parent=self.window)
+        name = simpledialog.askstring("New Collection", "Name:", initialvalue='New Collection', parent=self.window)
         if name is None:
             return
         self.tree.insert(
@@ -197,7 +200,7 @@ class CollectionWindow:
         )
 
     def new_col(self):
-        name = simpledialog.askstring("ask", "Name:", initialvalue='New Folder', parent=self.window)
+        name = simpledialog.askstring("New Folder", "Name:", initialvalue='New Folder', parent=self.window)
         if name is None:
             return
         try:
@@ -224,7 +227,7 @@ class CollectionWindow:
 
     def new_req(self, data=None):
         if data is None:
-            name = simpledialog.askstring("ask", "Name:", initialvalue='New Request', parent=self.window)
+            name = simpledialog.askstring("New Request", "Name:", initialvalue='New Request', parent=self.window)
             if name is None:
                 return
             data = {
@@ -386,6 +389,9 @@ class ProjectWindow:
         save_btn.pack(side=tk.RIGHT)
 
         notebook = ttk.Notebook(self.root)
+        self.overview = ScrolledText(notebook)
+        self.overview.insert(tk.END, data.get("description", ""))
+        notebook.add(self.overview, text="Overview")
         # pre-request script
         self.script_box = ScrolledText(notebook)
         self.script_box.insert(tk.END, data.get("pre_request_script", ""))
@@ -406,10 +412,12 @@ class ProjectWindow:
 
     def on_save(self):
         name = self.name_entry.get()
+        description = self.overview.get("1.0", tk.END)
         pre_request_script = self.script_box.get("1.0", tk.END)
         tests = self.tests_box.get("1.0", tk.END)
         variable = []
 
+        description = description.rstrip("\n")
         pre_request_script = pre_request_script.rstrip("\n")
         tests = tests.rstrip("\n")
 
@@ -427,9 +435,11 @@ class ProjectWindow:
                 "name": name,
                 "pre_request_script": pre_request_script,
                 "tests": tests,
-                "variable": variable
+                "variable": variable,
+                "description": description,
             },
         )
+
 
 class FolderWindow:
     """Folder properties"""
@@ -452,6 +462,9 @@ class FolderWindow:
         save_btn.pack(side=tk.RIGHT)
 
         notebook = ttk.Notebook(self.root)
+        self.overview = ScrolledText(notebook)
+        self.overview.insert(tk.END, data.get("description", ""))
+        notebook.add(self.overview, text="Overview")
         # pre-request script
         self.script_box = ScrolledText(notebook)
         self.script_box.insert(tk.END, data.get("pre_request_script", ""))
@@ -466,9 +479,11 @@ class FolderWindow:
 
     def on_save(self):
         name = self.name_entry.get()
+        description = self.overview.get("1.0", tk.END)
         pre_request_script = self.script_box.get("1.0", tk.END)
         tests = self.tests_box.get("1.0", tk.END)
 
+        description = description.rstrip("\n")
         pre_request_script = pre_request_script.rstrip("\n")
         tests = tests.rstrip("\n")
 
@@ -482,5 +497,6 @@ class FolderWindow:
                 "name": name,
                 "pre_request_script": pre_request_script,
                 "tests": tests,
+                "description": description
             },
         )

@@ -17,10 +17,12 @@ class EnvironmentWindow:
         self.root = ttk.Frame(master)
 
         self.treeview = ttk.Treeview(self.root, show='headings', columns=("name", "status"))
-        self.treeview.column("#1", anchor="w", width=10)
-        self.treeview.column("#2", anchor="center", width=2)
+        scroll_y = ttk.Scrollbar(self.root, orient=tk.VERTICAL, command=self.treeview.yview)
+        self.treeview.column("#1", anchor="w", width=1)
+        self.treeview.column("#2", anchor="center", width=1)
         self.treeview.heading("#1", text="Name (+)", anchor="center")
         self.treeview.heading("#2", text="Status", anchor="center")
+        scroll_y.pack(side=tk.RIGHT, fill=tk.Y)
         self.treeview.pack(fill=tk.BOTH, expand=tk.YES)
         self.treeview.bind("<Button-1>", self.on_click)
         self.treeview.bind("<Double-1>", self.on_select)
@@ -29,6 +31,7 @@ class EnvironmentWindow:
             self.treeview.bind("<Button-2>", self.on_right_click)
         else:
             self.treeview.bind("<Button-3>", self.on_right_click)
+        self.treeview.config(yscrollcommand=scroll_y.set)
 
     def on_start(self):
         if os.path.exists(self.cache_file):
@@ -85,7 +88,7 @@ class EnvironmentWindow:
             menu.post(event.x_root, event.y_root)
 
     def on_add(self):
-        name = simpledialog.askstring("Add", prompt="Name", initialvalue="New Environment", parent=self.root)
+        name = simpledialog.askstring("New Environment", prompt="Name", initialvalue="New Environment", parent=self.root)
         if name is not None:
             if name == "Globals":
                 messagebox.showwarning("Warning", "Reserved words")

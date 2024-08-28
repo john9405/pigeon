@@ -20,9 +20,7 @@ class HistoryWindow:
 
         self.history_box = tk.Listbox(window)
         scrollbar = ttk.Scrollbar(window, command=self.history_box.yview)
-        sbx = ttk.Scrollbar(window, command=self.history_box.xview, orient=tk.HORIZONTAL)
-        scrollbar.pack(fill=tk.Y, side=tk.RIGHT, pady=(0, sbx.winfo_reqheight()))
-        sbx.pack(side=tk.BOTTOM, fill=tk.X)
+        scrollbar.pack(fill=tk.Y, side=tk.RIGHT)
         self.history_box.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.YES)
 
         self.history_box.bind("<Double-Button-1>", self.on_select)
@@ -31,7 +29,7 @@ class HistoryWindow:
             self.history_box.bind("<Button-2>", self.on_right_click)
         else:
             self.history_box.bind("<Button-3>", self.on_right_click)
-        self.history_box.config(yscrollcommand=scrollbar.set, xscrollcommand=sbx.set)
+        self.history_box.config(yscrollcommand=scrollbar.set)
 
     def on_delete(self):
         selection = self.history_box.curselection()
