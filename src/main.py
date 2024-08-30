@@ -30,6 +30,7 @@ class MainWindow:
         self.root.after(0, self.on_start)
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.root.geometry("800x600")
+        self.root.after(300000, self.write_to_disk)
 
         state_bar = ttk.Frame(self.root)
         state_bar.pack(side=tk.BOTTOM, fill=tk.X)
@@ -59,6 +60,7 @@ class MainWindow:
         file_menu.add_command(label="New collection", command=self.col_win.new_proj)
         file_menu.add_command(label="Import", command=self.col_win.open_proj)
         file_menu.add_command(label="Export", command=self.col_win.export_proj)
+        file_menu.add_command(label="Write data", command=self.write_to_disk)
         file_menu.add_command(label="Exit", command=self.on_closing)
         menu.add_cascade(label="File", menu=file_menu)
         tool_menu = tk.Menu(menu, tearoff=False)
@@ -117,10 +119,13 @@ class MainWindow:
         t2.start()
         t3.start()
 
-    def on_closing(self):
+    def write_to_disk(self):
         self.col_win.on_close()
         self.env_win.on_end()
         self.history_window.on_end()
+
+    def on_closing(self):
+        self.write_to_disk()
         self.root.destroy()
 
     def request(self, **kwargs):
