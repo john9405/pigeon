@@ -14,7 +14,7 @@ from .tools.b64 import Base64GUI
 from .tools.md5 import MD5GUI
 from .tools.pwd import GenPwdWindow
 from .tools.timestamp import TimestampWindow
-from .tools.regex import RegexWindow
+from .tools.regex import RegexWindow, CommonlyUsed
 from .tools.RSA import RSAKeyFrame, RsaPublicKey, RSACheck, RSAEncrypt, RSADecrypt
 
 
@@ -69,7 +69,8 @@ class MainWindow:
         tool_menu.add_command(label="MD5", command=lambda: self.new_tab(MD5GUI, "MD5"))
         tool_menu.add_command(label="Password", command=lambda: self.new_tab(GenPwdWindow, "Password"))
         tool_menu.add_command(label="Timestamp", command=lambda: self.new_tab(TimestampWindow, "Timestamp"))
-        tool_menu.add_command(label="Regex", command=lambda: self.new_tab(RegexWindow, "Regex"))
+        tool_menu.add_command(label="Regular Expression ", command=lambda: self.new_tab(RegexWindow, "Regular Expression "))
+        tool_menu.add_command(label="Common Regular Expressions", command=lambda: self.new_tab(CommonlyUsed, "Common Regular Expressions"))
         tool_menu.add_command(label="RSA Key", command=lambda: self.new_tab(RSAKeyFrame, "RSA Key"))
         tool_menu.add_command(label="RSA Public Key", command=lambda: self.new_tab(RsaPublicKey, "RSA Public Key"))
         tool_menu.add_command(label="RSA Check", command=lambda: self.new_tab(RSACheck, "RSA Check"))

@@ -43,9 +43,40 @@ class RegexWindow:
         result_text = ScrolledText(result_label, height=10)
         result_text.pack(fill='both', expand=True)
 
-        frame4 = ttk.LabelFrame(self.root, text="常用正则表达式")
-        st = ScrolledText(frame4, spacing3=5, height=10)
-        st.insert("1.0", """一、校验数字的表达式
+        self.regex_entry = regex_entry
+        self.text_entry = text_entry
+        self.result_text = result_text
+
+    def find_matches(self, ignore_case_var, multi_line_var):
+        regex = self.regex_entry.get()
+        text = self.text_entry.get("1.0", tk.END)
+        flags = 0
+        if ignore_case_var.get():  # 如果勾选了忽略大小写
+            flags |= re.IGNORECASE
+        if multi_line_var.get():  # 如果勾选了多行模式
+            flags |= re.MULTILINE
+
+        try:
+            matches = re.finditer(regex, text, flags)
+            self.result_text.delete(1.0, tk.END)
+            if matches:
+                for item in matches:
+                    self.result_text.insert(tk.END, f"Match: {item}\n")
+            else:
+                self.result_text.insert(tk.END, "No matches found.\n")
+        except re.error as e:
+            self.result_text.delete(1.0, tk.END)
+            self.result_text.insert(tk.END, f"Error: {e}")
+
+
+class CommonlyUsed:
+    def __init__(self, master=None):
+        self.root = ttk.Frame(master)
+        self.root.pack(fill='both', expand=True)
+
+        st = ScrolledText(self.root, spacing3=5)
+        st.insert("1.0", """常用正则表达式
+一、校验数字的表达式
 数字：^[0-9]*$
 n位的数字：^\d{n}$
 至少n位的数字：^\d{n,}$
@@ -114,28 +145,3 @@ HTML标记的正则表达式：<(\S*?)[^>]*>.*?|<.*? /> ( 首尾空白字符的�
 IPv4地址：((2(5[0-5]|[0-4]\d))|[0-1]?\d{1,2})(\.((2(5[0-5]|[0-4]\d))|[0-1]?\d{1,2})){3}""")
         st.configure(state='disabled')
         st.pack(fill='both', expand=True)
-        frame4.pack(fill='both', expand=True)
-        self.regex_entry = regex_entry
-        self.text_entry = text_entry
-        self.result_text = result_text
-
-    def find_matches(self, ignore_case_var, multi_line_var):
-        regex = self.regex_entry.get()
-        text = self.text_entry.get("1.0", tk.END)
-        flags = 0
-        if ignore_case_var.get():  # 如果勾选了忽略大小写
-            flags |= re.IGNORECASE
-        if multi_line_var.get():  # 如果勾选了多行模式
-            flags |= re.MULTILINE
-
-        try:
-            matches = re.finditer(regex, text, flags)
-            self.result_text.delete(1.0, tk.END)
-            if matches:
-                for item in matches:
-                    self.result_text.insert(tk.END, f"Match: {item}\n")
-            else:
-                self.result_text.insert(tk.END, "No matches found.\n")
-        except re.error as e:
-            self.result_text.delete(1.0, tk.END)
-            self.result_text.insert(tk.END, f"Error: {e}")
