@@ -61,10 +61,10 @@ class TimestampWindow:
 
     def t2d(self):
         # 时间戳转日期时间
-        ttk.Label(self.root, text="Timestamp:").grid(row=0, column=0)
+        ttk.Label(self.root, text="Timestamp:").grid(row=0, column=0, sticky='w')
         timestamp_entry = ttk.Entry(self.root)
         timestamp_entry.grid(row=0, column=1)
-        ttk.Label(self.root, text="Datetime:").grid(row=0, column=3)
+        ttk.Label(self.root, text="Datetime:").grid(row=0, column=3, sticky='w')
         datetime_entry = ttk.Entry(self.root)
         btn = ttk.Button(
             self.root, text="->", width=4,
@@ -75,10 +75,10 @@ class TimestampWindow:
 
     def d2t(self):
         # 日期时间转时间戳
-        ttk.Label(self.root, text="DateTime:").grid(row=1, column=0)
+        ttk.Label(self.root, text="DateTime:").grid(row=1, column=0, sticky='w')
         datetime_entry = ttk.Entry(self.root)
         datetime_entry.grid(row=1, column=1)
-        ttk.Label(self.root, text="Timestamp:").grid(row=1, column=3)
+        ttk.Label(self.root, text="Timestamp:").grid(row=1, column=3, sticky='w')
         timestamp_entry = ttk.Entry(self.root)
         btn = ttk.Button(
             self.root, text="->", width=4,
@@ -90,10 +90,10 @@ class TimestampWindow:
 
     def now(self):
         # 现在的时间
-        ttk.Label(self.root, text="Now:").grid(row=3, column=0)
+        ttk.Label(self.root, text="Now:").grid(row=3, column=0, sticky='w')
         timestamp_entry = ttk.Entry(self.root)
         timestamp_entry.grid(row=3, column=1)
-        ttk.Label(self.root, text="Date:").grid(row=4, column=0)
+        ttk.Label(self.root, text="Date:").grid(row=4, column=0, sticky='w')
         datetime_entry = ttk.Entry(self.root)
         datetime_entry.grid(row=4, column=1, pady=3)
         thread = threading.Thread(target=update_now, args=(timestamp_entry, datetime_entry,))

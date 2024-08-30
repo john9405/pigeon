@@ -15,6 +15,7 @@ from .tools.md5 import MD5GUI
 from .tools.pwd import GenPwdWindow
 from .tools.timestamp import TimestampWindow
 from .tools.regex import RegexWindow
+from .tools.RSA import RSAKeyFrame, RsaPublicKey, RSACheck, RSAEncrypt, RSADecrypt
 
 
 class MainWindow:
@@ -67,6 +68,11 @@ class MainWindow:
         tool_menu.add_command(label="Password", command=lambda: self.new_tab(GenPwdWindow, "Password"))
         tool_menu.add_command(label="Timestamp", command=lambda: self.new_tab(TimestampWindow, "Timestamp"))
         tool_menu.add_command(label="Regex", command=lambda: self.new_tab(RegexWindow, "Regex"))
+        tool_menu.add_command(label="RSA Key", command=lambda: self.new_tab(RSAKeyFrame, "RSA Key"))
+        tool_menu.add_command(label="RSA Public Key", command=lambda: self.new_tab(RsaPublicKey, "RSA Public Key"))
+        tool_menu.add_command(label="RSA Check", command=lambda: self.new_tab(RSACheck, "RSA Check"))
+        tool_menu.add_command(label="RSA Encrypt", command=lambda: self.new_tab(RSAEncrypt, "RSA Encrypt"))
+        tool_menu.add_command(label="RSA Decrypt", command=lambda: self.new_tab(RSADecrypt, "RSA Decrypt"))
         menu.add_cascade(label="Tools", menu=tool_menu)
         help_menu = tk.Menu(menu, tearoff=False)
         help_menu.add_command(label="Help", command=lambda: self.new_tab(HelpWindow, "Help"))

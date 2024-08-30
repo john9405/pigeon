@@ -1,5 +1,3 @@
-import tkinter as tk
-from tkinter import *
 from tkinter import ttk, messagebox
 from tkinter.scrolledtext import ScrolledText
 import base64
@@ -18,30 +16,30 @@ class AesGui:
         label2 = ttk.Label(frame1, text="Key:")
         label2.grid(row=2, column=2, sticky='w', padx=3)
         self.entry2 = ttk.Entry(frame1)
-        self.entry2.grid(row=2, column=3, sticky=W)
+        self.entry2.grid(row=2, column=3, sticky='w')
 
         label7 = ttk.Label(frame1, text="IV:")
         label7.grid(row=3, column=2, sticky='w', padx=3)
         self.entry3 = ttk.Entry(frame1)
-        self.entry3.grid(row=3, column=3, sticky=W, pady=3)
+        self.entry3.grid(row=3, column=3, sticky='w', pady=3)
 
         label3 = ttk.Label(frame1, text="Encryption:")
         label3.grid(row=2, column=0, sticky='w')
         self.mode_box = ttk.Combobox(frame1, values=("ECB", "CBC"))
         self.mode_box.current(0)
-        self.mode_box.grid(row=2, column=1, sticky=W)
+        self.mode_box.grid(row=2, column=1, sticky='w')
 
         label4 = ttk.Label(frame1, text="Padding:")
         label4.grid(row=3, column=0, sticky='w')
         self.padding_box = ttk.Combobox(frame1, values=("nopadding", "pkcs7", "iso7816", "x923"))
         self.padding_box.current(0)
-        self.padding_box.grid(row=3, column=1, sticky=W, pady=3)
+        self.padding_box.grid(row=3, column=1, sticky='w', pady=3)
 
         label5 = ttk.Label(frame1, text="Block:")
         label5.grid(row=4, column=0, sticky='w')
         self.blocksize_box = ttk.Combobox(frame1, values=("128", "192", "256"))
         self.blocksize_box.current(0)
-        self.blocksize_box.grid(row=4, column=1, sticky=W)
+        self.blocksize_box.grid(row=4, column=1, sticky='w')
 
         # 创建输入框和标签
         label1 = ttk.LabelFrame(self.root, text="Input:")
@@ -64,7 +62,7 @@ class AesGui:
     def encrypt(self):
         try:
             # 获取输入框中的明文和密钥
-            plaintext = self.entry1.get("1.0", END)
+            plaintext = self.entry1.get("1.0", 'end')
             key = self.entry2.get()
             iv = self.entry3.get()
             mode = self.mode_box.get()
@@ -85,11 +83,14 @@ class AesGui:
                 cipher = AES.new(key, AES.MODE_ECB)
             elif mode == "CBC":
                 if len(iv) < 16:
-                    messagebox.showerror("Error", "The offset length must be 16 bits")
+                    messagebox.showerror("Error", "The offset length must be 16 bits.")
                     return
 
                 iv = iv.encode()
                 cipher = AES.new(key, AES.MODE_CBC, iv=iv)
+            else:
+                messagebox.showerror("Error", "Unsupported encryption mode.")
+                return
 
             # 将明文填充到指定长度
             if padding == "pkcs7":
@@ -104,17 +105,17 @@ class AesGui:
             ciphertext = base64.b64encode(ciphertext).decode()
 
             # 显示加密结果
-            self.text.delete(1.0, END)
-            self.text.insert(END, ciphertext)
+            self.text.delete(1.0, 'end')
+            self.text.insert('end', ciphertext)
         except Exception as e:
-            messagebox.showerror("error", e)
+            messagebox.showerror("error", str(e))
             return
 
     # 解密函数
     def decrypt(self):
         try:
             # 获取输入框中的密文和密钥
-            ciphertext = self.entry1.get("1.0", END)
+            ciphertext = self.entry1.get("1.0", 'end')
             ciphertext = ciphertext.encode()
             key = self.entry2.get()
             iv = self.entry3.get()
@@ -138,6 +139,9 @@ class AesGui:
                     messagebox.showerror("Error", "The offset length must be 16 bits")
                     return
                 cipher = AES.new(key, AES.MODE_CBC, iv=iv)
+            else:
+                messagebox.showerror("Error", "Unsupported encryption mode.")
+                return
 
             ciphertext = base64.b64decode(ciphertext)
             plaintext = cipher.decrypt(ciphertext)
@@ -153,8 +157,8 @@ class AesGui:
             plaintext = plaintext.decode()
 
             # 显示解密结果
-            self.text.delete(1.0, END)
-            self.text.insert(END, plaintext)
+            self.text.delete(1.0, 'end')
+            self.text.insert('end', plaintext)
         except Exception as e:
-            messagebox.showerror("error", e)
+            messagebox.showerror("error", str(e))
             return

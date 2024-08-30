@@ -21,7 +21,8 @@ class GenPwdWindow:
         # 密码长度标签和输入框
         length_label = ttk.Label(self.root, text="Length:")
         length_label.grid(row=0, column=0, sticky='w')
-        le = ttk.Entry(self.root, textvariable=self.l, validate='key', validatecommand=vcmd, invalidcommand=ivcmd)
+        le = ttk.Spinbox(self.root, textvariable=self.l, validate='key', validatecommand=vcmd, invalidcommand=ivcmd,
+                         from_=1, to=100)
         le.grid(row=0, column=1, columnspan=4, sticky='w')
         # 密码复杂程度选择
         complexity_label = ttk.Label(self.root, text="Complexity:")

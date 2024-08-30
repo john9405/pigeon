@@ -1,4 +1,3 @@
-import tkinter as tk
 from tkinter import ttk, messagebox
 from tkinter.scrolledtext import ScrolledText
 import hashlib
@@ -28,6 +27,6 @@ class MD5GUI:
             self.result_data_text.delete(1.0, "end")
             self.result_data_text.insert(1.0, res + "\n")
             self.result_data_text.insert("end", res.upper())
-        except Exception:
+        except Exception as e:
             self.result_data_text.delete(1.0, "end")
-            messagebox.showinfo("Error", "MD5 Falied")
+            messagebox.showinfo("Error", str(e))

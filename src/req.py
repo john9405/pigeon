@@ -45,10 +45,10 @@ class ParamsFrame(EditorTable):
         item_id: Optional[str] = None,
         win: Optional[tk.Toplevel] = None,
         name_entry: Optional[ttk.Entry] = None,
-        value_entry: Optional[ttk.Entry] = None,
+        value_entry: Optional[ScrolledText] = None,
     ):
         name = name_entry.get()
-        value = value_entry.get()
+        value = value_entry.get("1.0", "end")
         if self.check_name(item_id, name):
             if item_id is None:
                 self.treeview.insert("", tk.END, values=(name, value))
@@ -558,9 +558,7 @@ class RequestWindow:
             body = ""
         body = self.fill_var(body)
 
-        if (req_options.get("mode") == "urlencoded"
-                or (req_options.get("mode") == "raw"
-                    and req_options.get("options") == "JSON")):
+        if (req_options.get("mode") == "urlencoded" or (req_options.get("mode") == "raw" and req_options.get("options") == "JSON")):
             try:
                 body = json.loads(body)
             except json.JSONDecodeError:
@@ -582,13 +580,9 @@ class RequestWindow:
                     opt_auth[item][citem] = temp
         auth = None
         if opt_auth["type"] == "base":
-            auth = HTTPBasicAuth(
-                opt_auth["base"]["username"], opt_auth["base"]["password"]
-            )
+            auth = HTTPBasicAuth(opt_auth["base"]["username"], opt_auth["base"]["password"])
         elif opt_auth["type"] == "digest":
-            auth = HTTPDigestAuth(
-                opt_auth["digest"]["username"], opt_auth["digest"]["password"]
-            )
+            auth = HTTPDigestAuth(opt_auth["digest"]["username"], opt_auth["digest"]["password"])
         elif opt_auth["type"] == "oauth1":
             if opt_auth["oauth1"]["signature_method"] in (
                 SIGNATURE_HMAC_SHA1,
@@ -672,6 +666,19 @@ class RequestWindow:
         except requests.exceptions.MissingSchema:
             messagebox.showerror("Error", "Request error")
             return
+        except requests.exceptions.SSLError:
+            messagebox.showerror("Error", "SSL certificate verify failed")
+            return
+        except requests.exceptions.ConnectionError:
+            messagebox.showerror("Error", "Connection refused")
+            return
+        except requests.exceptions.Timeout:
+            messagebox.showerror("Error", "Request timeout")
+            return
+        except requests.exceptions.RequestException as error:
+            messagebox.showerror("Error", str(error))
+            return
+
         cost_time = time.time() - start_time
         if cost_time < 1:
             cost_time = f"{round(cost_time * 1000)}ms"
@@ -686,7 +693,7 @@ class RequestWindow:
 
         self.res_body_box.delete("1.0", tk.END)
         if "application/json" in content_type:
-            self.res_body_box.insert(tk.END, json.dumps(response.json(), indent=4, ensure_ascii=False))
+            self.res_body_box.insert(tk.END, json.dumps(response.json(), indent=2, ensure_ascii=False))
         elif "text/html" in content_type:
             response.encoding = "utf-8"
             soup = BeautifulSoup(response.text, "html.parser")
@@ -694,7 +701,7 @@ class RequestWindow:
         elif "text/xml" in content_type or "application/xml" in content_type:
             response.encoding = "utf-8"
             dom = xml.dom.minidom.parseString(response.text)
-            self.res_body_box.insert(tk.END, dom.toprettyxml(indent="    "))
+            self.res_body_box.insert(tk.END, dom.toprettyxml(indent="  "))
         elif "image" in content_type:
             data_stream = BytesIO(response.content)
             pil_image = Image.open(data_stream)

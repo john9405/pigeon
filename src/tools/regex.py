@@ -2,8 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter.scrolledtext import ScrolledText
 import re
-import os
-from .. import BASE_DIR
+
 
 class RegexWindow:
     def __init__(self, master=None) -> None:
@@ -15,7 +14,7 @@ class RegexWindow:
         options_frame.pack()
 
         # 创建正则表达式输入框
-        regex_label = ttk.Label(options_frame, text="Regular expression:")
+        regex_label = ttk.Label(options_frame, text="Expression:")
         regex_label.pack(side=tk.LEFT)
         regex_entry = ttk.Entry(options_frame)
         regex_entry.pack(side=tk.LEFT)
@@ -25,10 +24,11 @@ class RegexWindow:
         ignore_case_checkbox.pack(side=tk.LEFT)
 
         multi_line_var = tk.BooleanVar(value=False)
-        multi_line_checkbox = ttk.Checkbutton(options_frame, text="Multiline mode", variable=multi_line_var)
+        multi_line_checkbox = ttk.Checkbutton(options_frame, text="Multiline", variable=multi_line_var)
         multi_line_checkbox.pack(side=tk.LEFT)
         # 创建查找按钮
-        find_button = ttk.Button(options_frame, text="Search",command=lambda: self.find_matches(ignore_case_var, multi_line_var))
+        find_button = ttk.Button(options_frame, text="Search",
+                                 command=lambda: self.find_matches(ignore_case_var, multi_line_var))
         find_button.pack(side=tk.LEFT)
 
         # 创建文本输入框

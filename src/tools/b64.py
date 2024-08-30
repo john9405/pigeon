@@ -39,4 +39,4 @@ class Base64GUI:
             self.output_box.delete(1.0, tk.END)
             self.output_box.insert(1.0, res)
         except Exception as e:
-            messagebox.showerror("Error", e)
+            messagebox.showerror("Error", str(e))
