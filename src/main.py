@@ -16,6 +16,7 @@ from .tools.pwd import GenPwdWindow
 from .tools.timestamp import TimestampWindow
 from .tools.regex import RegexWindow, CommonlyUsed
 from .tools.RSA import RSAKeyFrame, RsaPublicKey, RSACheck, RSAEncrypt, RSADecrypt
+from .tools.draft_paper import DraftPaper
 
 
 class MainWindow:
@@ -76,6 +77,7 @@ class MainWindow:
         tool_menu.add_command(label="RSA Check", command=lambda: self.new_tab(RSACheck, "RSA Check"))
         tool_menu.add_command(label="RSA Encrypt", command=lambda: self.new_tab(RSAEncrypt, "RSA Encrypt"))
         tool_menu.add_command(label="RSA Decrypt", command=lambda: self.new_tab(RSADecrypt, "RSA Decrypt"))
+        tool_menu.add_command(label='DraftPaper', command=lambda: self.new_tab(DraftPaper, "DraftPaper"))
         menu.add_cascade(label="Tools", menu=tool_menu)
         help_menu = tk.Menu(menu, tearoff=False)
         help_menu.add_command(label="Help", command=lambda: self.new_tab(HelpWindow, "Help"))
@@ -138,6 +140,11 @@ class MainWindow:
             index = self.nbb.index("current")
             self.tag_list[index] = f"col_{kwargs['item_id']}"
 
+    def update_tab(self, **kwargs):
+        name = kwargs.get('name')
+        if name is not None:
+            self.nbb.tab(self.nbb.index("current"), text=name)
+    
     def collection(self, **kwargs):
         if f"col_{kwargs['item_id']}" in self.tag_list:
             self.nbb.select(self.tag_list.index(f"col_{kwargs['item_id']}"))
