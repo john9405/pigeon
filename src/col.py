@@ -19,7 +19,7 @@ class CollectionWindow:
 
         self.tree = ttk.Treeview(window)
         scroll_y = ttk.Scrollbar(window, command=self.tree.yview)
-        self.tree.heading("#0", text="(+)", anchor='e')
+        self.tree.heading("#0", text="Collections  (+)")
         scroll_y.pack(side="right", fill="y")
         self.tree.pack(fill="both", expand=True)
         self.tree.bind("<Button-1>", self.on_click)
@@ -166,14 +166,14 @@ class CollectionWindow:
             tag = self.tree.item(item)["tags"][0]
             menu = tk.Menu(self.window, tearoff=0)
             if tag == "project":
-                menu.add_command(label="Open in tab", command=self.on_open)
+                menu.add_command(label="Open", command=self.on_open)
                 menu.add_command(label="Paste", command=self.on_paste, state='disabled' if self.cut_board is None else 'normal')
                 menu.add_command(label="Add folder", command=self.new_col)
                 menu.add_command(label="Add request", command=self.new_req)
                 menu.add_command(label="Export", command=self.export_proj)
                 menu.add_command(label="Delete", command=self.delete_item)
             elif tag == "folder":
-                menu.add_command(label="Open in tab", command=self.on_open)
+                menu.add_command(label="Open", command=self.on_open)
                 menu.add_command(label="Copy", command=self.on_copy)
                 menu.add_command(label="Cut", command=self.on_cut)
                 menu.add_command(label="Paste", command=self.on_paste, state='disabled' if self.cut_board is None else 'normal')
@@ -181,7 +181,7 @@ class CollectionWindow:
                 menu.add_command(label="Add request", command=self.new_req)
                 menu.add_command(label="Delete", command=self.delete_item)
             elif tag == "request":
-                menu.add_command(label="Open in tab", command=self.on_open)
+                menu.add_command(label="Open", command=self.on_open)
                 menu.add_command(label="Copy", command=self.on_copy)
                 menu.add_command(label="Cut", command=self.on_cut)
                 menu.add_command(label="Delete", command=self.delete_item)

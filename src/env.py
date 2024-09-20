@@ -43,13 +43,17 @@ class EnvironmentWindow:
                 pass
 
         self.treeview.insert("", tk.END, values=("Globals", ""))
+        flag = False
         for item in data:
             if item.get('name') == "Globals":
+                flag = True
                 continue
             self.treeview.insert("", tk.END, values=(
                 item.get('name'),
                 "@" if item.get('is_active') else ""
             ))
+        if not flag:
+            data.append({"name": "Globals", "items": [], "is_active": False})
         self.data = data
 
     def on_end(self):

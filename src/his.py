@@ -56,9 +56,9 @@ class HistoryWindow:
         index = self.history_box.nearest(event.y)
         self.history_box.selection_set(index)
         menu = tk.Menu(self.window, tearoff=0)
-        menu.add_command(label="Open in tab", command=lambda: self.on_select(event))
-        menu.add_command(label="delete", command=self.on_delete)
-        menu.add_command(label="clear", command=self.on_clear)
+        menu.add_command(label="Open", command=lambda: self.on_select(event))
+        menu.add_command(label="Delete", command=self.on_delete)
+        menu.add_command(label="Clear", command=self.on_clear)
         menu.post(event.x_root, event.y_root)
 
     def on_start(self):

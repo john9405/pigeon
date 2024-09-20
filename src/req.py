@@ -138,7 +138,7 @@ class OauthFrame(ttk.Frame):
         ttk.Entry(self.main_frame, textvariable=self.resource_owner_key).grid(row=1, column=1, sticky="w")
         ttk.Label(self.main_frame, text="Private key").grid(row=2, column=0, sticky='w')
         ttk.Button(self.main_frame, text="Select File", command=self.on_open).grid(row=2, column=1, sticky="w")
-        self.rsa_key_text = ScrolledText(self.main_frame, width=40, height=4)
+        self.rsa_key_text = ScrolledText(self.main_frame, width=40, height=5)
         self.rsa_key_text.grid(row=3, column=1, sticky="w")
         self.main_frame.pack(fill="x")
 
