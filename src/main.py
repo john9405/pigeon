@@ -44,6 +44,22 @@ class MainWindow:
             tk.PhotoImage(
                 name='his',
                 data='iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAn9JREFUWEetV9tx4zAMXFjXR5xO7P94JhXEViU5VyIpFdyM8h+nklMhsXAGJdESCT6UnH4FAgtgQS4IP/ieK97K8T8ldd91Q7kHJdjXBkci7MDYKec6EARIw1d07yVdcnwnAUjgK+H15vyU49DaMOqCcU5VJwrgqeHXm8HvVYGXxh0D9fuRziEfKgCTdYEqUGrxNfR8KDnAEC4YPgS+ruix16rhATDBN/jQHLJUo8en1l/DEWBLhGOgXSoID8DhjT/czCVwrIxu1pawfvu69kiPc/sFADV4j32I0cIRcRYCp3KIUbcnKicQFsBTxTsaSn8nciK4JajjdO7j8MYnMKqQXwvAy55Qti9Uh1i1sCdc2hfah2yVSthWGAAeyoTD8cydKwl7jdg8VncAUHM1Z+70Mzb/ayqgJjm2bQDQ8N/Z2HlM1YCsBTBWQeJMn4kzAbhN2vhFCOWQK7sF0zmXZ0WPR/LYnyCf6iyDM3LOJaO0mlwCCqrUA6KRsLjCzrb813xoyf4fADpb5Xk+z0dZmbbSa0HOBHgVCI/LgtAqAJedKwB4N5yHwyG0ywFDQm88MqfAkEqu70J/hjVVpE6BUs6seyB2SQWv74a9cVev4tw2rAGh9V8IagCEbqk1AVK2h3n2AKZxvz/Hjv5bK0Ky3w2j4O4CxwJQqrAwTGUY7Lvz0IldK+J+/FxF5IuHlXJs8V4owV1+eZpQlVGEC19xzl02xitXVNBCKWttVWV5cB9g1NjgU1NKMyEqC4wn0UOcCi4mmpZz+jzfB2M7AWJjHd2MIvI6j5MZ61lyN7T3RP5+aNaxXz2anGc9C8CUrt1+CmyZ8UDDSgaeVrTA1hQr1z/YEshuS7ifxQAAAABJRU5ErkJggg=='
+            ),
+            tk.PhotoImage(
+                name='right',
+                data='iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAM5JREFUOE+1ksENgkAUROejBRBsABMhsQqlEzguFiEWYTgClUAXJuKBBkQKwP2KiagcXJSwt012Zt5MljDw0EA9xjfQw4NJPI2Yaq8Sy6JLrCSY7Y8uE0UAF5KuTtdEaWCEpwjM7jOZmL3zxo7be4Oo8SQFyOw9KCGQqJOGhvQwX2uMtLe4jaa4FAvvfwNwUfr2nF4V3hm+12Egu/iW0yh+HvGuCEph7domqu5GmG/BCJp3kuBUwso+WFUGj3+gaSsJTrriXhVUAcoNRje4AS5HThGKogbHAAAAAElFTkSuQmCC'
+            ),
+            tk.PhotoImage(
+                name='left',
+                data='iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAMhJREFUOE+1k80RgjAQhfehBSAVwAFm7AI6kSNYBNqEOWIn0IUHPNCASAHIOhmGH3VGiBlzTPZ7eZu3AWkuaPL0HwFTFD6YEkYT1tG2/Obyw4GEDaZMQi0oqCM3XyywORUZiPweAHN423vnWQFTXGzwOp3CI8STFmD3+0yU32M3gIQNXmVE4+HSZFo0jr6AvO03F1xWsee8pGCJa0rMu6EF0KGK3OPsI04LLFEknQhs5Rh7oW4WOG3xCJQHaWkCw6yoAu/12p/pCc44SU1DCcWEAAAAAElFTkSuQmCC'
+            ),
+            tk.PhotoImage(
+                name='add',
+                data='iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAASJJREFUOE+lk11ugkAUhc+lLsDqBjQpJt0FrER9hC5CXYTwqDuBXZiAibOBUt8r3GZmFJlBSG3ncebeb865P4R/HrLzh/Fh4mAwZ4ZHgAewYJAgIlHhe3MO3kUzxwAM49xzGEm3KBYg2heBu7nF1IBHyRXBBy7C4cHJ+JV5+fkx28u7GjCKshNAk2ZgEbrqfRTlbKpiUVHpSzs6ID7uwLywpXcD1NdraeXPAAbSr9D1rxK1fOn5HLhpX2dVl1RNWBThbGp4pEZxuiB3ACAtKsBrlCe65+bpq4FpIc5XYKyfAeh5eFsqBVrWS/L7NgIVXaZ1GyVkvM0WTLSzB6Z0ytQepGaxjVHWEKxsJXdozyjfgtrLJF/aia1deNQ2CbO3z477AXnBoxFYbQ0+AAAAAElFTkSuQmCC1'
+            ),
+            tk.PhotoImage(
+                name='subtract',
+                data='iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAPxJREFUOE+dk0EOgjAQRf8Q3KsnwERMvAWcRF3CJdRLyFI9idzCREzkBOhe7RhaFEq0VbvszLz2z58hGE432XuXaJybcqgdLIscdOZgntYxzkFOKnBdtoEaoJ9kczAWn18sQbQpIn/5zHkB7MUNLGHxhEhAN8kCh7EzadVjnAu6h6UcCegnx7Wu2Y5iID3HfqgAq8MJIM9e1szgvIhHgwqQsQw1tL2DKYfciWp0BZCX7J6+B9QWF7FPf0vQetBbZTsCgp96IOdhOKtsbMj4kiLoNnjZqKy0TWFNFoTwEvmp6nt19A4bvtFyyrBMIqhnQ+2AwG1rXKZ3m2lb5wfrMX4RRvB8VgAAAABJRU5ErkJggg=='
             )
         ]
         col_top = None
@@ -104,10 +120,10 @@ class MainWindow:
         self.root.config(menu=menu)
 
         ttk.Sizegrip(state_bar).pack(side="right", anchor="se")
-        ttk.Button(state_bar, text="-", width=3, command=self.close_tab).pack(side="right")
-        ttk.Button(state_bar, text="+", width=3, command=self.new_request).pack(side="right")
-        ttk.Button(state_bar, text=">", width=3, command=self.next_tab).pack(side="right")
-        ttk.Button(state_bar, text="<", width=3, command=self.previous_tab).pack(side="right")
+        ttk.Button(state_bar, image="subtract", command=self.close_tab).pack(side="right", padx=(0,3))
+        ttk.Button(state_bar, image="add", command=self.new_request).pack(side="right")
+        ttk.Button(state_bar, image="right", command=self.next_tab).pack(side="right")
+        ttk.Button(state_bar, image="left", command=self.previous_tab).pack(side="right")
 
     def main_bar_show(self, name, col_box, his_box):
         if self.sidebar != name:
@@ -270,6 +286,9 @@ class MainWindow:
         self.nbb.select(frame)
 
     def close_tab(self):
-        index = self.nbb.index('current')
-        self.tag_list.pop(index)
-        self.nbb.forget(index)
+        try:
+            index = self.nbb.index('current')
+            self.tag_list.pop(index)
+            self.nbb.forget(index)
+        except tk.TclError:
+            pass
