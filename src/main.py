@@ -68,9 +68,15 @@ class MainWindow:
         state_bar.pack(side=tk.BOTTOM, fill=tk.X)
         ttk.Separator(self.root, orient=tk.HORIZONTAL).pack(side=tk.BOTTOM, fill=tk.X)
         side_bar = ttk.Frame(self.root)
-        ttk.Button(side_bar, image='col', command=lambda: self.main_bar_show('col', col_top, history_top)).pack()
-        ttk.Button(side_bar, image='var', command=lambda: self.main_bar_show('var', col_top, history_top)).pack()
-        ttk.Button(side_bar, image='his', command=lambda: self.main_bar_show('his', col_top, history_top)).pack()
+        label1 = ttk.Label(side_bar, image='col')
+        label2 = ttk.Label(side_bar, image='var')
+        label3 = ttk.Label(side_bar, image='his')
+        label1.bind('<Button-1>', lambda e: self.main_bar_show('col', col_top, history_top))
+        label2.bind('<Button-1>', lambda e: self.main_bar_show('var', col_top, history_top))
+        label3.bind('<Button-1>', lambda e: self.main_bar_show('his', col_top, history_top))
+        label1.pack(padx=3, pady=3)
+        label2.pack()
+        label3.pack(padx=3, pady=3)
         side_bar.pack(side=tk.LEFT, fill=tk.Y)
         panel_window = ttk.PanedWindow(self.root, orient="horizontal")
         main_bar = ttk.Frame(panel_window)
@@ -104,10 +110,8 @@ class MainWindow:
         tool_menu.add_command(label="MD5", command=lambda: self.new_tab(MD5GUI, "MD5"))
         tool_menu.add_command(label="Password", command=lambda: self.new_tab(GenPwdWindow, "Password"))
         tool_menu.add_command(label="Timestamp", command=lambda: self.new_tab(TimestampWindow, "Timestamp"))
-        tool_menu.add_command(label="Regular Expression ",
-                              command=lambda: self.new_tab(RegexWindow, "Regular Expression "))
-        tool_menu.add_command(label="Common Regular Expressions",
-                              command=lambda: self.new_tab(CommonlyUsed, "Common Regular Expressions"))
+        tool_menu.add_command(label="Regular Expression ", command=lambda: self.new_tab(RegexWindow, "Regular Expression "))
+        tool_menu.add_command(label="Common Regular Expressions", command=lambda: self.new_tab(CommonlyUsed, "Common Regular Expressions"))
         tool_menu.add_command(label="RSA Key", command=lambda: self.new_tab(RSAKeyFrame, "RSA Key"))
         tool_menu.add_command(label="RSA Public Key", command=lambda: self.new_tab(RsaPublicKey, "RSA Public Key"))
         tool_menu.add_command(label="RSA Check", command=lambda: self.new_tab(RSACheck, "RSA Check"))
@@ -122,10 +126,18 @@ class MainWindow:
         self.root.config(menu=menu)
 
         ttk.Sizegrip(state_bar).pack(side="right", anchor="se")
-        ttk.Button(state_bar, image="subtract", command=self.close_tab).pack(side="right", padx=(0, 3))
-        ttk.Button(state_bar, image="add", command=self.new_request).pack(side="right")
-        ttk.Button(state_bar, image="right", command=self.next_tab).pack(side="right")
-        ttk.Button(state_bar, image="left", command=self.previous_tab).pack(side="right")
+        btn1 = ttk.Label(state_bar, image="subtract")
+        btn2 = ttk.Label(state_bar, image="add")
+        btn3 = ttk.Label(state_bar, image="right")
+        btn4 = ttk.Label(state_bar, image="left")
+        btn1.bind("<Button-1>", self.close_tab)
+        btn2.bind("<Button-1>", lambda e: self.new_request())
+        btn3.bind("<Button-1>", self.next_tab)
+        btn4.bind("<Button-1>", self.previous_tab)
+        btn1.pack(side="right", padx=(0, 3))
+        btn2.pack(side="right")
+        btn3.pack(side="right")
+        btn4.pack(side="right")
 
     def main_bar_show(self, name, col_box, his_box):
         if self.sidebar != name:
@@ -255,7 +267,7 @@ class MainWindow:
         self.nbb.add(frame, text=kwargs.get("collection", "Var"))
         self.nbb.select(frame)
 
-    def previous_tab(self):
+    def previous_tab(self, event):
         try:
             # 获取当前选中的选项卡的索引
             current_tab_index = self.nbb.index("current")
@@ -266,7 +278,7 @@ class MainWindow:
         except tk.TclError:
             pass
 
-    def next_tab(self):
+    def next_tab(self, event):
         try:
             # 获取当前选中的选项卡的索引
             current_tab_index = self.nbb.index("current")
@@ -287,7 +299,7 @@ class MainWindow:
         self.nbb.add(frame, text=text)
         self.nbb.select(frame)
 
-    def close_tab(self):
+    def close_tab(self, event):
         try:
             index = self.nbb.index('current')
             self.tag_list.pop(index)
