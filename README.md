@@ -16,3 +16,6 @@ pip install pyinstaller
 pip install cryptojwt  # JWE
 pyinstaller __main__.py -n ApiTest -w -y --hidden-import cryptojwt --clean --onefile
 ```
+
+bug：
+1.文件夹剪切时会导致子文件夹和请求丢失
