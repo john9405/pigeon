@@ -21,8 +21,6 @@ from .tools.draft_paper import DraftPaper
 
 class MainWindow:
     tag_list = []  # List of enabled labels
-    sidebar = ""
-    console_state = False
 
     def __init__(self):
         self.root = tk.Tk()
@@ -30,21 +28,9 @@ class MainWindow:
         self.root.title("HTTP Client")
         self.root.after(0, self.on_start)
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
-        self.root.geometry("800x600")
+        self.root.geometry("1280x720")
         self.root.after(300000, self.write_to_disk)
         self.images = [
-            tk.PhotoImage(
-                name='col',
-                data='iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAchJREFUWEftV21ygjAQfSsHKT1J5b/O9ARFTtJ6EtATdEb/iycp3qNm6+4QDJgW0kFnOpWfZLN5+/YjL4Se7znnuM9m6Pp7RlXXlr7bPFvx62nxbajzALuKDbJtRqXs8QKYr3kHxjTAabApGyQC4gLAfM0LMHLHYwXCBXXBJ8qGdlDVJqXHFgDJ9zFC3hgSSmYoVb/5iHDgIypLd9d/ZHAGcFXaCWV0RCZFOC84PzG6UEIMEmXgqodb6gjl5oWSCwBKywQf1o5HrHxixDbaJmJC2mKgVXSMImIsPydIiYZ3gdTJNqWlDUJ9Gjw1vuqgJDgXlKbABdA1CCk821aa0hWfXGmTSwGvbFcNAgCDPU2wCzkcgLZUw0BdaBphhDgIgFAZOn59I7aVjnqu9DIQGHWw+Z8AMM7IbXPT3Ka9DIiB207BHHs2/NRl3ja8A7gzcGfgXzGgkqw7KK7JgF7PjjC9PQB3UtYS7bYMnAFUkUEi1zjNcp42AoRRbBaUjXEH+PSACBcGCjfN1BGlaiB6fgwQzHhwn3eubDuLZdFwjlYf42Cvjzrn3TV9FwgLqoRHlOSdg5qcewHYn1oPEWKhbjQmDPb2aebz+QWOe7dO2oOpygAAAABJRU5ErkJggg=='
-            ),
-            tk.PhotoImage(
-                name='var',
-                data='iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAcRJREFUWEftV21ygkAMfYHeo3qS6n+d6QlETqKeBPAEnaH/pScpvUchZYO7Liv1o8BMHeWXLG7yNpu8vBCc5zXi0Tcwctf7en8C8reQcm2P9I9ZxBPyEGFA5+YQhMwvECogAkCduvDw2dcpL7STpwGNBcA85giE5YUbe/sbA+saQMLq9PW9M+J0SWFvXixDEmkfERgTWSZkGkAFpn64xPQ9pGwIAMrmLOFV5XR9WwAkRzyMdOa60ZEK8rECkKQLik9F7+oINDa05IdbQX6JsV3nR2CvvYIGAEBKxza654+dXrsPAPMtK84IVE4o2iYPjQjIGiGAhw83J7rlAJD7JaaGNQkZF9i4AIoakPCKeyWdAYCwAUvPMLzRAsDQussrDwCPCNx+BLhEaGV97rxL2dllmAZkVNefumEbFQsRlXhhRiJt/RciUt/d1t75Cu6vF0i4NfMRsnRBU7sb7tuxpt6jbtm5HRvRqnidsWnr9XZOnJNzV+dA39rw/wMAITyn67pEpTGDMOJalm95Z7Q6kFdDipndujg72suiEQ5zpwbg6rpenZ4wpljzMJzaanV4BELhqmIaPL0fnSbMeB4KAxG+7Bz7AR7bNVkLvYTOAAAAAElFTkSuQmCC'
-            ),
-            tk.PhotoImage(
-                name='his',
-                data='iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAn9JREFUWEetV9tx4zAMXFjXR5xO7P94JhXEViU5VyIpFdyM8h+nklMhsXAGJdESCT6UnH4FAgtgQS4IP/ieK97K8T8ldd91Q7kHJdjXBkci7MDYKec6EARIw1d07yVdcnwnAUjgK+H15vyU49DaMOqCcU5VJwrgqeHXm8HvVYGXxh0D9fuRziEfKgCTdYEqUGrxNfR8KDnAEC4YPgS+ruix16rhATDBN/jQHLJUo8en1l/DEWBLhGOgXSoID8DhjT/czCVwrIxu1pawfvu69kiPc/sFADV4j32I0cIRcRYCp3KIUbcnKicQFsBTxTsaSn8nciK4JajjdO7j8MYnMKqQXwvAy55Qti9Uh1i1sCdc2hfah2yVSthWGAAeyoTD8cydKwl7jdg8VncAUHM1Z+70Mzb/ayqgJjm2bQDQ8N/Z2HlM1YCsBTBWQeJMn4kzAbhN2vhFCOWQK7sF0zmXZ0WPR/LYnyCf6iyDM3LOJaO0mlwCCqrUA6KRsLjCzrb813xoyf4fADpb5Xk+z0dZmbbSa0HOBHgVCI/LgtAqAJedKwB4N5yHwyG0ywFDQm88MqfAkEqu70J/hjVVpE6BUs6seyB2SQWv74a9cVev4tw2rAGh9V8IagCEbqk1AVK2h3n2AKZxvz/Hjv5bK0Ky3w2j4O4CxwJQqrAwTGUY7Lvz0IldK+J+/FxF5IuHlXJs8V4owV1+eZpQlVGEC19xzl02xitXVNBCKWttVWV5cB9g1NjgU1NKMyEqC4wn0UOcCi4mmpZz+jzfB2M7AWJjHd2MIvI6j5MZ61lyN7T3RP5+aNaxXz2anGc9C8CUrt1+CmyZ8UDDSgaeVrTA1hQr1z/YEshuS7ifxQAAAABJRU5ErkJggg=='
-            ),
             tk.PhotoImage(
                 name='right',
                 data='iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAM5JREFUOE+1ksENgkAUROejBRBsABMhsQqlEzguFiEWYTgClUAXJuKBBkQKwP2KiagcXJSwt012Zt5MljDw0EA9xjfQw4NJPI2Yaq8Sy6JLrCSY7Y8uE0UAF5KuTtdEaWCEpwjM7jOZmL3zxo7be4Oo8SQFyOw9KCGQqJOGhvQwX2uMtLe4jaa4FAvvfwNwUfr2nF4V3hm+12Egu/iW0yh+HvGuCEph7domqu5GmG/BCJp3kuBUwso+WFUGj3+gaSsJTrriXhVUAcoNRje4AS5HThGKogbHAAAAAElFTkSuQmCC'
@@ -62,37 +48,24 @@ class MainWindow:
                 data='iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAPxJREFUOE+dk0EOgjAQRf8Q3KsnwERMvAWcRF3CJdRLyFI9idzCREzkBOhe7RhaFEq0VbvszLz2z58hGE432XuXaJybcqgdLIscdOZgntYxzkFOKnBdtoEaoJ9kczAWn18sQbQpIn/5zHkB7MUNLGHxhEhAN8kCh7EzadVjnAu6h6UcCegnx7Wu2Y5iID3HfqgAq8MJIM9e1szgvIhHgwqQsQw1tL2DKYfciWp0BZCX7J6+B9QWF7FPf0vQetBbZTsCgp96IOdhOKtsbMj4kiLoNnjZqKy0TWFNFoTwEvmp6nt19A4bvtFyyrBMIqhnQ+2AwG1rXKZ3m2lb5wfrMX4RRvB8VgAAAABJRU5ErkJggg=='
             )
         ]
-        col_top = None
-        history_top = None
         state_bar = ttk.Frame(self.root)
         state_bar.pack(side=tk.BOTTOM, fill=tk.X)
         ttk.Separator(self.root, orient=tk.HORIZONTAL).pack(side=tk.BOTTOM, fill=tk.X)
-        side_bar = ttk.Frame(self.root)
-        label1 = ttk.Label(side_bar, image='col')
-        label2 = ttk.Label(side_bar, image='var')
-        label3 = ttk.Label(side_bar, image='his')
-        label1.bind('<Button-1>', lambda e: self.main_bar_show('col', col_top, history_top))
-        label2.bind('<Button-1>', lambda e: self.main_bar_show('var', col_top, history_top))
-        label3.bind('<Button-1>', lambda e: self.main_bar_show('his', col_top, history_top))
-        label1.pack(padx=3, pady=3)
-        label2.pack()
-        label3.pack(padx=3, pady=3)
-        side_bar.pack(side=tk.LEFT, fill=tk.Y)
         panel_window = ttk.PanedWindow(self.root, orient="horizontal")
-        main_bar = ttk.Frame(panel_window)
-        col_top = ttk.Frame(main_bar)
+        nba = ttk.Notebook(panel_window)
+        col_top = ttk.Frame(nba)
         self.col_win = CollectionWindow(col_top, **{"callback": self.collection})
-        col_top.pack(fill='both', expand=True)
-        self.sidebar = 'col'
-        self.env_win = EnvironmentWindow(master=main_bar, callback=self.environment)
-        history_top = ttk.Frame(main_bar)
+        nba.add(col_top, text="Col")
+        self.env_win = EnvironmentWindow(master=nba, callback=self.environment)
+        nba.add(self.env_win.root, text="Env")
+        history_top = ttk.Frame(nba)
         self.history_window = HistoryWindow(history_top, self.history)
-        panel_window.add(main_bar, weight=1)
-        main_frame = ttk.Frame(panel_window)
-        nbb = ttk.Notebook(main_frame)
+        nba.add(history_top, text="His")
+        panel_window.add(nba)
+        nbb = ttk.Notebook(panel_window)
         nbb.pack(fill='both', expand=True)
         self.nbb = nbb
-        panel_window.add(main_frame, weight=10)
+        panel_window.add(nbb, weight=10)
         panel_window.pack(fill='both', expand=True)
 
         menu = tk.Menu(self.root)
@@ -138,24 +111,6 @@ class MainWindow:
         btn2.pack(side="right")
         btn3.pack(side="right")
         btn4.pack(side="right")
-
-    def main_bar_show(self, name, col_box, his_box):
-        if self.sidebar != name:
-            if self.sidebar == 'col':
-                col_box.forget()
-            elif self.sidebar == 'var':
-                self.env_win.root.forget()
-            elif self.sidebar == 'his':
-                his_box.forget()
-
-            if name == 'col':
-                col_box.pack(fill='both', expand=True)
-            elif name == 'var':
-                self.env_win.root.pack(fill='both', expand=True)
-            elif name == 'his':
-                his_box.pack(fill='both', expand=True)
-
-            self.sidebar = name
 
     def new_request(self, data=None, **kwargs):
         tl = ttk.Frame(self.nbb)
