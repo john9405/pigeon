@@ -19,3 +19,6 @@ pyinstaller __main__.py -n ApiTest -w -y --hidden-import cryptojwt --clean --one
 
 bug：
 1.文件夹剪切时会导致子文件夹和请求丢失
+
+todo:
+1.改用sqlite存储数据
