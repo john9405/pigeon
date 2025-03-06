@@ -1,11 +1,11 @@
 import os
 import json
 import platform
-import uuid
 import tkinter as tk
 from tkinter import ttk
 
 from . import WORK_DIR
+from .dao.crud import list_history, create_history, delete_history, retrieve_history, delete_all_history
 
 
 class HistoryWindow:
@@ -18,67 +18,86 @@ class HistoryWindow:
         self.window = window
         self.callback = callback
 
-        self.history_box = tk.Listbox(window)
-        scrollbar = ttk.Scrollbar(window, command=self.history_box.yview)
+        self.treeview = ttk.Treeview(window, show='headings', columns=("method", "url"))
+        self.treeview.heading("#1", text="Method")
+        self.treeview.heading("#2", text="URL")
+        self.treeview.column("#1", width=1)
+        self.treeview.column("#2", width=100)
+        scrollbar = ttk.Scrollbar(window, command=self.treeview.yview)
         scrollbar.pack(fill=tk.Y, side=tk.RIGHT)
-        self.history_box.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.YES)
-
-        self.history_box.bind("<Double-Button-1>", self.on_select)
+        self.treeview.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.YES)
+        self.treeview.config(yscrollcommand=scrollbar.set)
+        self.treeview.bind("<Double-Button-1>", self.on_select)
         if platform.system() == "Darwin":
-            self.history_box.bind("<Control-Button-1>", self.on_right_click)
-            self.history_box.bind("<Button-2>", self.on_right_click)
+            self.treeview.bind("<Control-Button-1>", self.on_right_click)
+            self.treeview.bind("<Button-2>", self.on_right_click)
         else:
-            self.history_box.bind("<Button-3>", self.on_right_click)
-        self.history_box.config(yscrollcommand=scrollbar.set)
+            self.treeview.bind("<Button-3>", self.on_right_click)
 
     def on_delete(self):
-        selection = self.history_box.curselection()
-        if selection:
-            self.history_box.delete(selection)
-            i = len(self.history_list) - selection[0] - 1
-            self.history_list.pop(i)
+        if len(self.treeview.selection()) > 0:
+            for item_id in self.treeview.selection():
+                item = self.treeview.item(item_id)
+                delete_history(**{"id": item['text']})
+                self.treeview.delete(item_id)
 
     def on_clear(self):
-        self.history_box.delete(0, tk.END)
-        self.history_list = []
+        self.treeview.delete(*self.treeview.get_children())
+        delete_all_history()
 
     def on_select(self, event):
-        selection = event.widget.curselection()
-        if selection:
-            index = selection[0]
-            i = len(self.history_list) - index - 1
-            if 'uuid' not in self.history_list[i]:
-                self.history_list[i].update({"uuid": str(uuid.uuid1())})
-            self.callback(data=self.history_list[i])
+        item_id = self.treeview.identify_row(event.y)
+        if item_id:
+            item = self.treeview.item(item_id)
+            data = retrieve_history(**{"id": item['text']})
+            if data is None:
+                return
+            self.callback(data={
+                "uuid": data['id'],
+                'method': data['method'],
+                'url': data['url'],
+                'params': json.loads(data['params']),
+                'headers': json.loads(data['headers']),
+                'body': json.loads(data['body']),
+                'auth': json.loads(data['auth']),
+                'pre_script': data['pre_script'],
+                'post_script': data['post_script']
+            })
 
     def on_right_click(self, event):
-        self.history_box.selection_clear(0, tk.END)
-        index = self.history_box.nearest(event.y)
-        self.history_box.selection_set(index)
+        region = self.treeview.identify('region', event.x, event.y)
         menu = tk.Menu(self.window, tearoff=0)
-        menu.add_command(label="Open", command=lambda: self.on_select(event))
-        menu.add_command(label="Delete", command=self.on_delete)
-        menu.add_command(label="Clear", command=self.on_clear)
+        if region == 'cell':
+            if len(self.treeview.selection()) <= 0:
+                item_id = self.treeview.identify_row(event.y)
+                self.treeview.selection_set(item_id)
+            menu.add_command(label="Open", command=lambda: self.on_select(event))
+            menu.add_command(label="Delete", command=self.on_delete)
+            menu.add_command(label="Clear", command=self.on_clear)
+        elif region == 'nothing':
+            menu.add_command(label="Clear", command=self.on_clear)
         menu.post(event.x_root, event.y_root)
 
     def on_start(self):
-        if os.path.exists(self.cache_file):
-            with open(self.cache_file, "r", encoding="utf-8") as file:
-                try:
-                    data = file.read()
-                    data = json.loads(data)
-                except json.JSONDecodeError:
-                    return
-                self.history_box.delete(0, tk.END)
-                for item in data:
-                    self.history_list.append(item)
-                    self.history_box.insert(0, f"{item.get('method' '')} {item.get('url', '')}")
+        data = list_history()
+        for item in data:
+            self.treeview.insert("", 0, text=item['id'], values=(item.get('method', ''), item.get('url', '')))
 
     def on_end(self):
-        with open(self.cache_file, "w", encoding="utf-8") as file:
-            file.write(json.dumps(self.history_list))
+        pass
 
     def on_cache(self, data):
-        data.update({"uuid": str(uuid.uuid1())})
-        self.history_list.append(data)
-        self.history_box.insert(0, f"{data.get('method' '')} {data.get('url', '')}")
+        inserted_id = create_history(**{
+            "method": data.get('method', ''),
+            "url": data.get('url', ''),
+            "params": json.dumps(data.get('params', {})),
+            "headers": json.dumps(data.get('headers', {})),
+            "body": json.dumps(data.get('body', {})),
+            "auth": json.dumps(data.get('auth', {})),
+            "pre_script": data.get('pre_request_script', ''),
+            "post_script":data.get("tests", ""),
+            "res_body":"",
+            "res_headers":"",
+            "res_cookies":""
+        })
+        self.treeview.insert("", 0, text=inserted_id, values=(data.get('method' ''), data.get('url', '')))

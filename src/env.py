@@ -1,25 +1,19 @@
-import json
-import os
 import platform
 import tkinter as tk
 from tkinter import ttk, simpledialog, messagebox
 
-from . import WORK_DIR
-from .utils import EditorTable
+from .dao.crud import *
 
 
 class EnvironmentWindow:
-    cache_file = os.path.join(WORK_DIR, "environment.json")
-    data = []
 
     def __init__(self, master=None, **kwargs):
         self.callback = kwargs.get("callback")
         self.root = ttk.Frame(master)
-
         self.treeview = ttk.Treeview(self.root, show='headings', columns=("name", "status"))
         scroll_y = ttk.Scrollbar(self.root, orient=tk.VERTICAL, command=self.treeview.yview)
-        self.treeview.column("#1", anchor="w", width=1)
-        self.treeview.column("#2", anchor="center", width=1)
+        self.treeview.column("#1", anchor="w", width=100)
+        self.treeview.column("#2", anchor="e", width=1)
         self.treeview.heading("#1", text="Name (+)", anchor="center")
         self.treeview.heading("#2", text="Status", anchor="center")
         scroll_y.pack(side=tk.RIGHT, fill=tk.Y)
@@ -34,31 +28,13 @@ class EnvironmentWindow:
         self.treeview.config(yscrollcommand=scroll_y.set)
 
     def on_start(self):
-        if os.path.exists(self.cache_file):
-            with open(self.cache_file, "r", encoding="utf-8") as f:
-                data = f.read()
-            try:
-                data = json.loads(data)
-            except json.JSONDecodeError:
-                pass
-
-        self.treeview.insert("", tk.END, values=("Globals", ""))
-        flag = False
+        data = list_album()
         for item in data:
-            if item.get('name') == "Globals":
-                flag = True
-                continue
-            self.treeview.insert("", tk.END, values=(
-                item.get('name'),
-                "@" if item.get('is_active') else ""
-            ))
-        if not flag:
-            data.append({"name": "Globals", "items": [], "is_active": False})
-        self.data = data
+            self.treeview.insert("", tk.END, text=item.get('id'), values=(
+                item.get('name'), "@" if item.get('is_active') else ""))
 
     def on_end(self):
-        with open(self.cache_file, "w", encoding="utf-8") as f:
-            f.write(json.dumps(self.data))
+        pass
 
     def on_click(self, event):
         region = self.treeview.identify('region', event.x, event.y)
@@ -70,14 +46,9 @@ class EnvironmentWindow:
     def on_select(self, event):
         item_id = self.treeview.identify_row(event.y)
         if item_id:
-            index = self.treeview.index(item_id)
             self.treeview.selection_set(item_id)
-            self.callback(
-                collection=self.data[index]['name'],
-                data=self.data[index]['items'],
-                item_id=item_id,
-                index=index
-            )
+            item = self.treeview.item(item_id)
+            self.callback(action="edit", collection=item['values'][0], data_id=item['text'], item_id=item_id)
 
     def on_right_click(self, event):
         item_id = self.treeview.identify_row(event.y)
@@ -92,96 +63,137 @@ class EnvironmentWindow:
             menu.post(event.x_root, event.y_root)
 
     def on_add(self):
-        name = simpledialog.askstring("New Environment", prompt="Name", initialvalue="New Environment", parent=self.root)
+        name = simpledialog.askstring("New Environment", prompt="Name", initialvalue="New Environment",
+                                      parent=self.root)
         if name is not None:
             if name == "Globals":
                 messagebox.showwarning("Warning", "Reserved words")
                 return self.on_add()
 
-            self.data.append({"name": name, "items": [], "is_active": False})
-            self.treeview.insert("", tk.END, values=(name, ""))
+            _id = create_album(name=name)
+            self.treeview.insert("", tk.END, text=_id, values=(name, ""))
 
     def on_delete(self):
         if len(self.treeview.selection()) > 0:
-            item_id = self.treeview.selection()[0]
-            item = self.treeview.item(item_id)
-            if item["values"][0] != "Globals":
-                self.data.pop(item["values"][0])
-                self.treeview.delete(self.treeview.selection())
-            else:
-                messagebox.showwarning("Warning", "non-deletable")
+            for item_id in self.treeview.selection():
+                item = self.treeview.item(item_id)
+                if item["values"][0] != "Globals":
+                    delete_album(id=item['text'])
+                    self.treeview.delete(self.treeview.selection())
 
-    def set_variable(self, item_id, collection, data):
-        index = self.treeview.index(item_id)
-        is_active = self.data[index]['is_active']
-        self.data[index].update({"name": collection, "items": data, 'is_active': is_active})
-        self.treeview.item(item_id, values=(collection, "@" if is_active else ""))
+    def set_variable(self, item_id, collection):
+        item = self.treeview.item(item_id)
+        self.treeview.item(item_id, values=(collection, item['values'][1]))
+        self.callback(
+            action="rename",
+            collection=collection,
+            item_id=item_id)
 
     def set_active(self, item_id):
         item = self.treeview.item(item_id)
         if item["values"][0] == 'Globals':
             return
-        index = self.treeview.index(item_id)
+
         # 去除活动标记
         for child_id in self.treeview.get_children():
             child = self.treeview.item(child_id)
             self.treeview.item(child_id, values=(child['values'][0], ""))
-        for xtem in self.data:
-            xtem['is_active'] = False
+
         # 标记活动
-        self.treeview.item(item_id, values=(self.data[index]['name'], "@"))
-        self.data[index]['is_active'] = True
-        return
+        self.treeview.item(item_id, values=(item["values"][0], "@"))
+        active_album(id=item['text'])
 
     def get_globals(self, name):
-        for item in self.data:
-            if item['name'] == 'Globals':
-                for var in item['items']:
-                    if var['name'] == name:
-                        return var['value']
-        return None
+        return retrieve_global_variable(name=name)
 
     def get_variable(self, name):
-        for item in self.data:
-            if item['is_active']:
-                for var in item['items']:
-                    if var['name'] == name:
-                        return var['value']
-        return None
+        return retrieve_active_variable(name=name)
 
 
 class VariableWindow:
+    delete_list = []
 
     def __init__(self, master=None, **kwargs):
         self.root = master
         frame = ttk.Frame(self.root)
-        name = tk.StringVar(value=kwargs.get('collection'))
-        ttk.Button(
-            frame,
-            command=lambda: self.on_save({
-                "item_id": kwargs.get("item_id"),
-                "collection": name.get(),
-                "items": edit_table.get_data()
-            }, kwargs.get("set_variable")),
-            text="Save",
-        ).pack(side=tk.RIGHT, padx=5)
-        if kwargs.get("collection") != 'Globals':
-            ttk.Label(frame, text="Name").pack(side=tk.LEFT)
-            ttk.Entry(frame, textvariable=name).pack(side=tk.LEFT)
-            ttk.Button(
-                frame,
-                text="Active",
-                command=lambda: kwargs.get("set_active")(kwargs.get("item_id")),
-            ).pack(side=tk.RIGHT)
-        frame.pack(fill=tk.X)
-        edit_table = EditorTable(self.root, editable=True)
-        data = kwargs.get("data")
-        if data is not None:
-            edit_table.set_data({item['name']: item['value'] for item in data})
-        edit_table.pack(fill=tk.BOTH, expand=tk.YES)
+        self.data_id = kwargs.get('data_id')
+        self.parent_id = kwargs.get('item_id')
+        self.col_name = kwargs.get('collection')
+        self.callback = kwargs.get('set_variable')
 
-    def on_save(self, data, callback):
-        data_list = []
-        for key in data['items']:
-            data_list.append({"name": key, "value": data['items'][key]})
-        callback(data['item_id'], data['collection'], data_list)
+        ttk.Button(frame, text='Save', command=self.on_save).pack(side=tk.RIGHT)
+        if kwargs.get("collection") != 'Globals':
+            ttk.Button(frame,text="Active", command=lambda: kwargs.get("set_active")(kwargs.get("item_id"))).pack(side=tk.RIGHT)
+            ttk.Button(frame, text='Rename', command=self.on_rename).pack(side=tk.RIGHT)
+        ttk.Button(frame, text='Add', command=self.on_add).pack(side=tk.RIGHT)
+        frame.pack(fill=tk.X)
+        self.treeview = ttk.Treeview(self.root, show='headings', columns=("name", "value", "action"))
+        self.treeview.heading("#1", text="Name", anchor="center")
+        self.treeview.heading("#2", text="Value", anchor="center")
+        self.treeview.heading("#3", text="Action", anchor="center")
+        self.treeview.column("#1", anchor="w", width=1)
+        self.treeview.column("#2", anchor="w", width=3)
+        self.treeview.column("#3", anchor="w", width=1)
+        self.treeview.pack(fill=tk.BOTH, expand=tk.YES)
+        self.treeview.bind("<Button-1>", self.on_click)
+        self.treeview.bind("<Double-1>", self.on_double_click)
+
+        data = list_variable(belong_name="album", belong_id=kwargs.get("data_id"))
+        for item in data:
+            self.treeview.insert("", tk.END, text=item['id'], values=(item['name'], item['content'], "Delete"))
+
+    def on_add(self):
+        name = simpledialog.askstring("New Variable", prompt="Name", initialvalue="New Variable", parent=self.root)
+        if name is not None:
+            value = simpledialog.askstring("New Variable", prompt="Value", initialvalue="New Value", parent=self.root)
+            if value is not None:
+                self.treeview.insert("", tk.END, text='', values=(name, value, "Delete"))
+
+    def on_click(self, event):
+        region = self.treeview.identify('region', event.x, event.y)
+        if region == 'cell':
+            column = self.treeview.identify_column(event.x)
+            item_id = self.treeview.identify_row(event.y)
+            item = self.treeview.item(item_id)
+            if column == "#3":
+                if messagebox.askyesno("Confirm", "Are you sure you want to delete this variable?"):
+                    self.delete_list.append(item['text'])
+                    self.treeview.delete(item_id)
+
+    def on_double_click(self, event):
+        region = self.treeview.identify('region', event.x, event.y)
+        if region == 'cell':
+            column = self.treeview.identify_column(event.x)
+            item_id = self.treeview.identify_row(event.y)
+            item = self.treeview.item(item_id)
+
+            if column == "#1":
+                value = simpledialog.askstring("Edit Variable", prompt="Name", initialvalue=item['values'][0],
+                                               parent=self.root)
+                if value is not None:
+                    self.treeview.item(item_id, values=(value, item['values'][1], 'Delete'))
+
+            elif column == "#2":
+                value = simpledialog.askstring("Edit Variable", prompt="Value", initialvalue=item['values'][1],
+                                               parent=self.root)
+                if value is not None:
+                    self.treeview.item(item_id, values=(item['values'][0], value, 'Delete'))
+
+    def on_rename(self):
+        value = simpledialog.askstring("Rename", prompt="New Name", initialvalue=self.col_name, parent=self.root)
+        if value is not None:
+            update_album(name=value, id=self.data_id)
+            self.callback(self.parent_id, value)
+
+    def on_save(self):
+        items = self.treeview.get_children()
+        for item_id in items:
+            item = self.treeview.item(item_id)
+            if item['text'] == '':
+                data_id = create_variable(name=item['values'][0], content=item['values'][1], belong_name="album", belong_id=self.data_id)
+                self.treeview.item(item_id, text=data_id)
+            else:
+                update_variable(id=item['text'], name=item['values'][0], content=item['values'][1])
+
+        for data_id in self.delete_list:
+            delete_variable(id=data_id)

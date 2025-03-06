@@ -1,9 +1,9 @@
 import json
+import os
 import platform
 import threading
 import tkinter as tk
-from tkinter import messagebox, ttk
-from tkinter import filedialog
+from tkinter import filedialog, messagebox, ttk, simpledialog
 from tkinter.scrolledtext import ScrolledText
 import time
 import re
@@ -31,7 +31,7 @@ from oauthlib.oauth1 import (
 from bs4 import BeautifulSoup
 from PIL import Image, ImageTk
 
-from . import USER_DIR
+from .dao.crud import update_request
 from .utils import EditorTable
 
 
@@ -143,7 +143,7 @@ class OauthFrame(ttk.Frame):
         self.main_frame.pack(fill="x")
 
     def on_open(self):
-        filepath = filedialog.askopenfilename(initialdir=USER_DIR)
+        filepath = filedialog.askopenfilename(initialdir=os.path.expanduser("~"))
         if filepath:
             with open(filepath, "r", encoding="utf-8") as f:
                 self.rsa_key_text.delete("1.0", "end")
@@ -385,6 +385,9 @@ class BodyFrame:
 
 class RequestWindow:
     item_id = None
+    data_id = None
+    data_name = 'New Request'
+    data_path = ''
     method_list = ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]
 
     def __init__(self, **kwargs):
@@ -398,15 +401,15 @@ class RequestWindow:
         self.cache_history = kwargs.get('cache_history')
         self.save_item = kwargs.get('save_item')
         self.callback = kwargs.get("callback")
+        self.data_path = kwargs.get('path', '')
+        self.filepath = tk.StringVar(value=self.data_path + self.data_name)
 
         ff = ttk.Frame(window)
         ff.pack(fill=tk.X)
-        ttk.Label(ff, text=kwargs.get('path', 'Name:')).pack(side=tk.LEFT)
+        ttk.Label(ff, textvariable=self.filepath).pack(side=tk.LEFT)
         save_btn = ttk.Button(ff, text="Save", command=self.save_handler)
         save_btn.pack(side=tk.RIGHT)
-        self.name_entry = ttk.Entry(ff)
-        self.name_entry.insert(0, "New Request")
-        self.name_entry.pack(fill='both', pady=3)
+        ttk.Button(ff, text='Rename', command=self.on_rename).pack(side=tk.RIGHT)
 
         north = ttk.Frame(window)
         north.pack(fill=tk.X)
@@ -470,9 +473,21 @@ class RequestWindow:
         self.res_tests_box = ConsoleText(res_note)
         res_note.add(self.res_tests_box, text="Console")
 
+    def on_rename(self):
+        if self.data_id is None:
+            messagebox.showwarning("Warning", "Please save it first.")
+            return
+        name = simpledialog.askstring("Rename", "Enter new name:", initialvalue=self.data_name, parent=self.root)
+        if name is not None:
+            update_request(**{"id": self.data_id, "name": name})
+            self.data_name = name
+            self.filepath.set(self.data_path + self.data_name)
+            self.save_item(self.item_id, {'name': name})
+            self.callback(name=name, item_id=self.item_id)
+
     def save_handler(self):
         """Save test script"""
-        name = self.name_entry.get()
+        name = self.data_name
         method = self.method_box.get()
         url = self.url.get()
         params = self.params_frame.get_data()
@@ -488,32 +503,46 @@ class RequestWindow:
             name = url
         elif name == "":
             name = "New Request"
-
-        self.item_id = self.save_item(self.item_id, {
-            "method": method,
-            "url": url,
-            "params": params,
-            "headers": headers,
-            "body": body,
-            "pre_request_script": pre_request_script,
-            "tests": tests,
-            "name": name,
-            "auth": opt_auth,
-        })
+        if self.data_id is None:
+            self.item_id, self.data_id = self.save_item(self.item_id, {
+                "method": method,
+                "url": url,
+                "params": params,
+                "headers": headers,
+                "body": body,
+                "pre_script": pre_request_script,
+                "post_script": tests,
+                "name": name,
+                "auth": opt_auth,
+            })
+        else:
+            update_request(**{
+                "method": method,
+                "url": url,
+                "params": json.dumps(params),
+                "headers": json.dumps(headers),
+                "body": json.dumps(body),
+                "pre_script": pre_request_script,
+                "post_script": tests,
+                "name": name,
+                "auth": json.dumps(opt_auth),
+                "id": self.data_id
+            })
+            self.save_item(self.item_id, {'name': name})
         self.callback(name=name, item_id=self.item_id)
 
     def fill_blank(self, data):
-        method = data.get("method", "GET")
-        self.method_box.current(self.method_list.index(method))
+        self.data_id = data.get("id")
+        self.method_box.current(self.method_list.index(data.get("method", "GET")))
         self.url.set(data.get("url", ""))
         self.headers_frame.set_data(data.get("headers", {}))
         self.body_box.insert(data.get("body", {}))
         self.script_box.delete("1.0", tk.END)
-        self.script_box.insert(tk.END, data.get("pre_request_script", ""))
+        self.script_box.insert(tk.END, data.get("pre_script", ""))
         self.tests_box.delete("1.0", tk.END)
-        self.tests_box.insert(tk.END, data.get("tests", ""))
-        self.name_entry.delete(0, tk.END)
-        self.name_entry.insert(tk.END, data.get("name", "New Request"))
+        self.tests_box.insert(tk.END, data.get("post_script", ""))
+        self.data_name = data.get("name", "New Request")
+        self.filepath.set(self.data_path + self.data_name)
         self.auth_frame.set(data.get("auth", {}))
 
     def send_request(self):
@@ -558,7 +587,7 @@ class RequestWindow:
             body = ""
         body = self.fill_var(body)
 
-        if (req_options.get("mode") == "urlencoded" or (req_options.get("mode") == "raw" and req_options.get("options") == "JSON")):
+        if req_options.get("mode") == "urlencoded" or (req_options.get("mode") == "raw" and req_options.get("options") == "JSON"):
             try:
                 body = json.loads(body)
             except json.JSONDecodeError:
@@ -710,7 +739,7 @@ class RequestWindow:
         else:
             self.res_body_box.insert(tk.END, response.text)
 
-        console.info(f"Get {url} {response.status_code} {cost_time}")
+        console.info(f"{method} {url} {response.status_code} {cost_time}")
         try:
             exec(tests, {
                 "res": response,
@@ -804,7 +833,7 @@ class Console:
             elif isinstance(item, (dict, list)):
                 temp += f"{json.dumps(item, indent=4, ensure_ascii=False)}"
             elif isinstance(item, bytes):
-                temp += f"{item.decode('utf-8')}"
+                temp += f"{item.decode()}"
             else:
                 temp += str(temp)
         return temp
