@@ -53,7 +53,13 @@ class CollectionWindow:
         if "item" in data:
             item = data.pop("item")
 
-        data_id = create_folder(name=data["name"], parent_id=0)
+        data_id = create_folder(
+            name=data["name"], 
+            parent_id=0,
+            pre_script=data.get("pre_script", ''),
+            post_script=data.get("post_script", ''),
+            description=data.get('description', '')
+            )
         node = self.tree.insert(
             "",
             tk.END,
@@ -62,8 +68,12 @@ class CollectionWindow:
             open=False,
         )
         for var in data.get('variable', []):
-            create_variable(name=var.get('name', ''), content=var.get('content', ''), belong_name='folder',
-                            belong_id=data_id)
+            create_variable(
+                name=var.get('name', ''), 
+                content=var.get('content', ''), 
+                belong_name='folder',
+                belong_id=data_id
+                )
 
         if item is not None:
             self.show_item(node, item)
@@ -73,7 +83,13 @@ class CollectionWindow:
         for item in items:
             if "item" in item:
                 childitem = item.pop("item")
-                data_id = create_folder(name=item["name"], parent_id=parent['values'][0])
+                data_id = create_folder(
+                    name=item["name"], 
+                    parent_id=parent['values'][0],
+                    pre_script=item.get("pre_script", ''),
+                    post_script=item.get("post_script", ''),
+                    description=item.get('description', '')
+                    )
                 cnode = self.tree.insert(node, tk.END, text=item["name"], values=[data_id, 'folder'], open=False, )
                 if len(childitem) > 0:
                     self.show_item(cnode, childitem)
