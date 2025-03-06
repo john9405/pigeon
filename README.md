@@ -16,3 +16,10 @@ pip install pyinstaller
 pip install cryptojwt  # JWE
 pyinstaller __main__.py -n ApiTest -w -y --hidden-import cryptojwt --clean --onefile
 ```
+
+use py2app
+```
+pip install py2app
+pip install cryptojwt
+python setup.py py2app -A
+```
